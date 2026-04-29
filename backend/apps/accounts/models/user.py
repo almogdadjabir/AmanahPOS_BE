@@ -26,6 +26,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         on_delete=models.SET_NULL,
         related_name="staff",
     )
+    default_shop = models.ForeignKey(
+        "tenants.Shop",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="default_users",
+    )
     is_verified = models.BooleanField(default=False)
     has_password = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

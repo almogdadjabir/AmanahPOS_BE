@@ -60,6 +60,11 @@
       "key": "sale_id",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "default_shop_id",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -191,13 +196,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "",
-                  "var d = pm.response.json();",
-                  "if (d.data) {",
-                  "    if (d.data.access)  pm.collectionVariables.set(\"access_token\",  d.data.access);",
-                  "    if (d.data.refresh) pm.collectionVariables.set(\"refresh_token\", d.data.refresh);",
-                  "}",
-                  ""
+                  "var r = pm.response.json();",
+                  "if (r.data) {",
+                  "    if (r.data.access)  pm.collectionVariables.set('access_token',  r.data.access);",
+                  "    if (r.data.refresh) pm.collectionVariables.set('refresh_token', r.data.refresh);",
+                  "    if (r.data.user) {",
+                  "        var u = r.data.user;",
+                  "        if (u.business_id)    pm.collectionVariables.set('business_id',    u.business_id);",
+                  "        if (u.default_shop_id) pm.collectionVariables.set('shop_id', u.default_shop_id);",
+                  "    }",
+                  "}"
                 ]
               }
             }
@@ -242,7 +250,27 @@
               "type": "noauth"
             }
           },
-          "response": []
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r = pm.response.json();",
+                  "if (r.data) {",
+                  "    if (r.data.access)  pm.collectionVariables.set('access_token',  r.data.access);",
+                  "    if (r.data.refresh) pm.collectionVariables.set('refresh_token', r.data.refresh);",
+                  "    if (r.data.user) {",
+                  "        var u = r.data.user;",
+                  "        if (u.business_id)    pm.collectionVariables.set('business_id',    u.business_id);",
+                  "        if (u.default_shop_id) pm.collectionVariables.set('shop_id', u.default_shop_id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Verify OTP (registration)",
@@ -289,13 +317,16 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "",
-                  "var d = pm.response.json();",
-                  "if (d.data) {",
-                  "    if (d.data.access)  pm.collectionVariables.set(\"access_token\",  d.data.access);",
-                  "    if (d.data.refresh) pm.collectionVariables.set(\"refresh_token\", d.data.refresh);",
-                  "}",
-                  ""
+                  "var r = pm.response.json();",
+                  "if (r.data) {",
+                  "    if (r.data.access)  pm.collectionVariables.set('access_token',  r.data.access);",
+                  "    if (r.data.refresh) pm.collectionVariables.set('refresh_token', r.data.refresh);",
+                  "    if (r.data.user) {",
+                  "        var u = r.data.user;",
+                  "        if (u.business_id)    pm.collectionVariables.set('business_id',    u.business_id);",
+                  "        if (u.default_shop_id) pm.collectionVariables.set('shop_id', u.default_shop_id);",
+                  "    }",
+                  "}"
                 ]
               }
             }
@@ -408,8 +439,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -456,8 +497,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -494,8 +545,18 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -541,8 +602,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -588,8 +659,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -635,8 +716,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -682,8 +773,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -720,8 +821,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -740,7 +851,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"+249911111111\",\n  \"full_name\": \"Ali Hassan\",\n  \"role\": \"cashier\"\n}",
+              "raw": "{\n  \"phone\": \"+249911111111\",\n  \"full_name\": \"Ali Hassan\",\n  \"role\": \"cashier\",\n  \"default_shop_id\": \"{{shop_id}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -780,8 +891,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -818,8 +939,18 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -865,8 +996,18 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -909,8 +1050,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -955,10 +1106,12 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "",
-                  "var d = pm.response.json();",
-                  "if (d.data && d.data.id) pm.collectionVariables.set(\"business_id\", d.data.id);",
-                  ""
+                  "var r = pm.response.json();",
+                  "if (r.data && r.data.id) {",
+                  "    pm.collectionVariables.set('business_id', r.data.id);",
+                  "    var shops = r.data.shops;",
+                  "    if (shops && shops.length > 0) pm.collectionVariables.set('shop_id', shops[0].id);",
+                  "}"
                 ]
               }
             }
@@ -970,8 +1123,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1008,8 +1171,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1047,8 +1220,18 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1095,8 +1278,18 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1139,8 +1332,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1202,8 +1405,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1242,8 +1455,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1283,8 +1506,18 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1338,8 +1571,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1399,8 +1642,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1446,8 +1699,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1484,8 +1747,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1525,10 +1798,16 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
-              "raw": "http://localhost:8080/api/v1/products/categories/{{category_id}}/products/?page=1&page_size=20/",
+              "raw": "http://localhost:8080/api/v1/products/categories/{{category_id}}/products/?page=1&page_size=20",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -1562,8 +1841,18 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1610,8 +1899,18 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1654,8 +1953,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1714,8 +2023,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1751,8 +2070,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1789,8 +2118,18 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1836,8 +2175,18 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1879,8 +2228,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1901,7 +2260,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"product\": \"{{product_id}}\",\n  \"shop\": \"{{shop_id}}\",\n  \"movement_type\": \"purchase\",\n  \"quantity\": \"50\",\n  \"reference\": \"PO-001\"\n}",
+              "raw": "{\n  \"product\": \"{{product_id}}\",\n  \"shop\": \"{{shop_id}}\",\n  \"movement_type\": \"in\",\n  \"quantity\": \"50\",\n  \"reference\": \"PO-001\",\n  \"notes\": \"Initial stock\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1927,8 +2286,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -1975,8 +2344,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2023,8 +2402,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2061,8 +2450,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2104,8 +2503,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2164,8 +2573,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2201,8 +2620,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2239,8 +2668,18 @@
             "method": "PATCH",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2286,8 +2725,18 @@
             "method": "DELETE",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2329,8 +2778,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2389,8 +2848,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2435,8 +2904,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2472,8 +2951,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2510,8 +2999,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2548,8 +3047,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2601,8 +3110,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2639,8 +3158,18 @@
             "method": "POST",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2686,8 +3215,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {
@@ -2724,8 +3263,18 @@
             "method": "GET",
             "header": [
               {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
               }
             ],
             "url": {

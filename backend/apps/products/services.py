@@ -12,13 +12,19 @@ logger = logging.getLogger(__name__)
 
 def get_tenant_from_request(request):
     """
-    Extract the active tenant (Business) from the request.
-    Checks X-Tenant-ID header or falls back to the user's first business.
+    Resolve the active Business (tenant) for the requesting user.
+
+    Managers and cashiers are assigned to a single business when created,
+    so we use that directly. Owners may have multiple businesses and can
+    select one via the X-Tenant-ID header or tenant_id query param.
     """
+    user = request.user
+    if user.role != "owner":
+        return user.business
     tenant_id = request.headers.get("X-Tenant-ID") or request.query_params.get("tenant_id")
     if tenant_id:
-        return Business.objects.get(pk=tenant_id, owner=request.user)
-    return Business.objects.filter(owner=request.user, is_active=True).first()
+        return Business.objects.filter(pk=tenant_id, owner=user, is_active=True).first()
+    return Business.objects.filter(owner=user, is_active=True).first()
 
 
 def create_product(tenant: Business, data: dict) -> Product:

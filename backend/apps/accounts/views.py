@@ -272,7 +272,10 @@ class UserListCreateView(APIView):
         })
 
     def post(self, request):
-        serializer = StaffUserCreateSerializer(data=request.data)
+        serializer = StaffUserCreateSerializer(
+            data=request.data,
+            context={"business": request.user.business},
+        )
         serializer.is_valid(raise_exception=True)
         d = serializer.validated_data
 
@@ -281,6 +284,7 @@ class UserListCreateView(APIView):
             full_name=d["full_name"],
             role=d["role"],
             business=request.user.business,
+            default_shop_id=d.get("default_shop_id"),
             is_verified=False,
         )
         return Response(

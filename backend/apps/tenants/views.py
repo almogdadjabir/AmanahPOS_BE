@@ -37,10 +37,12 @@ class BusinessListCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        businesses = Business.objects.filter(
-            owner=request.user
-        ).prefetch_related("shops", "subscription_plan")
-        serializer = BusinessSerializer(businesses, many=True)
+        user = request.user
+        if user.role == "owner":
+            qs = Business.objects.filter(owner=user)
+        else:
+            qs = Business.objects.filter(pk=user.business_id) if user.business_id else Business.objects.none()
+        serializer = BusinessSerializer(qs.prefetch_related("shops", "subscription_plan"), many=True)
         return Response({"success": True, "data": serializer.data})
 
     def post(self, request):

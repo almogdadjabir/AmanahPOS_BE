@@ -19,8 +19,10 @@ echo "[entrypoint] PostgreSQL is up!"
 
 # ─── Wait for Redis ────────────────────────────────────────────────────────────
 echo "[entrypoint] Waiting for Redis..."
-REDIS_HOST=$(echo "${REDIS_URL:-redis://redis:6379/0}" | sed -E 's|redis://([^:]+):.*|\1|')
-REDIS_PORT=$(echo "${REDIS_URL:-redis://redis:6379/0}" | sed -E 's|redis://[^:]+:([0-9]+).*|\1|')
+# Strip credentials (redis://:pass@host:port) before parsing host/port
+_REDIS_URL_CLEAN=$(echo "${REDIS_URL:-redis://redis:6379/0}" | sed -E 's|redis://[^@]+@|redis://|')
+REDIS_HOST=$(echo "$_REDIS_URL_CLEAN" | sed -E 's|redis://([^:/]+).*|\1|')
+REDIS_PORT=$(echo "$_REDIS_URL_CLEAN" | sed -E 's|redis://[^:]+:([0-9]+).*|\1|')
 until nc -z "${REDIS_HOST:-redis}" "${REDIS_PORT:-6379}"; do
     echo "[entrypoint] Redis not ready - sleeping 2s..."
     sleep 2
@@ -30,9 +32,6 @@ echo "[entrypoint] Redis is up!"
 # ─── Run Migrations & Static (only for the gunicorn/web service) ──────────────
 CMD_CHECK="${1:-gunicorn}"
 if [ "$CMD_CHECK" = "gunicorn" ]; then
-    echo "[entrypoint] Creating migrations for all apps..."
-    python manage.py makemigrations --noinput
-
     echo "[entrypoint] Running database migrations..."
     python manage.py migrate --noinput
 
@@ -67,19 +66,24 @@ CMD="${1:-gunicorn}"
 case "$CMD" in
     gunicorn)
         echo "[entrypoint] Starting Gunicorn..."
-        exec gunicorn config.wsgi:application \
-            --bind 0.0.0.0:8000 \
-            --workers "${GUNICORN_WORKERS:-4}" \
-            --worker-class gthread \
-            --threads 2 \
-            --timeout "${GUNICORN_TIMEOUT:-120}" \
-            --keep-alive 5 \
-            --max-requests 1000 \
-            --max-requests-jitter 50 \
-            --log-level info \
-            --access-logfile - \
-            --error-logfile - \
-            --forwarded-allow-ips="*"
+        if [ "$#" -gt 1 ]; then
+            # Explicit command passed (used by docker-compose.prod.yml)
+            exec "$@"
+        else
+            exec gunicorn config.wsgi:application \
+                --bind 0.0.0.0:8000 \
+                --workers "${GUNICORN_WORKERS:-4}" \
+                --worker-class gthread \
+                --threads 2 \
+                --timeout "${GUNICORN_TIMEOUT:-120}" \
+                --keep-alive 5 \
+                --max-requests 1000 \
+                --max-requests-jitter 50 \
+                --log-level info \
+                --access-logfile - \
+                --error-logfile - \
+                --forwarded-allow-ips="*"
+        fi
         ;;
     celery)
         echo "[entrypoint] Starting Celery worker..."

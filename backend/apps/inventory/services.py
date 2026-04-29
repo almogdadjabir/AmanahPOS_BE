@@ -38,20 +38,25 @@ def add_stock(
     Returns:
         The created StockMovement record.
     """
+    _OUT_TYPES = {MovementType.OUT, MovementType.SALE, MovementType.TRANSFER_OUT}
+
     quantity = Decimal(str(quantity))
     if quantity <= 0:
-        raise ValueError("Quantity to add must be a positive number.")
+        raise ValueError("Quantity must be a positive number.")
+
+    # Out-type movements are stored as negative so the signal correctly decreases StockLevel
+    signed_qty = -quantity if movement_type in _OUT_TYPES else quantity
 
     movement = StockMovement.objects.create(
         product=product,
         shop=shop,
         movement_type=movement_type,
-        quantity=quantity,
+        quantity=signed_qty,
         reference=reference,
         notes=notes,
         created_by=created_by,
     )
-    logger.info("Stock added: product=%s shop=%s qty=%s", product.id, shop.id, quantity)
+    logger.info("Stock movement: product=%s shop=%s type=%s qty=%s", product.id, shop.id, movement_type, signed_qty)
     return movement
 
 

@@ -2,10 +2,14 @@
 AmanaPOS Production Settings
 =============================
 """
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.integrations.celery import CeleryIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
+    _SENTRY_AVAILABLE = True
+except ImportError:
+    _SENTRY_AVAILABLE = False
 
 from .base import *  # noqa: F401, F403
 from .base import env, MIDDLEWARE
@@ -52,7 +56,7 @@ MIDDLEWARE = [
 
 # ─── Sentry ───────────────────────────────────────────────────────────────────
 SENTRY_DSN = env("SENTRY_DSN", default="")
-if SENTRY_DSN:
+if SENTRY_DSN and _SENTRY_AVAILABLE:
     sentry_sdk.init(
         dsn=SENTRY_DSN,
         integrations=[

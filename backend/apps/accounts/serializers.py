@@ -68,6 +68,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "role",
             "is_verified",
             "has_password",
+            "business_id",
+            "default_shop_id",
             "created_at",
             "last_login_at",
         ]
@@ -77,6 +79,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "role",
             "is_verified",
             "has_password",
+            "business_id",
+            "default_shop_id",
             "created_at",
             "last_login_at",
         ]
@@ -146,7 +150,7 @@ class StaffUserSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             "id", "phone", "full_name", "role",
-            "is_verified", "is_active", "last_login_at", "created_at",
+            "is_verified", "is_active", "default_shop_id", "last_login_at", "created_at",
         ]
         read_only_fields = fields
 
@@ -156,6 +160,7 @@ class StaffUserCreateSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20)
     full_name = serializers.CharField(max_length=150)
     role = serializers.ChoiceField(choices=["manager", "cashier"])
+    default_shop_id = serializers.UUIDField(required=False, allow_null=True)
 
     def validate_phone(self, value):
         if not is_valid_phone(value):
@@ -164,6 +169,15 @@ class StaffUserCreateSerializer(serializers.Serializer):
         if CustomUser.objects.filter(phone=formatted).exists():
             raise serializers.ValidationError("A user with this phone already exists.")
         return formatted
+
+    def validate_default_shop_id(self, value):
+        if value is None:
+            return value
+        from apps.tenants.models import Shop
+        business = self.context.get("business")
+        if not Shop.objects.filter(pk=value, business=business, is_active=True).exists():
+            raise serializers.ValidationError("Shop not found in your business.")
+        return value
 
 
 class StaffUserUpdateSerializer(serializers.ModelSerializer):

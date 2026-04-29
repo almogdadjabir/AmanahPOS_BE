@@ -1,0 +1,188 @@
+x-app-common: &app-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+    target: final
+  env_file:
+    - .env.prod
+  volumes:
+    - static_volume:/app/staticfiles
+    - media_volume:/app/media
+  depends_on:
+    redis:
+      condition: service_healthy
+  networks:
+    - amanapos_net
+  restart: unless-stopped
+
+services:
+  # ─── Application ──────────────────────────────────────────────────────────────
+  app:
+    <<: *app-common
+    container_name: amanapos_app
+    command:
+      - gunicorn
+      - config.wsgi:application
+      - "--bind"
+      - "0.0.0.0:8000"
+      - "--workers"
+      - "4"
+      - "--worker-class"
+      - "gthread"
+      - "--threads"
+      - "2"
+      - "--timeout"
+      - "120"
+      - "--keep-alive"
+      - "5"
+      - "--max-requests"
+      - "1000"
+      - "--max-requests-jitter"
+      - "50"
+      - "--log-level"
+      - "info"
+      - "--access-logfile"
+      - "-"
+      - "--error-logfile"
+      - "-"
+      - "--forwarded-allow-ips=*"
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ─── Celery Worker ────────────────────────────────────────────────────────────
+  celery_worker:
+    <<: *app-common
+    container_name: amanapos_celery_worker
+    command: celery -A config.celery worker --loglevel=warning --concurrency=4 -Q default,notifications,reports
+    depends_on:
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config.celery inspect ping --timeout 5 2>/dev/null | grep -q pong"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+
+  # ─── Celery Beat ──────────────────────────────────────────────────────────────
+  celery_beat:
+    <<: *app-common
+    container_name: amanapos_celery_beat
+    command: celery -A config.celery beat --loglevel=warning --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      redis:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+
+  # ─── Redis (internal only — no public port) ───────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: amanapos_redis
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - amanapos_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── MinIO (S3-compatible storage — internal only) ────────────────────────────
+  minio:
+    image: minio/minio:latest
+    container_name: amanapos_minio
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - minio_data:/data
+    networks:
+      - amanapos_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ─── MinIO Init (create buckets on first start) ───────────────────────────────
+  minio_init:
+    image: minio/mc:latest
+    container_name: amanapos_minio_init
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - amanapos_net
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 $${AWS_ACCESS_KEY_ID} $${AWS_SECRET_ACCESS_KEY};
+      mc mb --ignore-existing myminio/$${AWS_S3_PUBLIC_BUCKET_NAME};
+      mc mb --ignore-existing myminio/$${AWS_S3_PRIVATE_BUCKET_NAME};
+      mc mb --ignore-existing myminio/$${AWS_STORAGE_BUCKET_NAME};
+      mc anonymous set public myminio/$${AWS_S3_PUBLIC_BUCKET_NAME};
+      echo 'MinIO buckets initialized';
+      "
+    env_file:
+      - .env.prod
+    restart: "no"
+
+  # ─── Nginx ────────────────────────────────────────────────────────────────────
+  nginx:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: amanapos_nginx
+    volumes:
+      - ./docker/nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - amanapos_net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+# ─── Volumes ──────────────────────────────────────────────────────────────────
+volumes:
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+
+# ─── Networks ─────────────────────────────────────────────────────────────────
+networks:
+  amanapos_net:
+    driver: bridge
