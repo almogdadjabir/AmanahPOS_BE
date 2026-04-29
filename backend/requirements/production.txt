@@ -1,0 +1,17 @@
+# =============================================================================
+# AmanaPOS - Production Requirements
+# =============================================================================
+-r base.txt
+
+# WSGI Server
+gunicorn==22.0.0
+
+# Monitoring & Error Tracking
+sentry-sdk==2.13.0
+django-health-check==3.18.3
+
+# Security
+django-ratelimit==4.1.0
+
+# Performance
+whitenoise==6.7.0
