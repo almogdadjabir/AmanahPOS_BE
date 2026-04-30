@@ -1,0 +1,171 @@
+{
+  "nav": {
+    "features": "Features",
+    "howItWorks": "How it works",
+    "pricing": "Pricing",
+    "download": "Download",
+    "signIn": "Sign in",
+    "getStarted": "Get started"
+  },
+  "hero": {
+    "eyebrow": "Built for Sudan · SDG ready",
+    "title": "The point of sale that fits",
+    "titleAccent": "the way you actually sell",
+    "description": "From corner kiosks to coffee shops, restaurants and laundries — AmanaPOS handles the till, inventory, staff and reports on a single phone. No bulky terminal, no contracts.",
+    "ctaPrimary": "Get started — it's free",
+    "ctaSecondary": "See how it works"
+  },
+  "heroStats": [
+    { "value": "1,200+", "label": "Merchants" },
+    { "value": "SDG", "label": "Native currency" },
+    { "value": "10%", "label": "VAT built in" },
+    { "value": "Offline", "label": "First-class" }
+  ],
+  "features": {
+    "eyebrow": "Why merchants pick us",
+    "title": "Everything a small shop needs. Nothing it doesn't.",
+    "subtitle": "One app for the till, the inventory, the staff and the numbers — designed for the realities of running a shop in Sudan.",
+    "items": [
+      {
+        "title": "Lightning checkout",
+        "description": "Tap, ring up, charge. Built for one-handed use on a phone, just as fast on tablet."
+      },
+      {
+        "title": "Inventory that keeps up",
+        "description": "Real-time stock, low-stock alerts, multi-location transfers and barcode-friendly SKUs."
+      },
+      {
+        "title": "Reports you actually read",
+        "description": "Daily takings, top sellers, peak hours, tax — on a single screen, exportable to PDF."
+      },
+      {
+        "title": "Staff & permissions",
+        "description": "Managers and cashiers, PIN logins, shift drawers and role-based access on every action."
+      },
+      {
+        "title": "Works offline",
+        "description": "Power cuts and patchy networks are a feature, not a bug. Sales sync when you reconnect."
+      },
+      {
+        "title": "SDG & VAT native",
+        "description": "Sudanese pound formatting, 10% VAT baked in. Receipts that look right on the first try."
+      }
+    ]
+  },
+  "howItWorks": {
+    "eyebrow": "How it works",
+    "title": "Up and running today, not next week.",
+    "subtitle": "No installations, no servers. Open the app and start selling.",
+    "steps": [
+      {
+        "number": "01",
+        "title": "Sign up in 2 minutes",
+        "description": "Phone, OTP, business name. That's it — no paperwork, no salesperson."
+      },
+      {
+        "number": "02",
+        "title": "Add your products",
+        "description": "Type a few items or import a list. Categories, prices, stock — done in one screen."
+      },
+      {
+        "number": "03",
+        "title": "Start selling today",
+        "description": "Hand a phone to your cashier. Sales, receipts and reports are already running."
+      }
+    ]
+  },
+  "pricing": {
+    "eyebrow": "Simple pricing",
+    "title": "One plan per stage. Upgrade only when you grow.",
+    "subtitle": "No hidden fees, no transaction cuts. Cancel any time.",
+    "plans": [
+      {
+        "name": "Starter",
+        "price": "0",
+        "period": "/forever",
+        "blurb": "Everything you need to start selling today.",
+        "features": [
+          "Up to 50 products",
+          "1 register, 1 device",
+          "Basic sales reports",
+          "Phone + OTP login"
+        ],
+        "cta": "Get started",
+        "primary": false
+      },
+      {
+        "name": "Business",
+        "price": "12,000",
+        "period": "/month · SDG",
+        "blurb": "For growing shops that need more horsepower.",
+        "features": [
+          "Unlimited products & sales",
+          "Up to 5 cashiers",
+          "Full inventory & purchase orders",
+          "Tax & VAT reports",
+          "Customer loyalty",
+          "Priority support"
+        ],
+        "cta": "Start free trial",
+        "primary": true,
+        "badge": "Most popular"
+      },
+      {
+        "name": "Multi-store",
+        "price": "Custom",
+        "period": "talk to us",
+        "blurb": "For chains with multiple branches and devices.",
+        "features": [
+          "Everything in Business",
+          "Unlimited branches",
+          "Centralised stock transfers",
+          "Dedicated account manager",
+          "Custom integrations"
+        ],
+        "cta": "Contact sales",
+        "primary": false
+      }
+    ]
+  },
+  "download": {
+    "eyebrow": "Get the app",
+    "title": "Download AmanaPOS today. Sell tomorrow.",
+    "subtitle": "Available on iPhone and Android. Free to start, no card required.",
+    "ios": "App Store",
+    "android": "Google Play",
+    "web": "Start now — no app needed"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The link you followed doesn't exist or has been moved.",
+    "cta": "Back to home"
+  },
+  "error": {
+    "title": "Something went wrong",
+    "description": "We hit an unexpected problem. Try again or head back home.",
+    "retry": "Try again",
+    "cta": "Back to home"
+  },
+  "footer": {
+    "tagline": "The point of sale built for Sudanese merchants. Sell anywhere — phone, tablet, counter.",
+    "copyright": "© 2026 AmanaPOS. Made in Khartoum.",
+    "columns": [
+      {
+        "title": "Product",
+        "links": ["Features", "Pricing", "Download", "Changelog"]
+      },
+      {
+        "title": "Company",
+        "links": ["About", "Customers", "Contact", "Careers"]
+      },
+      {
+        "title": "Resources",
+        "links": ["Help center", "Setup guide", "Receipts API", "Status"]
+      },
+      {
+        "title": "Legal",
+        "links": ["Privacy", "Terms", "Security", "Cookies"]
+      }
+    ]
+  }
+}

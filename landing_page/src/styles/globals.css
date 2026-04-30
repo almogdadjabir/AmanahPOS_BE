@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    /* offset so sections aren't hidden under the sticky nav (72px height) */
+    scroll-padding-top: 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* LTR — Nunito Sans */
+  [dir="ltr"] body {
+    font-family: var(--font-nunito), system-ui, sans-serif;
+  }
+
+  /* RTL — Tajawal */
+  [dir="rtl"] body {
+    font-family: var(--font-tajawal), system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-white text-text-primary;
+    line-height: 1.5;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply w-full max-w-[1200px] mx-auto px-6;
+  }
+}
+
+@layer utilities {
+  [dir="rtl"] .flip-rtl {
+    transform: scaleX(-1);
+  }
+}
