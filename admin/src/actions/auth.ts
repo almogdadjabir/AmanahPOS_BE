@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-export type LoginState    = { error: string } | null;
+export type LoginState    = { error: 'invalid_credentials' | 'network_error' | 'required' | 'too_many_attempts' | 'no_password' | string } | null;
 export type OtpSendState  = { error: string } | { sent: true; phone: string } | null;
 export type OtpVerifyState = { error: string } | null;
 
@@ -43,7 +43,13 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
       body: JSON.stringify({ phone: buildPhone(phoneLocal, countryCode), password }),
     });
 
-    if (!res.ok) return { error: 'invalid_credentials' };
+    if (!res.ok) {
+      if (res.status === 429) return { error: 'too_many_attempts' };
+      const errBody = await res.json().catch(() => ({}));
+      const msg: string = errBody?.error?.message ?? errBody?.detail ?? '';
+      if (msg.toLowerCase().includes('password set')) return { error: 'no_password' };
+      return { error: 'invalid_credentials' };
+    }
 
     const data = await res.json();
     const token: string = data?.data?.access ?? data?.access ?? '';

@@ -30,7 +30,9 @@
       "network_error":       "Connection error, check your internet",
       "required":            "Please fill in all fields",
       "otp_send_failed":     "Failed to send code, try again",
-      "otp_invalid":         "Invalid or expired code"
+      "otp_invalid":         "Invalid or expired code",
+      "too_many_attempts":   "Too many attempts — wait a minute and try again",
+      "no_password":         "This account uses OTP login — switch to the OTP tab"
     }
   },
   "nav": {
