@@ -765,6 +765,348 @@
       "description": "Requires valid Bearer token."
     },
     {
+      "name": "Admin Panel",
+      "description": "Platform-admin-only endpoints. Requires is_staff=True JWT token.\n\n**Login as:** `+249900000000` / `@$Sudanafoog9696`\n\nAll responses wrapped in `{success, data}`. Lists use DRF PageNumberPagination.",
+      "item": [
+        {
+          "name": "Stats \u2014 Platform Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/stats/",
+              "host": [
+                "http://localhost:8080/api/v1/admin/stats/"
+              ],
+              "query": []
+            },
+            "description": "Returns total owners, businesses, shops, active/expired subscriptions, monthly growth chart data, and 10 most recent owner registrations."
+          },
+          "response": []
+        },
+        {
+          "name": "Owners \u2014 List All",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/owners/?page=1&page_size=20&search=&ordering=-created_at&is_active=",
+              "host": [
+                "http://localhost:8080/api/v1/admin/owners/"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "disabled": false
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": false
+                },
+                {
+                  "key": "ordering",
+                  "value": "-created_at",
+                  "disabled": false
+                },
+                {
+                  "key": "is_active",
+                  "value": "",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Paginated list of all business owners. Annotated with business_count and has_active_subscription."
+          },
+          "response": []
+        },
+        {
+          "name": "Owners \u2014 Search by name/phone",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/owners/?search=Ahmed",
+              "host": [
+                "http://localhost:8080/api/v1/admin/owners/"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "Ahmed",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Filter owners by full_name or phone."
+          },
+          "response": []
+        },
+        {
+          "name": "Owners \u2014 Active only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/owners/?is_active=true",
+              "host": [
+                "http://localhost:8080/api/v1/admin/owners/"
+              ],
+              "query": [
+                {
+                  "key": "is_active",
+                  "value": "true",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Businesses \u2014 List All",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/businesses/?page=1&page_size=20&search=&ordering=-created_at",
+              "host": [
+                "http://localhost:8080/api/v1/admin/businesses/"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "disabled": false
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": false
+                },
+                {
+                  "key": "ordering",
+                  "value": "-created_at",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Paginated list of all businesses. Annotated with shop_count, has_active_subscription, subscription_end_date."
+          },
+          "response": []
+        },
+        {
+          "name": "Businesses \u2014 Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/businesses/?search=amana",
+              "host": [
+                "http://localhost:8080/api/v1/admin/businesses/"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "amana",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Search by business name, owner full_name, or owner phone."
+          },
+          "response": []
+        },
+        {
+          "name": "Subscriptions \u2014 All",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/subscriptions/?status=all&page=1&page_size=20",
+              "host": [
+                "http://localhost:8080/api/v1/admin/subscriptions/"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "page_size",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "All subscriptions across all businesses. Use ?status=active or ?status=expired to filter."
+          },
+          "response": []
+        },
+        {
+          "name": "Subscriptions \u2014 Active",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/subscriptions/?status=active",
+              "host": [
+                "http://localhost:8080/api/v1/admin/subscriptions/"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Subscriptions \u2014 Expired",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/subscriptions/?status=expired",
+              "host": [
+                "http://localhost:8080/api/v1/admin/subscriptions/"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "expired",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "Users",
       "item": [
         {

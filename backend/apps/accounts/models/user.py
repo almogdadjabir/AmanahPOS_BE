@@ -56,6 +56,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             models.Index(fields=["email"]),
             models.Index(fields=["role"]),
             models.Index(fields=["business", "role"]),
+            # Admin panel: filter owners (role, is_staff) + order/chart by created_at
+            models.Index(fields=["is_staff"],        name="accounts_user_is_staff_idx"),
+            models.Index(fields=["created_at"],      name="accounts_user_created_at_idx"),
+            models.Index(fields=["role", "is_staff"], name="accounts_user_role_staff_idx"),
         ]
 
     def __str__(self):

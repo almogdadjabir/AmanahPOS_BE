@@ -36,6 +36,7 @@ class Business(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["owner", "is_active"]),
+            models.Index(fields=["created_at"], name="biz_created_at_idx"),
         ]
 
     def __str__(self):

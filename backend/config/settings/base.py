@@ -67,6 +67,7 @@ LOCAL_APPS = [
     "apps.subscriptions.apps.SubscriptionsConfig",
     "apps.notifications.apps.NotificationsConfig",
     "apps.audit_logs.apps.AuditLogsConfig",
+    "apps.admin_panel.apps.AdminPanelConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

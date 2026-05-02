@@ -33,6 +33,7 @@ urlpatterns = [
         path("sales/", include("apps.sales.urls", namespace="sales")),
         path("customers/", include("apps.customers.urls", namespace="customers")),
         path("subscriptions/", include("apps.subscriptions.urls", namespace="subscriptions")),
+        path("admin/",         include("apps.admin_panel.urls",   namespace="admin_panel")),
     ])),
 
     # ── API Docs ───────────────────────────────────────────────────────────────

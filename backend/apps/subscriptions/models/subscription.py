@@ -24,6 +24,8 @@ class Subscription(models.Model):
         indexes = [
             models.Index(fields=["business", "is_active"]),
             models.Index(fields=["end_date"]),
+            # Composite for admin expired/active filtering
+            models.Index(fields=["end_date", "is_active"], name="subs_end_date_active_idx"),
         ]
 
     def __str__(self):

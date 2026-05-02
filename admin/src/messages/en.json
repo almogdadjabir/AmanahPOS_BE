@@ -1,0 +1,98 @@
+{
+  "auth": {
+    "headline": "Welcome back",
+    "subheadline": "Sign in to your dashboard",
+    "phone": "Phone number",
+    "phonePlaceholder": "912345678",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "submit": "Sign in",
+    "loggingIn": "Signing in...",
+    "brandTitle": "AmanaPOS",
+    "brandSubtitle": "Dashboard",
+    "brandTagline": "Manage your merchants, reports, and team from one place.",
+    "brandF1": "Full user & merchant management",
+    "brandF2": "Real-time sales & inventory reports",
+    "brandF3": "Full Arabic & English support",
+    "modeOtp":        "Sign in with OTP",
+    "modePassword":   "Sign in with password",
+    "sendCode":       "Send verification code",
+    "sendingCode":    "Sending...",
+    "codeSentTo":     "Code sent to",
+    "otpLabel":       "Verification code",
+    "otpPlaceholder": "123456",
+    "verifyCode":     "Verify & Sign in",
+    "verifyingCode":  "Verifying...",
+    "resendCode":     "Resend code",
+    "changeNumber":   "Change number",
+    "errors": {
+      "invalid_credentials": "Invalid phone number or password",
+      "network_error":       "Connection error, check your internet",
+      "required":            "Please fill in all fields",
+      "otp_send_failed":     "Failed to send code, try again",
+      "otp_invalid":         "Invalid or expired code"
+    }
+  },
+  "nav": {
+    "dashboard":     "Dashboard",
+    "owners":        "Owners",
+    "businesses":    "Businesses",
+    "subscriptions": "Subscriptions",
+    "system":        "System",
+    "sales":         "Sales",
+    "products":      "Products",
+    "inventory":     "Inventory",
+    "customers":     "Customers",
+    "staff":         "Staff",
+    "subscription":  "Subscription",
+    "settings":      "Settings",
+    "logout":        "Sign out",
+    "appName":       "AmanaPOS",
+    "adminBadge":    "Business"
+  },
+  "overview": {
+    "title":          "Dashboard",
+    "totalUsers":     "Total Users",
+    "activeUsers":    "Active Users",
+    "totalMerchants": "Total Merchants",
+    "inactiveUsers":  "Inactive Users"
+  },
+  "users": {
+    "title":             "Staff Management",
+    "searchPlaceholder": "Search by name or phone...",
+    "addUser":           "Add Staff",
+    "name":              "Name",
+    "phone":             "Phone",
+    "role":              "Role",
+    "status":            "Status",
+    "business":          "Business",
+    "joinDate":          "Joined",
+    "actions":           "Actions",
+    "active":            "Active",
+    "inactive":          "Inactive",
+    "activate":          "Activate",
+    "deactivate":        "Deactivate",
+    "edit":              "Edit",
+    "noResults":         "No staff found",
+    "showing":           "Showing",
+    "of":                "of",
+    "results":           "results",
+    "previous":          "Previous",
+    "next":              "Next",
+    "filters": {
+      "allStatus": "All statuses",
+      "allRoles":  "All roles"
+    },
+    "roles": {
+      "owner":   "Owner",
+      "manager": "Manager",
+      "cashier": "Cashier"
+    }
+  },
+  "common": {
+    "loading":      "Loading...",
+    "save":         "Save",
+    "cancel":       "Cancel",
+    "switchLocale": "عربي"
+  }
+}

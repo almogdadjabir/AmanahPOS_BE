@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   title: 'أمانة POS | نقطة البيع للسودان',
   description:
     'نقطة بيع مصممة للتجار السودانيين — تسجيل مبيعات، مخزون، موظفون وتقارير على هاتفك.',
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
 };
 
 export function generateStaticParams() {

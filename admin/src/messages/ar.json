@@ -1,0 +1,102 @@
+{
+  "auth": {
+    "headline": "مرحبًا بعودتك",
+    "subheadline": "سجّل دخولك للوحة الإدارة",
+    "usePhone": "تسجيل برقم الهاتف",
+    "useEmail": "تسجيل بالبريد الإلكتروني",
+    "phone": "رقم الهاتف",
+    "phonePlaceholder": "912345678",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "admin@amanapos.com",
+    "password": "كلمة المرور",
+    "passwordPlaceholder": "أدخل كلمة المرور",
+    "submit": "دخول",
+    "loggingIn": "جارٍ الدخول...",
+    "brandTitle": "أمانة POS",
+    "brandSubtitle": "لوحة الإدارة",
+    "brandTagline": "أدِر تجارك، تقاريرك، وفريقك من مكان واحد.",
+    "brandF1": "إدارة كاملة للمستخدمين والتجار",
+    "brandF2": "تقارير المبيعات والمخزون في الوقت الفعلي",
+    "brandF3": "دعم العربية والإنجليزية بالكامل",
+    "modeOtp":        "الدخول برمز التحقق",
+    "modePassword":   "الدخول بكلمة المرور",
+    "sendCode":       "إرسال رمز التحقق",
+    "sendingCode":    "جارٍ الإرسال...",
+    "codeSentTo":     "تم إرسال الرمز إلى",
+    "otpLabel":       "رمز التحقق",
+    "otpPlaceholder": "123456",
+    "verifyCode":     "تحقق وادخل",
+    "verifyingCode":  "جارٍ التحقق...",
+    "resendCode":     "إعادة الإرسال",
+    "changeNumber":   "تغيير الرقم",
+    "errors": {
+      "invalid_credentials": "رقم الهاتف أو كلمة المرور غير صحيحة",
+      "network_error":       "خطأ في الاتصال، تحقق من الإنترنت",
+      "required":            "يرجى ملء جميع الحقول",
+      "otp_send_failed":     "فشل إرسال الرمز، حاول مرة أخرى",
+      "otp_invalid":         "الرمز غير صحيح أو منتهي الصلاحية"
+    }
+  },
+  "nav": {
+    "dashboard":     "الرئيسية",
+    "owners":        "أصحاب المتاجر",
+    "businesses":    "المتاجر",
+    "subscriptions": "الاشتراكات",
+    "system":        "النظام",
+    "sales":         "المبيعات",
+    "products":      "المنتجات",
+    "inventory":     "المخزون",
+    "customers":     "العملاء",
+    "staff":         "الموظفون",
+    "subscription":  "اشتراكي",
+    "settings":      "الإعدادات",
+    "logout":        "تسجيل الخروج",
+    "appName":       "أمانة POS",
+    "adminBadge":    "أعمال"
+  },
+  "overview": {
+    "title": "نظرة عامة",
+    "totalUsers": "إجمالي المستخدمين",
+    "activeUsers": "المستخدمون النشطون",
+    "totalMerchants": "إجمالي التجار",
+    "inactiveUsers": "مستخدمون موقوفون"
+  },
+  "users": {
+    "title": "إدارة المستخدمين",
+    "searchPlaceholder": "بحث بالاسم أو الهاتف...",
+    "addUser": "إضافة مستخدم",
+    "name": "الاسم",
+    "phone": "الهاتف",
+    "role": "الدور",
+    "status": "الحالة",
+    "business": "العمل",
+    "joinDate": "تاريخ الانضمام",
+    "actions": "إجراءات",
+    "active": "نشط",
+    "inactive": "موقوف",
+    "activate": "تفعيل",
+    "deactivate": "إيقاف",
+    "edit": "تعديل",
+    "noResults": "لا توجد نتائج تطابق البحث",
+    "showing": "عرض",
+    "of": "من",
+    "results": "نتيجة",
+    "previous": "السابق",
+    "next": "التالي",
+    "filters": {
+      "allStatus": "كل الحالات",
+      "allRoles": "كل الأدوار"
+    },
+    "roles": {
+      "owner": "مالك",
+      "manager": "مدير",
+      "cashier": "كاشير"
+    }
+  },
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "switchLocale": "EN"
+  }
+}
