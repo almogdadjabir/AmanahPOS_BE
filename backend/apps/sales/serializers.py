@@ -40,7 +40,7 @@ class SaleSerializer(serializers.ModelSerializer):
             "id", "tenant", "shop", "shop_name", "cashier", "cashier_name",
             "customer", "customer_name", "receipt_number",
             "total_amount", "discount_amount", "tax_amount", "net_amount",
-            "payment_method", "status", "notes", "item_count",
+            "payment_method", "bankak_account_snapshot", "status", "notes", "item_count",
             "items", "synced_at", "created_at", "updated_at",
         ]
         read_only_fields = [
@@ -72,3 +72,55 @@ class CreateSaleSerializer(serializers.Serializer):
 
 class CancelSaleSerializer(serializers.Serializer):
     reason = serializers.CharField(max_length=500, required=False, allow_blank=True)
+
+
+# ── Offline Sync ──────────────────────────────────────────────────────────────
+
+class OfflineSaleItemSerializer(serializers.Serializer):
+    """One line item in an offline sale payload."""
+    product_id = serializers.UUIDField()
+    quantity = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=Decimal("0.001"))
+    unit_price = serializers.DecimalField(
+        max_digits=12, decimal_places=2,
+        required=False, allow_null=True, min_value=Decimal("0"),
+    )
+    discount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, required=False, default=Decimal("0"),
+    )
+
+
+class OfflineSaleInputSerializer(serializers.Serializer):
+    """One sale inside the offline sync batch."""
+    client_sale_id = serializers.UUIDField(
+        help_text="Mobile-generated UUID. Re-submitting the same ID is idempotent.",
+    )
+    shop = serializers.UUIDField()
+    customer = serializers.UUIDField(required=False, allow_null=True)
+    payment_method = serializers.ChoiceField(
+        choices=PaymentMethod.choices, default=PaymentMethod.CASH,
+    )
+    discount_amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, required=False, default=Decimal("0"),
+    )
+    tax_amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, required=False, default=Decimal("0"),
+    )
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+    # Client's claimed creation time (stored for reference; server timestamp used as DB created_at)
+    created_at = serializers.DateTimeField(required=False, allow_null=True)
+    items = OfflineSaleItemSerializer(many=True, min_length=1)
+
+    def validate_discount_amount(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Discount cannot be negative.")
+        return value
+
+    def validate_tax_amount(self, value):
+        if value < 0:
+            raise serializers.ValidationError("Tax cannot be negative.")
+        return value
+
+
+class OfflineSyncRequestSerializer(serializers.Serializer):
+    """Top-level wrapper for the offline sync batch."""
+    sales = OfflineSaleInputSerializer(many=True, min_length=1)

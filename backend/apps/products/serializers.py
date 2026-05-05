@@ -2,23 +2,42 @@
 Serializers for the products app.
 """
 from rest_framework import serializers
+
+from apps.core.image_service import build_image_url
 from .models import Category, Product
 
 
+# ── Category ──────────────────────────────────────────────────────────────────
+
 class CategorySerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Category
         fields = [
-            "id", "tenant", "parent", "name", "description", "image",
+            "id", "tenant", "parent", "name", "description",
+            "image", "thumbnail_url",
             "is_active", "sort_order", "created_at", "updated_at",
         ]
         read_only_fields = ["id", "tenant", "created_at", "updated_at"]
 
+    def get_image(self, obj) -> str | None:
+        return build_image_url(obj.image, request=self.context.get("request"))
+
+    def get_thumbnail_url(self, obj) -> str | None:
+        return build_image_url(obj.thumbnail, request=self.context.get("request"))
+
 
 class CategoryCreateSerializer(serializers.ModelSerializer):
+    image_upload = serializers.ImageField(
+        write_only=True, required=False, allow_null=True,
+        help_text="Upload a category image (JPEG/PNG/WebP, max 10 MB).",
+    )
+
     class Meta:
         model = Category
-        fields = ["parent", "name", "description", "image", "sort_order"]
+        fields = ["parent", "name", "description", "image_upload", "sort_order"]
 
     def validate_parent(self, value):
         if value:
@@ -27,24 +46,45 @@ class CategoryCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Parent category does not belong to this business.")
         return value
 
+    def validate_image_upload(self, value):
+        if value is None:
+            return None
+        from django.conf import settings
+        max_mb = getattr(settings, "MAX_IMAGE_UPLOAD_MB", 10)
+        value.seek(0, 2)
+        size = value.tell()
+        value.seek(0)
+        if size > max_mb * 1024 * 1024:
+            raise serializers.ValidationError(f"Image too large. Maximum size is {max_mb} MB.")
+        return value
+
+
+# ── Product ───────────────────────────────────────────────────────────────────
 
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
     shop_name = serializers.CharField(source="shop.name", read_only=True)
     stock_level = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = [
             "id", "tenant", "shop", "shop_name", "category", "category_name",
             "name", "description", "sku", "barcode", "price", "cost_price",
-            "image", "unit", "is_active", "track_inventory", "min_stock_level",
-            "stock_level", "created_at", "updated_at",
+            "image", "thumbnail_url", "unit", "is_active", "track_inventory",
+            "min_stock_level", "stock_level", "created_at", "updated_at",
         ]
         read_only_fields = ["id", "tenant", "created_at", "updated_at"]
 
+    def get_image(self, obj) -> str | None:
+        return build_image_url(obj.image, request=self.context.get("request"))
+
+    def get_thumbnail_url(self, obj) -> str | None:
+        return build_image_url(obj.thumbnail, request=self.context.get("request"))
+
     def get_stock_level(self, obj):
-        """Return current stock level from inventory (if available)."""
         try:
             from apps.inventory.models import StockLevel
             stock = StockLevel.objects.filter(product=obj).first()
@@ -54,11 +94,16 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
+    image_upload = serializers.ImageField(
+        write_only=True, required=False, allow_null=True,
+        help_text="Upload a product image (JPEG/PNG/WebP, max 10 MB).",
+    )
+
     class Meta:
         model = Product
         fields = [
             "shop", "category", "name", "description", "sku", "barcode",
-            "price", "cost_price", "image", "unit", "is_active",
+            "price", "cost_price", "image_upload", "unit", "is_active",
             "track_inventory", "min_stock_level",
         ]
 
@@ -93,3 +138,23 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             if qs.exists():
                 raise serializers.ValidationError("A product with this barcode already exists in your business.")
         return value
+
+    def validate_image_upload(self, value):
+        if value is None:
+            return None
+        from django.conf import settings
+        max_mb = getattr(settings, "MAX_IMAGE_UPLOAD_MB", 10)
+        value.seek(0, 2)
+        size = value.tell()
+        value.seek(0)
+        if size > max_mb * 1024 * 1024:
+            raise serializers.ValidationError(f"Image too large. Maximum size is {max_mb} MB.")
+        return value
+
+    def validate(self, data):
+        if not data.get("shop"):
+            tenant = self.context.get("tenant")
+            main_shop = tenant.shops.filter(is_main=True, is_active=True).first()
+            if main_shop:
+                data["shop"] = main_shop
+        return data

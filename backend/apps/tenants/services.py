@@ -21,6 +21,7 @@ def create_business(owner, name: str, **kwargs) -> Business:
         name=f"{name} - Main Branch",
         address=kwargs.get("address", ""),
         phone=kwargs.get("phone", ""),
+        is_main=True,
     )
 
     owner.business = business

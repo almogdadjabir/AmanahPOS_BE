@@ -173,3 +173,15 @@ class OTPCooldownError(BusinessLogicError):
         detail = f"Please wait {retry_after} seconds before requesting another OTP."
         super().__init__(detail=detail, code=self.default_code)
         self.retry_after = retry_after
+
+
+class BankakAccountRequiredError(BusinessLogicError):
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
+    default_detail = "A Bankak account must be configured before using Bankak as a payment method."
+    default_code = "BANKAK_ACCOUNT_REQUIRED"
+
+
+class InvalidBankakAccountError(BusinessLogicError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = "Invalid Bankak account number format."
+    default_code = "INVALID_BANKAK_ACCOUNT_NUMBER"

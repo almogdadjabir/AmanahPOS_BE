@@ -1,9 +1,16 @@
 from rest_framework import serializers
 from django.utils import timezone
 
-from apps.accounts.models import CustomUser
+from apps.accounts.models import BankakAccount, CustomUser
 from apps.tenants.models import Business, Shop
 from apps.subscriptions.models import Subscription, Plan
+
+
+class AdminBankakAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BankakAccount
+        fields = ["id", "account_number", "is_default", "is_active", "created_at", "updated_at"]
+        read_only_fields = fields
 
 
 class AdminOwnerSerializer(serializers.ModelSerializer):
@@ -110,6 +117,7 @@ class AdminOwnerDetailSerializer(serializers.ModelSerializer):
     business_count          = serializers.IntegerField(read_only=True)
     has_active_subscription = serializers.BooleanField(read_only=True)
     email                   = serializers.EmailField(read_only=True, allow_null=True)
+    bankak_account          = serializers.SerializerMethodField()
 
     class Meta:
         model  = CustomUser
@@ -117,17 +125,48 @@ class AdminOwnerDetailSerializer(serializers.ModelSerializer):
             "id", "phone", "email", "full_name", "is_active", "is_verified",
             "has_password", "created_at", "updated_at", "last_login_at",
             "business_count", "has_active_subscription",
+            "bankak_account",
             "businesses",
         ]
 
+    def get_bankak_account(self, obj):
+        account = obj.bankak_accounts.filter(is_default=True, is_active=True).first()
+        if not account:
+            return None
+        return AdminBankakAccountSerializer(account).data
+
 
 class AdminOwnerUpdateSerializer(serializers.ModelSerializer):
+    bankak_account_number = serializers.CharField(
+        max_length=50, required=False, allow_blank=True, write_only=True
+    )
+
     class Meta:
         model  = CustomUser
-        fields = ["full_name", "email"]
+        fields = ["full_name", "email", "bankak_account_number"]
 
     def validate_email(self, value):
         return value.lower().strip() if value else value
+
+    def validate_bankak_account_number(self, value):
+        import re
+        v = value.strip()
+        if v and not re.match(r'^[\w\s\-]{4,50}$', v):
+            raise serializers.ValidationError(
+                "Account number must be 4–50 characters (letters, digits, spaces, hyphens)."
+            )
+        return v
+
+    def update(self, instance, validated_data):
+        bankak_number = validated_data.pop("bankak_account_number", None)
+        instance = super().update(instance, validated_data)
+        if bankak_number is not None:
+            from apps.accounts.services import remove_bankak_account, set_bankak_account
+            if bankak_number == "":
+                remove_bankak_account(instance)
+            else:
+                set_bankak_account(instance, bankak_number)
+        return instance
 
 
 # ── Stats ─────────────────────────────────────────────────────────────────────

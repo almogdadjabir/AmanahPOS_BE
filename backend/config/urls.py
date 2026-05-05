@@ -34,6 +34,7 @@ urlpatterns = [
         path("customers/", include("apps.customers.urls", namespace="customers")),
         path("subscriptions/", include("apps.subscriptions.urls", namespace="subscriptions")),
         path("admin/",         include("apps.admin_panel.urls",   namespace="admin_panel")),
+        path("offline/",       include("apps.offline.urls",        namespace="offline")),
     ])),
 
     # ── API Docs ───────────────────────────────────────────────────────────────

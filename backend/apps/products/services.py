@@ -43,16 +43,13 @@ def create_product(tenant: Business, data: dict) -> Product:
     product = Product.objects.create(tenant=tenant, **data)
     logger.info("Product created: %s for tenant %s", product.id, tenant.id)
 
-    # Initialize stock level record
-    if product.track_inventory:
+    if product.track_inventory and product.shop:
         from apps.inventory.models import StockLevel
-        shop = product.shop
-        if shop:
-            StockLevel.objects.get_or_create(
-                product=product,
-                shop=shop,
-                defaults={"quantity": 0},
-            )
+        StockLevel.objects.get_or_create(
+            product=product,
+            shop=product.shop,
+            defaults={"quantity": 0},
+        )
     return product
 
 

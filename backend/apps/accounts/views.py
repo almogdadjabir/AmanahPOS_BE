@@ -11,8 +11,10 @@ from rest_framework.throttling import AnonRateThrottle
 
 from apps.core.exceptions import BusinessLogicError
 from apps.core.permissions import IsOwner, HasBusiness
-from .models import CustomUser
+from .models import BankakAccount, CustomUser
 from .serializers import (
+    BankakAccountSerializer,
+    BankakAccountWriteSerializer,
     LoginOTPSerializer,
     LoginPasswordSerializer,
     OTPVerifySerializer,
@@ -25,10 +27,13 @@ from .serializers import (
     StaffUserUpdateSerializer,
 )
 from .services import (
+    get_default_bankak_account,
     login_with_otp,
     login_with_password,
     register_user,
+    remove_bankak_account,
     send_otp,
+    set_bankak_account,
     set_user_password,
     verify_otp,
     get_tokens_for_user,
@@ -62,8 +67,10 @@ class RegisterView(APIView):
             phone=data["phone"],
             full_name=data["full_name"],
             email=data.get("email"),
+            bankak_account_number=data.get("bankak_account_number") or None,
         )
 
+        bankak = get_default_bankak_account(user)
         return Response(
             {
                 "success": True,
@@ -73,6 +80,7 @@ class RegisterView(APIView):
                     "phone": user.phone,
                     "full_name": user.full_name,
                     "role": user.role,
+                    "bankak_account": BankakAccountSerializer(bankak).data if bankak else None,
                 },
             },
             status=status.HTTP_201_CREATED,
@@ -337,3 +345,39 @@ class UserDetailView(APIView):
         user.is_active = False
         user.save(update_fields=["is_active", "updated_at"])
         return Response({"success": True, "message": "User deactivated."})
+
+
+class BankakAccountView(APIView):
+    """
+    GET    /api/v1/auth/bankak/  → get my Bankak account (owner only)
+    POST   /api/v1/auth/bankak/  → create or update my Bankak account
+    DELETE /api/v1/auth/bankak/  → remove my Bankak account
+    """
+    permission_classes = [IsAuthenticated]
+
+    def _require_owner(self, user):
+        if not (user.role == "owner" or user.is_staff):
+            from apps.core.exceptions import NotFound
+            raise BusinessLogicError("Only owners can manage Bankak accounts.", code="PERMISSION_DENIED")
+
+    def get(self, request):
+        self._require_owner(request.user)
+        account = get_default_bankak_account(request.user)
+        if not account:
+            return Response({"success": True, "data": None})
+        return Response({"success": True, "data": BankakAccountSerializer(account).data})
+
+    def post(self, request):
+        self._require_owner(request.user)
+        serializer = BankakAccountWriteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        account = set_bankak_account(request.user, serializer.validated_data["account_number"])
+        return Response(
+            {"success": True, "message": "Bankak account saved.", "data": BankakAccountSerializer(account).data},
+            status=status.HTTP_200_OK,
+        )
+
+    def delete(self, request):
+        self._require_owner(request.user)
+        remove_bankak_account(request.user)
+        return Response({"success": True, "message": "Bankak account removed."})

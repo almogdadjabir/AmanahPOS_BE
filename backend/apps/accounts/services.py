@@ -17,7 +17,7 @@ from apps.core.utils import (
     format_phone,
     set_otp_cooldown,
 )
-from .models import CustomUser
+from .models import BankakAccount, CustomUser
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,12 @@ def get_tokens_for_user(user: CustomUser) -> dict:
     }
 
 
-def register_user(phone: str, full_name: str, email: str | None = None) -> CustomUser:
+def register_user(
+    phone: str,
+    full_name: str,
+    email: str | None = None,
+    bankak_account_number: str | None = None,
+) -> CustomUser:
     """
     Internal staff creates an owner account.
     The owner logs in separately via the OTP login flow.
@@ -60,8 +65,43 @@ def register_user(phone: str, full_name: str, email: str | None = None) -> Custo
         role="owner",
         is_verified=False,
     )
+
+    if bankak_account_number:
+        set_bankak_account(user, bankak_account_number.strip())
+
     logger.info("Owner account created by staff: %s (id=%s)", phone, user.id)
     return user
+
+
+# ── Bankak Account helpers ────────────────────────────────────────────────────
+
+def get_default_bankak_account(owner: CustomUser) -> "BankakAccount | None":
+    """Return the owner's current default Bankak account, or None."""
+    return BankakAccount.objects.filter(owner=owner, is_default=True, is_active=True).first()
+
+
+def set_bankak_account(owner: CustomUser, account_number: str) -> BankakAccount:
+    """
+    Create or update the owner's default Bankak account.
+    Marks all previous accounts as non-default (one default at a time).
+    """
+    BankakAccount.objects.filter(owner=owner, is_default=True).update(is_default=False)
+    account, _ = BankakAccount.objects.update_or_create(
+        owner=owner,
+        defaults={
+            "account_number": account_number,
+            "is_default": True,
+            "is_active": True,
+        },
+    )
+    logger.info("Bankak account set for owner %s: %s", owner.phone, account_number)
+    return account
+
+
+def remove_bankak_account(owner: CustomUser) -> None:
+    """Soft-deactivate the owner's default Bankak account."""
+    BankakAccount.objects.filter(owner=owner, is_active=True).update(is_active=False, is_default=False)
+    logger.info("Bankak account removed for owner %s", owner.phone)
 
 
 def send_otp(phone: str) -> str:

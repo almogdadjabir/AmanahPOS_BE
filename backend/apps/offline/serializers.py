@@ -1,0 +1,111 @@
+"""
+Read-only serializers for the offline bootstrap endpoint.
+All serializers are lightweight and optimised for bulk reads with no N+1 queries.
+"""
+from rest_framework import serializers
+
+from apps.accounts.models import CustomUser
+from apps.customers.models import Customer
+from apps.inventory.models import StockLevel
+from apps.products.models import Category, Product
+from apps.tenants.models import Business, Shop
+
+
+# ── Business ──────────────────────────────────────────────────────────────────
+
+class BootstrapBusinessSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Business
+        fields = ["id", "name", "slug", "address", "phone", "email", "is_active", "updated_at"]
+
+
+# ── Shops ─────────────────────────────────────────────────────────────────────
+
+class BootstrapShopSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shop
+        fields = ["id", "name", "address", "phone", "is_main", "is_active", "updated_at"]
+
+
+# ── Categories ────────────────────────────────────────────────────────────────
+
+class BootstrapCategorySerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = [
+            "id", "parent", "name", "description",
+            "image", "thumbnail_url",
+            "sort_order", "is_active", "updated_at",
+        ]
+
+    def get_image(self, obj) -> str | None:
+        from apps.core.image_service import build_image_url
+        return build_image_url(obj.image, request=self.context.get("request"))
+
+    def get_thumbnail_url(self, obj) -> str | None:
+        from apps.core.image_service import build_image_url
+        return build_image_url(obj.thumbnail, request=self.context.get("request"))
+
+
+# ── Products ──────────────────────────────────────────────────────────────────
+
+class BootstrapProductSerializer(serializers.ModelSerializer):
+    """
+    Compact product serializer for bootstrap.
+    Stock level is returned separately in the 'stock' array to avoid N+1 queries.
+    """
+    image = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = [
+            "id", "shop", "category",
+            "name", "description", "sku", "barcode",
+            "price", "cost_price",
+            "image", "thumbnail_url",
+            "unit", "is_active", "track_inventory", "min_stock_level",
+            "updated_at",
+        ]
+
+    def get_image(self, obj) -> str | None:
+        from apps.core.image_service import build_image_url
+        return build_image_url(obj.image, request=self.context.get("request"))
+
+    def get_thumbnail_url(self, obj) -> str | None:
+        from apps.core.image_service import build_image_url
+        return build_image_url(obj.thumbnail, request=self.context.get("request"))
+
+
+# ── Customers ─────────────────────────────────────────────────────────────────
+
+class BootstrapCustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = [
+            "id", "name", "phone", "email",
+            "loyalty_points", "is_active", "updated_at",
+        ]
+
+
+# ── Stock ─────────────────────────────────────────────────────────────────────
+
+class BootstrapStockSerializer(serializers.ModelSerializer):
+    """
+    Returns product_id / shop_id as flat IDs for efficient mobile lookup.
+    """
+    class Meta:
+        model = StockLevel
+        fields = ["product_id", "shop_id", "quantity", "updated_at"]
+
+
+# ── Asset Manifest ────────────────────────────────────────────────────────────
+
+class AssetManifestItemSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    type = serializers.CharField()
+    url = serializers.CharField(allow_null=True)
+    updated_at = serializers.DateTimeField()

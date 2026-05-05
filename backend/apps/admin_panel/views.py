@@ -19,7 +19,7 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from apps.accounts.models import CustomUser
+from apps.accounts.models import BankakAccount, CustomUser
 from apps.tenants.models import Business, Shop
 from apps.subscriptions.models import Subscription
 
@@ -271,6 +271,10 @@ class AdminOwnerDetailView(APIView):
                 has_active_subscription=_active_sub_exists("pk"),
             )
             .prefetch_related(
+                Prefetch(
+                    "bankak_accounts",
+                    queryset=BankakAccount.objects.filter(is_default=True, is_active=True),
+                ),
                 Prefetch(
                     "businesses",
                     queryset=Business.objects.order_by("name").prefetch_related(

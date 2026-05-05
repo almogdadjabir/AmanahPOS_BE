@@ -2,11 +2,13 @@ import uuid
 from decimal import Decimal
 
 from django.db import models
+from django.db.models import Q
 from django.core.validators import MinValueValidator
 
 
 class PaymentMethod(models.TextChoices):
     CASH = "cash", "Cash"
+    BANKAK = "bankak", "Bankak"
     CARD = "card", "Card"
     BANK_TRANSFER = "bank_transfer", "Bank Transfer"
     MOBILE_WALLET = "mobile_wallet", "Mobile Wallet"
@@ -36,7 +38,13 @@ class Sale(models.Model):
     net_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(Decimal("0"))])
     payment_method = models.CharField(max_length=30, choices=PaymentMethod.choices, default=PaymentMethod.CASH, db_index=True)
     status = models.CharField(max_length=20, choices=SaleStatus.choices, default=SaleStatus.COMPLETED, db_index=True)
+    bankak_account_snapshot = models.CharField(max_length=50, blank=True)
     notes = models.TextField(blank=True)
+    # Offline sync support
+    client_sale_id = models.CharField(
+        max_length=100, blank=True, null=True, db_index=True,
+        help_text="Mobile-generated UUID for offline sale idempotency.",
+    )
     synced_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -52,6 +60,14 @@ class Sale(models.Model):
             models.Index(fields=["shop", "created_at"]),
             models.Index(fields=["cashier", "created_at"]),
             models.Index(fields=["receipt_number"]),
+        ]
+        constraints = [
+            # Unique client_sale_id per tenant, NULLs excluded (online sales have no client_id).
+            models.UniqueConstraint(
+                fields=["tenant", "client_sale_id"],
+                name="unique_tenant_client_sale_id",
+                condition=Q(client_sale_id__isnull=False),
+            ),
         ]
 
     def __str__(self):

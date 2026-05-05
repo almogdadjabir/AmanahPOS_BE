@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.db import transaction
 
-from apps.core.exceptions import BusinessLogicError
+from apps.core.exceptions import BankakAccountRequiredError, BusinessLogicError
 from apps.core.utils import generate_receipt_number
 from apps.inventory.services import deduct_stock
 from apps.inventory.models import MovementType
@@ -28,6 +28,8 @@ def create_sale(
     discount_amount: Decimal = Decimal("0"),
     tax_amount: Decimal = Decimal("0"),
     notes: str = "",
+    client_sale_id: str | None = None,
+    synced_at=None,
 ) -> Sale:
     """
     Create a complete sale transaction.
@@ -42,6 +44,8 @@ def create_sale(
         discount_amount: Overall sale discount.
         tax_amount: Overall tax amount.
         notes: Optional notes.
+        client_sale_id: Mobile UUID for offline idempotency (None for online sales).
+        synced_at: Timestamp when this offline sale was received by the server.
 
     Returns:
         Created Sale instance with all items.
@@ -51,6 +55,15 @@ def create_sale(
     """
     if not items:
         raise BusinessLogicError("Sale must have at least one item.")
+
+    # Bankak requires a configured account on the business owner
+    bankak_snapshot = ""
+    if payment_method == PaymentMethod.BANKAK:
+        from apps.accounts.services import get_default_bankak_account
+        bankak_account = get_default_bankak_account(tenant.owner)
+        if not bankak_account:
+            raise BankakAccountRequiredError()
+        bankak_snapshot = bankak_account.account_number
 
     # Resolve products and calculate totals
     total_amount = Decimal("0")
@@ -67,7 +80,9 @@ def create_sale(
             raise BusinessLogicError(f"Product with ID {item_data['product_id']} not found.")
 
         quantity = Decimal(str(item_data.get("quantity", 1)))
-        unit_price = Decimal(str(item_data.get("unit_price", product.price)))
+        # unit_price may be None when client omits it → fall back to product price
+        _price = item_data.get("unit_price")
+        unit_price = Decimal(str(_price if _price is not None else product.price))
         item_discount = Decimal(str(item_data.get("discount", 0)))
         subtotal = (unit_price * quantity) - item_discount
         total_amount += subtotal
@@ -95,8 +110,11 @@ def create_sale(
         tax_amount=tax_amount,
         net_amount=net_amount,
         payment_method=payment_method,
+        bankak_account_snapshot=bankak_snapshot,
         status=SaleStatus.COMPLETED,
         notes=notes,
+        client_sale_id=client_sale_id or None,
+        synced_at=synced_at,
     )
 
     # Create SaleItem records and deduct stock
@@ -129,16 +147,15 @@ def create_sale(
         _award_loyalty_points(customer=customer, amount=net_amount)
 
     logger.info(
-        "Sale created: %s | tenant=%s | shop=%s | amount=%s",
+        "Sale created: %s | tenant=%s | shop=%s | amount=%s | offline=%s",
         sale.receipt_number, tenant.id, shop.id, net_amount,
+        bool(client_sale_id),
     )
     return sale
 
 
 def cancel_sale(sale: Sale, reason: str = "", cancelled_by=None) -> Sale:
-    """
-    Cancel a sale and return stock to inventory.
-    """
+    """Cancel a sale and return stock to inventory."""
     if sale.status in (SaleStatus.CANCELLED, SaleStatus.REFUNDED):
         raise BusinessLogicError(f"Sale {sale.receipt_number} is already {sale.status}.")
 

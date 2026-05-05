@@ -68,6 +68,7 @@ LOCAL_APPS = [
     "apps.notifications.apps.NotificationsConfig",
     "apps.audit_logs.apps.AuditLogsConfig",
     "apps.admin_panel.apps.AdminPanelConfig",
+    "apps.offline.apps.OfflineConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -302,6 +303,11 @@ if USE_S3:
     AWS_S3_PUBLIC_BUCKET_NAME = env("AWS_S3_PUBLIC_BUCKET_NAME", default="amanapos-public")
     AWS_S3_PRIVATE_BUCKET_NAME = env("AWS_S3_PRIVATE_BUCKET_NAME", default="amanapos-private")
 
+    # Public-facing base URL for the MinIO server (used to build image URLs).
+    # Dev example:   http://localhost:9000
+    # Prod example:  https://assets.amanapos.com
+    MINIO_PUBLIC_URL = env("MINIO_PUBLIC_URL", default="")
+
     STORAGES = {
         "default": {
             "BACKEND": "apps.core.storage.PrivateMediaStorage",
@@ -310,6 +316,9 @@ if USE_S3:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
+
+# ─── Image Upload ──────────────────────────────────────────────────────────────
+MAX_IMAGE_UPLOAD_MB = env.int("MAX_IMAGE_UPLOAD_MB", default=10)
 
 # ─── OTP Settings ─────────────────────────────────────────────────────────────
 OTP_LENGTH = env("OTP_LENGTH")
