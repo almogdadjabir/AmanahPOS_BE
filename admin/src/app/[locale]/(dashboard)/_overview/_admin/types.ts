@@ -1,4 +1,4 @@
-import type { AdminOwner } from "@/types/api";
+import type { AdminOwner, AdminRecentTransaction } from "@/types/api";
 
 export type AdminHealth = {
   status?: string;
@@ -22,6 +22,7 @@ export type AdminStats = {
   expired_subscriptions: number;
   monthly_growth: AdminMonthlyGrowthItem[];
   recent_owners: AdminOwner[];
+  recent_transactions: AdminRecentTransaction[];
 } | null;
 
 export type AdminPlan = {

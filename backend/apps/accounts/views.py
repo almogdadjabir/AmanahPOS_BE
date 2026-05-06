@@ -11,6 +11,7 @@ from rest_framework.throttling import AnonRateThrottle
 
 from apps.core.exceptions import BusinessLogicError
 from apps.core.permissions import IsOwner, HasBusiness
+from apps.subscriptions.guards import check_user_limit
 from .models import BankakAccount, CustomUser
 from .serializers import (
     BankakAccountSerializer,
@@ -280,6 +281,7 @@ class UserListCreateView(APIView):
         })
 
     def post(self, request):
+        check_user_limit(request.user.business)
         serializer = StaffUserCreateSerializer(
             data=request.data,
             context={"business": request.user.business},

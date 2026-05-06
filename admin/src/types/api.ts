@@ -17,7 +17,7 @@ export interface ApiResponse<T> {
 
 // ── Sales ────────────────────────────────────────────────────────────────────
 export type PaymentMethod =
-  | 'cash' | 'card' | 'bank_transfer'
+  | 'cash' | 'bankak' | 'card' | 'bank_transfer'
   | 'mobile_wallet' | 'loyalty_points' | 'split' | 'credit';
 
 export type SaleStatus = 'pending' | 'completed' | 'cancelled' | 'refunded' | 'partial_refund';
@@ -50,6 +50,7 @@ export interface Sale {
   payment_method: PaymentMethod;
   status: SaleStatus;
   notes: string;
+  bankak_account_snapshot: string;
   item_count: number;
   items: SaleItem[];
   synced_at: string | null;
@@ -232,6 +233,33 @@ export interface AdminBusiness {
   subscription_end_date: string | null;
 }
 
+export interface AdminBusinessShop {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  is_main: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AdminBusinessActiveSubscription {
+  id: string;
+  plan_name: string;
+  end_date: string;
+  days_remaining: number;
+}
+
+export interface AdminBusinessDetail extends AdminBusiness {
+  owner_id: string;
+  address: string | null;
+  phone: string | null;
+  email: string | null;
+  updated_at: string;
+  active_subscription: AdminBusinessActiveSubscription | null;
+  shops: AdminBusinessShop[];
+}
+
 export interface AdminSubscription {
   id: string;
   business_name: string;
@@ -249,9 +277,66 @@ export interface AdminSubscription {
   created_at: string;
 }
 
+export interface AdminPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  currency: string;
+  max_shops: number;
+  max_products: number;
+  max_users: number;
+  duration_days: number;
+  features: Record<string, unknown>;
+  is_active: boolean;
+  is_free: boolean;
+  sort_order: number;
+  subscription_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdminSubscriptionDetail {
+  id: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  is_expired: boolean;
+  days_remaining: number;
+  payment_reference: string;
+  notes: string;
+  created_at: string;
+  updated_at: string;
+  business_id: string;
+  business_name: string;
+  owner_id: string;
+  owner_name: string;
+  owner_phone: string;
+  plan_name: string;
+  plan_price: string;
+  plan_currency: string;
+  plan_duration: number;
+  plan_is_free: boolean;
+  max_shops: number;
+  max_products: number;
+  max_users: number;
+}
+
 export interface MonthlyGrowth {
   month: string;
   count: number;
+}
+
+export interface AdminRecentTransaction {
+  id: string;
+  receipt_number: string;
+  business_name: string;
+  shop_name: string;
+  cashier_name: string;
+  payment_method: PaymentMethod;
+  net_amount: string;
+  status: SaleStatus;
+  created_at: string;
 }
 
 export interface AdminStats {
@@ -263,6 +348,7 @@ export interface AdminStats {
   new_owners_this_month: number;
   monthly_growth: MonthlyGrowth[];
   recent_owners: AdminOwner[];
+  recent_transactions: AdminRecentTransaction[];
 }
 
 // Paginated admin list response
@@ -274,6 +360,47 @@ export interface AdminList<T> {
     previous: string | null;
     results: T[];
   };
+}
+
+// ── Products ─────────────────────────────────────────────────────────────────
+
+export interface Category {
+  id: string;
+  tenant: string;
+  parent: string | null;
+  name: string;
+  description: string;
+  image: string | null;
+  thumbnail_url: string | null;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+  children: Category[];
+}
+
+export interface Product {
+  id: string;
+  tenant: string;
+  shop: string;
+  shop_name: string;
+  category: string | null;
+  category_name: string | null;
+  name: string;
+  description: string;
+  sku: string;
+  barcode: string;
+  price: string;
+  cost_price: string;
+  image: string | null;
+  thumbnail_url: string | null;
+  unit: string;
+  is_active: boolean;
+  track_inventory: boolean;
+  min_stock_level: number;
+  stock_level: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // ── Subscriptions ────────────────────────────────────────────────────────────

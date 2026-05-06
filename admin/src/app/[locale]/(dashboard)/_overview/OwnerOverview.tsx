@@ -1,9 +1,9 @@
 import { fetchOwnerDashboard } from '@/services/owner';
-import type { DailyPoint } from '@/services/owner';
 import type { Sale, StockLevel, Subscription } from '@/types/api';
+import RevenueLineChart from './RevenueLineChart';
 import StatCard from '@/components/ds/StatCard';
 import EmptyState from '@/components/ds/EmptyState';
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import Avatar from '@/components/ui/Avatar';
 
 export default async function OwnerOverview() {
@@ -85,7 +85,7 @@ export default async function OwnerOverview() {
                 title="No sales data yet"
                 description="Revenue will appear here once you record your first sale."
               />
-            ) : <RevenueChart data={chartData} />
+            ) : <RevenueLineChart data={chartData} />
           }
         </div>
 
@@ -225,58 +225,6 @@ function LowStockRow({ item }: { item: StockLevel }) {
         {item.is_out_of_stock ? 'Out' : item.quantity}
       </Badge>
     </div>
-  );
-}
-
-// ── Revenue chart (SVG) ───────────────────────────────────────────────────────
-const VW = 600, VH = 180, PL = 48, PR = 8, PT = 12, PB = 36;
-const IW = VW - PL - PR, IH = VH - PT - PB;
-
-function RevenueChart({ data }: { data: DailyPoint[] }) {
-  const maxVal = Math.max(...data.map(d => d.revenue), 1);
-  const pts    = data.map((d, i) => ({
-    x: PL + (i / (data.length - 1)) * IW,
-    y: PT + (1 - d.revenue / maxVal) * IH,
-    d,
-  }));
-
-  let line = `M ${pts[0].x} ${pts[0].y}`;
-  for (let i = 1; i < pts.length; i++) {
-    const cx = (pts[i-1].x + pts[i].x) / 2;
-    line += ` C ${cx} ${pts[i-1].y} ${cx} ${pts[i].y} ${pts[i].x} ${pts[i].y}`;
-  }
-  const fill = `${line} L ${pts[pts.length-1].x} ${PT+IH} L ${pts[0].x} ${PT+IH} Z`;
-
-  const step   = Math.ceil(maxVal / 4 / 100) * 100 || 1;
-  const yTicks = Array.from({ length: 5 }, (_, i) => ({ val: i * step, y: PT + (1 - i * step / (step * 4)) * IH }));
-  const xLabels = data.map((d,i) => ({ ...d, i })).filter((_,i) => i === 0 || (i+1) % 7 === 0 || i === data.length-1);
-
-  return (
-    <svg viewBox={`0 0 ${VW} ${VH}`} width="100%" className="overflow-visible" aria-hidden>
-      <defs>
-        <linearGradient id="rg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#0F766E" stopOpacity="0.12" />
-          <stop offset="100%" stopColor="#0F766E" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {yTicks.map(t => (
-        <g key={t.val}>
-          <line x1={PL} y1={t.y} x2={VW-PR} y2={t.y} stroke="#E8EDF3" strokeWidth="1" />
-          <text x={PL-6} y={t.y} textAnchor="end" dominantBaseline="middle" fontSize="10" fill="#9CA3AF">
-            {t.val >= 1000 ? `${(t.val/1000).toFixed(0)}k` : t.val}
-          </text>
-        </g>
-      ))}
-      {xLabels.map(({ label, i }) => (
-        <text key={i} x={PL + (i/(data.length-1)) * IW} y={VH-4} textAnchor="middle" fontSize="10" fill="#9CA3AF">
-          {label}
-        </text>
-      ))}
-      <path d={fill} fill="url(#rg)" />
-      <path d={line} fill="none" stroke="#0F766E" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx={pts[pts.length-1].x} cy={pts[pts.length-1].y} r="4"  fill="#0F766E" />
-      <circle cx={pts[pts.length-1].x} cy={pts[pts.length-1].y} r="7"  fill="#0F766E" fillOpacity="0.15" />
-    </svg>
   );
 }
 

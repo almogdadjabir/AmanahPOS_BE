@@ -1,16 +1,26 @@
 import { fetchAdminOwners } from '@/services/admin';
 import type { AdminOwner } from '@/types/api';
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import Avatar from '@/components/ui/Avatar';
 import EmptyState from '@/components/ds/EmptyState';
 import Pagination from '@/components/ds/Pagination';
+import {
+  Table,
+  TableHeader,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table';
 import ViewOwnerButton from './ViewOwnerButton';
+import { Users, Store } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Props {
   search?: string;
   status?: string;
-  sub?: string;
-  page?: number;
+  sub?:    string;
+  page?:   number;
 }
 
 export default async function OwnersTable({ search, status, sub, page = 1 }: Props) {
@@ -26,18 +36,18 @@ export default async function OwnersTable({ search, status, sub, page = 1 }: Pro
     });
   } catch {
     return (
-      <div className="bg-danger-light border border-danger/20 rounded-xl px-4 py-8 text-center">
-        <p className="text-[13px] font-semibold text-danger">Failed to load owners</p>
-        <p className="text-xs text-danger/70 mt-1">Check API connection and refresh.</p>
+      <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-10 text-center">
+        <p className="text-sm font-semibold text-destructive">Failed to load owners</p>
+        <p className="text-xs text-destructive/70 mt-1">Check API connection and refresh.</p>
       </div>
     );
   }
 
   if (data.results.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-border-soft shadow-card">
+      <div className="rounded-xl border border-border bg-card shadow-card">
         <EmptyState
-          icon={<UsersIcon />}
+          icon={<Users />}
           title={search ? 'No owners match your search' : 'No owners yet'}
           description={
             search
@@ -50,35 +60,31 @@ export default async function OwnersTable({ search, status, sub, page = 1 }: Pro
   }
 
   return (
-    <div className="bg-white rounded-xl border border-border-soft shadow-card overflow-hidden">
-      {/* Count header */}
-      <div className="px-4 py-2.5 border-b border-border-soft bg-surface-soft flex items-center justify-between">
-        <p className="text-[11px] font-semibold text-text-hint uppercase tracking-wider">
-          {data.count} owner{data.count !== 1 ? 's' : ''}
+    <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
+      {/* Count bar */}
+      <div className="px-4 py-2.5 border-b border-border bg-muted/30 flex items-center gap-2">
+        <span className="w-5 h-5 rounded-md bg-primary/10 text-primary flex items-center justify-center [&_svg]:size-3">
+          <Users />
+        </span>
+        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
+          {data.count.toLocaleString()} owner{data.count !== 1 ? 's' : ''}
         </p>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border-soft">
-              {['Owner', 'Phone', 'Businesses', 'Subscription', 'Status', 'Joined', ''].map(h => (
-                <th
-                  key={h}
-                  className="text-start px-4 py-2.5 text-[11px] font-semibold text-text-hint uppercase tracking-wider last:text-end whitespace-nowrap"
-                >
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-soft">
-            {data.results.map(owner => (
-              <OwnerRow key={owner.id} owner={owner} />
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent border-b border-border/60">
+            {['Owner', 'Phone', 'Businesses', 'Subscription', 'Status', 'Joined', ''].map((h, i) => (
+              <TableHead key={i}>{h}</TableHead>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.results.map(owner => (
+            <OwnerRow key={owner.id} owner={owner} />
+          ))}
+        </TableBody>
+      </Table>
 
       <Pagination count={data.count} pageSize={20} />
     </div>
@@ -91,71 +97,74 @@ function OwnerRow({ owner }: { owner: AdminOwner }) {
   });
   const lastSeen = owner.last_login_at
     ? new Date(owner.last_login_at).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
+        month: 'short', day: 'numeric',
       })
     : null;
 
   return (
-    <tr className="hover:bg-surface-soft/50 transition-colors group">
+    <TableRow className="group hover:bg-muted/40 transition-colors">
       {/* Owner */}
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <Avatar name={owner.full_name || owner.phone} size={30} />
-          <div>
-            <p className="text-[13px] font-semibold text-text-primary leading-tight">
-              {owner.full_name || '—'}
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <div className="relative shrink-0">
+            <Avatar name={owner.full_name || owner.phone} size={34} />
+            <span className={cn(
+              'absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card',
+              owner.is_active ? 'bg-success' : 'bg-muted-foreground/50',
+            )} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[13px] font-semibold text-foreground leading-tight truncate">
+              {owner.full_name || <span className="text-muted-foreground italic font-normal">No name</span>}
             </p>
             {lastSeen && (
-              <p className="text-[10px] text-text-hint mt-0.5">Last seen {lastSeen}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Seen {lastSeen}</p>
             )}
           </div>
         </div>
-      </td>
+      </TableCell>
 
       {/* Phone */}
-      <td className="px-4 py-3">
-        <p className="text-[12px] font-mono text-text-secondary">{owner.phone}</p>
+      <TableCell>
+        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted text-[11px] font-mono text-muted-foreground">
+          {owner.phone}
+        </span>
         {!owner.is_verified && (
           <p className="text-[10px] text-warning mt-0.5">Unverified</p>
         )}
-      </td>
+      </TableCell>
 
       {/* Businesses */}
-      <td className="px-4 py-3 text-[13px] text-text-secondary">{owner.business_count}</td>
+      <TableCell>
+        <div className="flex items-center gap-1.5">
+          <Store className="size-3.5 text-muted-foreground/60" />
+          <span className="text-sm font-semibold text-foreground">{owner.business_count}</span>
+        </div>
+      </TableCell>
 
       {/* Subscription */}
-      <td className="px-4 py-3">
+      <TableCell>
         <Badge dot variant={owner.has_active_subscription ? 'success' : 'warning'}>
           {owner.has_active_subscription ? 'Active' : 'No plan'}
         </Badge>
-      </td>
+      </TableCell>
 
-      {/* Account status */}
-      <td className="px-4 py-3">
+      {/* Status */}
+      <TableCell>
         <Badge dot variant={owner.is_active ? 'success' : 'danger'}>
           {owner.is_active ? 'Active' : 'Inactive'}
         </Badge>
-      </td>
+      </TableCell>
 
       {/* Joined */}
-      <td className="px-4 py-3 text-[12px] text-text-hint whitespace-nowrap">{joined}</td>
+      <TableCell>
+        <span className="text-xs text-muted-foreground whitespace-nowrap">{joined}</span>
+      </TableCell>
 
-      {/* Actions — client component, calls openView() from context */}
-      <td className="px-4 py-3 text-end">
+      {/* Action */}
+      <TableCell className="text-end">
         <ViewOwnerButton ownerId={owner.id} />
-      </td>
-    </tr>
-  );
-}
-
-function UsersIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
+      </TableCell>
+    </TableRow>
   );
 }

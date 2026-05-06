@@ -59,4 +59,10 @@ class Business(models.Model):
 
     @property
     def shop_count(self) -> int:
+        if hasattr(self, '_shop_count'):
+            return self._shop_count
         return self.shops.filter(is_active=True).count()
+
+    @shop_count.setter
+    def shop_count(self, value: int) -> None:
+        self._shop_count = value

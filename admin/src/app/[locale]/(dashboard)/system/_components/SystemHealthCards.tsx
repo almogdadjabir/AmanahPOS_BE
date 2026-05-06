@@ -1,177 +1,106 @@
 type SystemHealth = {
   status?: string;
-  checks?: {
-    database?: string;
-    cache?: string;
-  };
+  checks?: { database?: string; cache?: string };
 } | null;
 
-type Props = {
-  health: SystemHealth;
-};
-
-export default function SystemHealthCards({ health }: Props) {
-  const dbOk = health?.checks?.database === "ok";
-  const cacheOk = health?.checks?.cache === "ok";
-  const sysOk = health?.status === "ok";
+export default function SystemHealthCards({ health }: { health: SystemHealth }) {
+  const dbOk    = health?.checks?.database === 'ok';
+  const cacheOk = health?.checks?.cache    === 'ok';
+  const sysOk   = health?.status           === 'ok';
 
   const items = [
     {
-      label: "Overall Status",
-      value: sysOk ? "Operational" : "Degraded",
-      ok: sysOk,
-      description: sysOk
-        ? "Platform gateway is responding normally."
-        : "Platform gateway requires attention.",
-      icon: <ActivityIcon />,
+      label:       'API Gateway',
+      value:       sysOk   ? 'Operational' : 'Degraded',
+      ok:          sysOk,
+      description: sysOk   ? 'Platform gateway is responding normally.'  : 'Platform gateway requires attention.',
+      strength:    sysOk   ? 5 : 1,
     },
     {
-      label: "Database",
-      value: dbOk ? "Connected" : "Error",
-      ok: dbOk,
-      description: dbOk
-        ? "Primary database connection is healthy."
-        : "Database health check failed.",
-      icon: <DatabaseIcon />,
+      label:       'Database',
+      value:       dbOk    ? 'Connected'   : 'Error',
+      ok:          dbOk,
+      description: dbOk    ? 'Primary database connection is healthy.'   : 'Database health check failed.',
+      strength:    dbOk    ? 5 : 1,
     },
     {
-      label: "Cache",
-      value: cacheOk ? "Connected" : "Disconnected",
-      ok: cacheOk,
-      description: cacheOk
-        ? "Cache service is available."
-        : "Cache service is currently unavailable.",
-      icon: <CacheIcon />,
+      label:       'Cache',
+      value:       cacheOk ? 'Connected'   : 'Disconnected',
+      ok:          cacheOk,
+      description: cacheOk ? 'Cache layer is available and responding.'  : 'Cache service is currently unavailable.',
+      strength:    cacheOk ? 5 : 1,
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {items.map((item) => (
-        <SystemHealthCard key={item.label} item={item} />
-      ))}
-    </div>
-  );
-}
+    <>
+      <style>{`
+        @keyframes bar-grow {
+          from { transform: scaleY(0); opacity:0; }
+          to   { transform: scaleY(1); opacity:1; }
+        }
+        .bar-grow { transform-origin: bottom; animation: bar-grow .35s cubic-bezier(.34,1.56,.64,1) both; }
+        @keyframes card-in {
+          from { opacity:0; transform:translateY(8px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .card-in { animation: card-in .4s ease-out both; }
+      `}</style>
 
-function SystemHealthCard({
-  item,
-}: {
-  item: {
-    label: string;
-    value: string;
-    ok: boolean;
-    description: string;
-    icon: React.ReactNode;
-  };
-}) {
-  return (
-    <div className="group bg-white rounded-xl border border-border-soft shadow-card p-5 transition-colors hover:border-primary/20">
-      <div className="flex items-start justify-between gap-3">
-        <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-            item.ok
-              ? "bg-success-light text-success"
-              : "bg-danger-light text-danger"
-          }`}
-        >
-          {item.icon}
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {items.map((item, i) => (
+          <div
+            key={item.label}
+            className="card-in group bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] overflow-hidden
+                       transition-all duration-200 hover:shadow-card hover:-translate-y-[1px]"
+            style={{ animationDelay: `${i * 70}ms` }}
+          >
+            {/* Top accent */}
+            <div className={`h-[3px] w-full transition-colors ${item.ok ? 'bg-success' : 'bg-danger'}`} />
 
-        <StatusDot ok={item.ok} />
+            <div className="p-6">
+              {/* Label + badge */}
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-[10px] font-black tracking-[.18em] uppercase text-text-hint">
+                  {item.label}
+                </span>
+                <span className={`text-[9px] font-black tracking-[.12em] uppercase px-2 py-[3px] rounded-full ${
+                  item.ok ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'
+                }`}>
+                  {item.ok ? 'OK' : 'FAIL'}
+                </span>
+              </div>
+
+              {/* Big value */}
+              <p className={`text-[27px] font-black leading-none mb-2 tracking-tight ${
+                item.ok ? 'text-text-primary' : 'text-danger'
+              }`}>
+                {item.value}
+              </p>
+
+              {/* Description */}
+              <p className="text-[12px] text-text-hint leading-relaxed mb-5">
+                {item.description}
+              </p>
+
+              {/* Signal-strength bars */}
+              <div className="flex items-end gap-[4px]" style={{ height: 24 }}>
+                {[8, 12, 16, 20, 24].map((h, b) => (
+                  <div
+                    key={b}
+                    className={`bar-grow w-[5px] rounded-full ${
+                      b < item.strength
+                        ? item.ok ? 'bg-success' : 'bg-danger'
+                        : 'bg-border-soft'
+                    }`}
+                    style={{ height: h, animationDelay: `${i * 70 + b * 45}ms` }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
-
-      <div className="mt-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-text-hint">
-          {item.label}
-        </p>
-
-        <p
-          className={`mt-2 text-[22px] font-black leading-none ${
-            item.ok ? "text-text-primary" : "text-danger"
-          }`}
-        >
-          {item.value}
-        </p>
-
-        <p className="mt-2 text-xs leading-relaxed text-text-hint">
-          {item.description}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function StatusDot({ ok }: { ok: boolean }) {
-  return (
-    <div
-      className={`flex items-center gap-1.5 rounded-full px-2 py-1 ${
-        ok ? "bg-success-light text-success" : "bg-danger-light text-danger"
-      }`}
-    >
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${
-          ok ? "bg-success" : "bg-danger"
-        }`}
-      />
-      <span className="text-[10px] font-bold uppercase tracking-wide">
-        {ok ? "Healthy" : "Issue"}
-      </span>
-    </div>
-  );
-}
-
-function ActivityIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-    </svg>
-  );
-}
-
-function DatabaseIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <ellipse cx="12" cy="5" rx="9" ry="3" />
-      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-    </svg>
-  );
-}
-
-function CacheIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <polyline points="23 4 23 10 17 10" />
-      <polyline points="1 20 1 14 7 14" />
-      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-    </svg>
+    </>
   );
 }

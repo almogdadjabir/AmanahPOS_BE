@@ -16,6 +16,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.core.permissions import IsOwner, IsTenantMember
+from apps.subscriptions.guards import check_shop_limit
 from .models import Business, Shop
 from .serializers import (
     BusinessCreateSerializer,
@@ -130,6 +131,7 @@ class ShopListCreateView(APIView):
 
     def post(self, request, business_id):
         business = self.get_business(business_id)
+        check_shop_limit(business)
         serializer = ShopCreateSerializer(data=request.data, context={"business": business})
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data

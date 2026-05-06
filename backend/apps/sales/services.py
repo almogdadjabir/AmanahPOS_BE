@@ -8,8 +8,8 @@ from django.db import transaction
 
 from apps.core.exceptions import BankakAccountRequiredError, BusinessLogicError
 from apps.core.utils import generate_receipt_number
-from apps.inventory.services import deduct_stock
-from apps.inventory.models import MovementType
+from apps.inventory.services import deduct_stock, add_stock
+from apps.inventory.models import MovementType, StockLevel
 from apps.products.models import Product
 from apps.tenants.models import Business, Shop
 from .models import PaymentMethod, Sale, SaleItem, SaleStatus
@@ -130,8 +130,11 @@ def create_sale(
             subtotal=item_data["subtotal"],
         )
 
-        # Deduct inventory
-        if product.track_inventory:
+        # Deduct inventory if tracking is enabled, or a stock record already exists.
+        # track_inventory=False only means "don't enforce sell limits/warnings",
+        # not "ignore qty changes entirely".
+        has_stock_record = StockLevel.objects.filter(product=product, shop=shop).exists()
+        if product.track_inventory or has_stock_record:
             deduct_stock(
                 product=product,
                 shop=shop,
@@ -140,6 +143,7 @@ def create_sale(
                 notes=f"Sale {sale.receipt_number}",
                 created_by=cashier,
                 movement_type=MovementType.SALE,
+                allow_negative=not product.track_inventory,
             )
 
     # Award loyalty points to customer
@@ -161,8 +165,10 @@ def cancel_sale(sale: Sale, reason: str = "", cancelled_by=None) -> Sale:
 
     with transaction.atomic():
         for item in sale.items.select_related("product").all():
-            if item.product.track_inventory:
-                from apps.inventory.services import add_stock
+            has_stock_record = StockLevel.objects.filter(
+                product=item.product, shop=sale.shop
+            ).exists()
+            if item.product.track_inventory or has_stock_record:
                 add_stock(
                     product=item.product,
                     shop=sale.shop,

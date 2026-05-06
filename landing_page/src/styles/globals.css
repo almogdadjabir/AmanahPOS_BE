@@ -3,26 +3,17 @@
 @tailwind utilities;
 
 @layer base {
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
+  *, *::before, *::after { box-sizing: border-box; }
 
   html {
     scroll-behavior: smooth;
-    /* offset so sections aren't hidden under the sticky nav (72px height) */
     scroll-padding-top: 80px;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* LTR — Nunito Sans */
-  [dir="ltr"] body {
-    font-family: var(--font-nunito), system-ui, sans-serif;
-  }
-
-  /* RTL — Tajawal */
-  [dir="rtl"] body {
-    font-family: var(--font-tajawal), system-ui, sans-serif;
-  }
+  [dir="ltr"] body { font-family: var(--font-nunito), system-ui, sans-serif; }
+  [dir="rtl"] body { font-family: var(--font-tajawal), system-ui, sans-serif; }
 
   body {
     @apply bg-white text-text-primary;
@@ -34,10 +25,32 @@
   .container-page {
     @apply w-full max-w-[1200px] mx-auto px-6;
   }
+
+  /* Primary CTA button — teal gradient */
+  .btn-primary {
+    background: linear-gradient(135deg, #0F766E, #0A5C55);
+    box-shadow: 0 4px 18px rgba(15, 118, 110, 0.38);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 8px 28px rgba(15, 118, 110, 0.52);
+  }
 }
 
 @layer utilities {
-  [dir="rtl"] .flip-rtl {
-    transform: scaleX(-1);
+  [dir="rtl"] .flip-rtl { transform: scaleX(-1); }
+}
+
+/* ── Keyframes ─────────────────────────────────── */
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

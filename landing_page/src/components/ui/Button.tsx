@@ -2,7 +2,7 @@ import { type AnchorHTMLAttributes, type ButtonHTMLAttributes } from 'react';
 import { cn } from '@/lib/cn';
 
 type BaseProps = {
-  variant?: 'default' | 'primary' | 'dark';
+  variant?: 'default' | 'primary' | 'dark' | 'glow';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
   children: React.ReactNode;
@@ -24,7 +24,10 @@ const variants = {
     'bg-white text-text-primary border border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]',
   primary:
     'bg-primary text-white shadow-[0_8px_24px_-6px_rgba(15,118,110,0.45)] hover:bg-[#0D6B63] hover:-translate-y-0.5',
-  dark: 'bg-white/10 text-white border border-white/20 hover:bg-white/20',
+  dark:
+    'bg-white/10 text-white border border-white/20 hover:bg-white/20',
+  glow:
+    'bg-primary text-white hover:-translate-y-0.5 shadow-[0_8px_32px_rgba(15,118,110,0.5),0_0_0_1px_rgba(15,118,110,0.3)] hover:shadow-[0_12px_40px_rgba(15,118,110,0.65)]',
 };
 
 const sizes = {

@@ -1,22 +1,43 @@
-import PageTitle from '@/components/ds/PageTitle';
-import EmptyState from '@/components/ds/EmptyState';
+import { Suspense } from 'react';
+import { TableSkeleton } from '@/components/ds/Skeleton';
+import CustomerDrawerShell from './_components/CustomerDrawerShell';
+import CustomerPageHeader from './_components/CustomerPageHeader';
+import CustomerStats, { CustomerStatsSkeleton } from './_components/CustomerStats';
+import CustomerFilters from './_components/CustomerFilters';
+import CustomersTable from './_components/CustomersTable';
 
-export default function CustomersPage() {
-  return (
-    <div>
-      <PageTitle
-        title="Customers"
-        description="View and manage your customer base."
-      />
-      <div className="bg-white rounded-xl border border-border-soft shadow-card overflow-hidden">
-        <EmptyState
-          icon={<UserIcon />}
-          title="Customers coming soon"
-          description="Customer profiles, purchase history, and loyalty points will appear here."
-        />
-      </div>
-    </div>
-  );
+interface Props {
+  searchParams: Promise<{
+    search?: string;
+    status?: string;
+    page?:   string;
+  }>;
 }
 
-function UserIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>; }
+export default async function CustomersPage({ searchParams }: Props) {
+  const params   = await searchParams;
+  const page     = Math.max(1, Number(params.page) || 1);
+  const tableKey = JSON.stringify({ search: params.search, status: params.status, page });
+
+  return (
+    <CustomerDrawerShell>
+      <CustomerPageHeader />
+
+      <Suspense fallback={<CustomerStatsSkeleton />}>
+        <CustomerStats />
+      </Suspense>
+
+      <Suspense fallback={<div className="h-[52px] rounded-xl bg-muted animate-pulse mb-5" />}>
+        <CustomerFilters />
+      </Suspense>
+
+      <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={6} />}>
+        <CustomersTable
+          search={params.search}
+          status={params.status}
+          page={page}
+        />
+      </Suspense>
+    </CustomerDrawerShell>
+  );
+}

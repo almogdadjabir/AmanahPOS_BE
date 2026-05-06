@@ -1,15 +1,25 @@
-import PageTitle from "@/components/ds/PageTitle";
+import { Users } from 'lucide-react';
 import CreateOwnerButton from "./CreateOwnerButton";
 
 export default function OwnersPageHeader() {
   return (
-    <div className="flex items-start justify-between mb-5">
-      <PageTitle
-        title="Owners"
-        description="All business owners registered on the platform."
-      />
-
-      <CreateOwnerButton />
+    <div className="flex items-start justify-between mb-6 gap-4">
+      <div className="flex items-center gap-3">
+        <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:size-5">
+          <Users />
+        </span>
+        <div>
+          <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
+            Owners
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            All business owners registered on the platform.
+          </p>
+        </div>
+      </div>
+      <div className="shrink-0 mt-0.5">
+        <CreateOwnerButton />
+      </div>
     </div>
   );
 }

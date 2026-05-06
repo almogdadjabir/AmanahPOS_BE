@@ -5,13 +5,47 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: '#0F766E',
-          hover:   '#0D6B63',
-          active:  '#0A5C55',
-          light:   '#CCFBF1',
-          soft:    '#F0FDFA',
+        /* ── shadcn CSS-variable tokens ───────────────────────────────────── */
+        background:  'hsl(var(--background))',
+        foreground:  'hsl(var(--foreground))',
+        card: {
+          DEFAULT:    'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
         },
+        popover: {
+          DEFAULT:    'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        primary: {
+          DEFAULT:    'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
+          /* Keep legacy aliases for existing code */
+          hover:  '#0D6B63',
+          active: '#0A5C55',
+          light:  '#CCFBF1',
+          soft:   '#F0FDFA',
+        },
+        secondary: {
+          DEFAULT:    'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        muted: {
+          DEFAULT:    'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT:    'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        destructive: {
+          DEFAULT:    'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        border:  'hsl(var(--border))',
+        input:   'hsl(var(--input))',
+        ring:    'hsl(var(--ring))',
+
+        /* ── Semantic palette (keep backward compat) ──────────────────────── */
         danger: {
           DEFAULT: '#E53E3E',
           hover:   '#C53030',
@@ -32,6 +66,8 @@ const config: Config = {
           hover:   '#2563EB',
           light:   '#EFF6FF',
         },
+
+        /* ── Surface aliases ──────────────────────────────────────────────── */
         surface:          '#FFFFFF',
         'surface-soft':   '#F8FAFC',
         'surface-muted':  '#F1F5F9',
@@ -43,14 +79,33 @@ const config: Config = {
         sidebar:          '#111827',
         deep:             '#0B1220',
       },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+      },
       fontFamily: {
         sans: ['var(--font-nunito)', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        card:    '0 1px 3px 0 rgb(0 0 0 / .05), 0 1px 2px -1px rgb(0 0 0 / .04)',
-        'card-md': '0 4px 6px -1px rgb(0 0 0 / .06), 0 2px 4px -2px rgb(0 0 0 / .04)',
-        'card-lg': '0 10px 15px -3px rgb(0 0 0 / .06), 0 4px 6px -4px rgb(0 0 0 / .04)',
-        header:  '0 1px 0 0 #E8EDF3, 0 2px 8px 0 rgb(0 0 0 / .04)',
+        card:      '0 1px 2px 0 rgb(0 0 0 / .04), 0 4px 16px 0 rgb(0 0 0 / .06)',
+        'card-md': '0 4px 8px -1px rgb(0 0 0 / .07), 0 12px 32px -4px rgb(0 0 0 / .08)',
+        'card-lg': '0 10px 20px -3px rgb(0 0 0 / .09), 0 24px 48px -8px rgb(0 0 0 / .1)',
+        header:    '0 1px 0 0 hsl(215 22% 88%), 0 2px 8px 0 rgb(0 0 0 / .04)',
+      },
+      keyframes: {
+        'accordion-down': {
+          from: { height: '0' },
+          to:   { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to:   { height: '0' },
+        },
+      },
+      animation: {
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up':   'accordion-up 0.2s ease-out',
       },
     },
   },

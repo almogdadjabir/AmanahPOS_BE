@@ -23,13 +23,23 @@ from apps.accounts.models import BankakAccount, CustomUser
 from apps.tenants.models import Business, Shop
 from apps.subscriptions.models import Subscription
 
+from apps.subscriptions.models import Plan
+
 from .serializers import (
     AdminStatsSerializer,
     AdminOwnerSerializer,
     AdminOwnerDetailSerializer,
     AdminOwnerUpdateSerializer,
     AdminBusinessSerializer,
+    AdminBusinessDetailSerializer,
+    AdminBusinessUpdateSerializer,
+    AdminBusinessCreateSerializer,
     AdminSubscriptionSerializer,
+    AdminPlanSerializer,
+    AdminPlanCreateUpdateSerializer,
+    AdminSubscriptionDetailSerializer,
+    AdminSubscriptionCreateSerializer,
+    AdminSubscriptionUpdateSerializer,
 )
 
 
@@ -134,6 +144,14 @@ class AdminStatsView(APIView):
             .order_by("-created_at")[:10]
         )
 
+        # ── 7. Recent 10 completed transactions (platform-wide) ───────────────
+        from apps.sales.models import Sale as SaleModel
+        recent_transactions = list(
+            SaleModel.objects.filter(status="completed")
+            .select_related("tenant", "cashier", "shop")
+            .order_by("-created_at")[:10]
+        )
+
         data = {
             "total_owners":          user_agg["total"],
             "total_businesses":      total_businesses,
@@ -143,6 +161,7 @@ class AdminStatsView(APIView):
             "new_owners_this_month": user_agg["new_this_month"],
             "monthly_growth":        monthly_growth,
             "recent_owners":         recent_owners,
+            "recent_transactions":   recent_transactions,
         }
         return Response({"success": True, "data": AdminStatsSerializer(data).data})
 
@@ -215,6 +234,13 @@ class AdminBusinessListView(ListAPIView):
         is_active = self.request.query_params.get("is_active")
         if is_active is not None:
             qs = qs.filter(is_active=is_active.lower() in ("true", "1", "yes"))
+
+        has_sub = self.request.query_params.get("has_subscription")
+        if has_sub == "true":
+            qs = qs.filter(has_active_subscription=True)
+        elif has_sub == "false":
+            qs = qs.filter(has_active_subscription=False)
+
         return qs
 
     def list(self, request, *args, **kwargs):
@@ -326,3 +352,299 @@ class AdminOwnerToggleStatusView(APIView):
             "message": f"Owner {label} successfully.",
             "data": {"id": str(owner.id), "is_active": owner.is_active},
         })
+
+
+# ── Business detail + update + create ────────────────────────────────────────
+
+class AdminBusinessDetailView(APIView):
+    """
+    GET   /api/v1/admin/businesses/{pk}/  → full business profile with shops + subscription
+    PATCH /api/v1/admin/businesses/{pk}/  → update name / address / phone / email
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def _get_business(self, pk):
+        today = _today()
+        return get_object_or_404(
+            Business.objects.select_related("owner")
+            .annotate(
+                shop_count=Count("shops", filter=Q(shops__is_active=True), distinct=True),
+                has_active_subscription=_active_sub_for_business(),
+                subscription_end_date=_latest_sub_end_date(),
+            )
+            .prefetch_related(
+                Prefetch("shops", queryset=Shop.objects.order_by("-is_main", "name")),
+                Prefetch(
+                    "subscriptions",
+                    queryset=Subscription.objects.filter(
+                        is_active=True, end_date__gte=today
+                    ).select_related("plan").order_by("-end_date"),
+                ),
+            ),
+            pk=pk,
+        )
+
+    def get(self, request, pk):
+        business = self._get_business(pk)
+        return Response({"success": True, "data": AdminBusinessDetailSerializer(business).data})
+
+    def patch(self, request, pk):
+        business = self._get_business(pk)
+        serializer = AdminBusinessUpdateSerializer(business, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"success": True, "data": AdminBusinessDetailSerializer(self._get_business(pk)).data})
+
+
+class AdminBusinessToggleStatusView(APIView):
+    """
+    POST /api/v1/admin/businesses/{pk}/toggle-status/
+    Activates or deactivates a business.
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request, pk):
+        try:
+            business = Business.objects.get(pk=pk)
+        except Business.DoesNotExist:
+            return Response({"success": False, "message": "Business not found."}, status=404)
+
+        business.is_active = not business.is_active
+        business.save(update_fields=["is_active"])
+        label = "activated" if business.is_active else "deactivated"
+        return Response({
+            "success": True,
+            "message": f"Business {label} successfully.",
+            "data": {"id": str(business.id), "is_active": business.is_active},
+        })
+
+
+class AdminBusinessCreateView(APIView):
+    """
+    POST /api/v1/admin/businesses/create/
+    Create a new business and assign it to an existing owner (by phone).
+    Separate URL from the list view to avoid modifying the GET semantics.
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        serializer = AdminBusinessCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        owner = CustomUser.objects.get(
+            phone=data["owner_phone"], is_staff=False, role="owner"
+        )
+        today = _today()
+        business = Business.objects.create(
+            owner=owner,
+            name=data["name"],
+            address=data.get("address", ""),
+            phone=data.get("phone", ""),
+            email=data.get("email", ""),
+        )
+        # Re-fetch with annotations for the response
+        business = (
+            Business.objects.select_related("owner")
+            .annotate(
+                shop_count=Count("shops", filter=Q(shops__is_active=True), distinct=True),
+                has_active_subscription=_active_sub_for_business(),
+                subscription_end_date=_latest_sub_end_date(),
+            )
+            .prefetch_related(
+                Prefetch("shops", queryset=Shop.objects.order_by("-is_main", "name")),
+                Prefetch(
+                    "subscriptions",
+                    queryset=Subscription.objects.filter(
+                        is_active=True, end_date__gte=today
+                    ).select_related("plan").order_by("-end_date"),
+                ),
+            )
+            .get(pk=business.pk)
+        )
+        return Response(
+            {"success": True, "data": AdminBusinessDetailSerializer(business).data},
+            status=201,
+        )
+
+
+# ── Plans ─────────────────────────────────────────────────────────────────────
+
+class AdminPlanListView(ListAPIView):
+    """
+    GET /api/v1/admin/plans/
+    List all plans (active and inactive) with active subscription count.
+    No pagination — plans list is short.
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+    serializer_class   = AdminPlanSerializer
+    pagination_class   = None
+
+    def get_queryset(self):
+        today = _today()
+        return (
+            Plan.objects.all()
+            .annotate(
+                subscription_count=Count(
+                    "subscriptions",
+                    filter=Q(subscriptions__is_active=True, subscriptions__end_date__gte=today),
+                    distinct=True,
+                )
+            )
+            .order_by("sort_order", "price")
+        )
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return Response({"success": True, "data": response.data})
+
+
+class AdminPlanDetailView(APIView):
+    """
+    GET   /api/v1/admin/plans/{pk}/  → full plan detail
+    PATCH /api/v1/admin/plans/{pk}/  → update plan
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def _get_plan(self, pk):
+        today = _today()
+        return get_object_or_404(
+            Plan.objects.annotate(
+                subscription_count=Count(
+                    "subscriptions",
+                    filter=Q(subscriptions__is_active=True, subscriptions__end_date__gte=today),
+                    distinct=True,
+                )
+            ),
+            pk=pk,
+        )
+
+    def get(self, request, pk):
+        return Response({"success": True, "data": AdminPlanSerializer(self._get_plan(pk)).data})
+
+    def patch(self, request, pk):
+        plan = self._get_plan(pk)
+        serializer = AdminPlanCreateUpdateSerializer(plan, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"success": True, "data": AdminPlanSerializer(self._get_plan(pk)).data})
+
+
+class AdminPlanCreateView(APIView):
+    """
+    POST /api/v1/admin/plans/create/
+    Create a new paid plan. is_free is always set to False.
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        serializer = AdminPlanCreateUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        plan = serializer.save(is_free=False)
+        today = _today()
+        plan = Plan.objects.annotate(
+            subscription_count=Count(
+                "subscriptions",
+                filter=Q(subscriptions__is_active=True, subscriptions__end_date__gte=today),
+                distinct=True,
+            )
+        ).get(pk=plan.pk)
+        return Response({"success": True, "data": AdminPlanSerializer(plan).data}, status=201)
+
+
+class AdminPlanToggleActiveView(APIView):
+    """
+    POST /api/v1/admin/plans/{pk}/toggle-active/
+    Activate or deactivate a plan.
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request, pk):
+        plan = get_object_or_404(Plan, pk=pk)
+        plan.is_active = not plan.is_active
+        plan.save(update_fields=["is_active", "updated_at"])
+        label = "activated" if plan.is_active else "deactivated"
+        return Response({
+            "success": True,
+            "message": f"Plan {label} successfully.",
+            "data": {"id": str(plan.id), "is_active": plan.is_active},
+        })
+
+
+# ── Subscription detail + create + deactivate ─────────────────────────────────
+
+class AdminSubscriptionDetailView(APIView):
+    """
+    GET   /api/v1/admin/subscriptions/{pk}/  → full detail
+    PATCH /api/v1/admin/subscriptions/{pk}/  → update payment_reference / notes
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def _get_sub(self, pk):
+        return get_object_or_404(
+            Subscription.objects.select_related("business", "business__owner", "plan"),
+            pk=pk,
+        )
+
+    def get(self, request, pk):
+        return Response({"success": True, "data": AdminSubscriptionDetailSerializer(self._get_sub(pk)).data})
+
+    def patch(self, request, pk):
+        sub = self._get_sub(pk)
+        serializer = AdminSubscriptionUpdateSerializer(sub, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"success": True, "data": AdminSubscriptionDetailSerializer(self._get_sub(pk)).data})
+
+
+class AdminSubscriptionDeactivateView(APIView):
+    """
+    POST /api/v1/admin/subscriptions/{pk}/deactivate/
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request, pk):
+        sub = get_object_or_404(Subscription, pk=pk)
+        if not sub.is_active:
+            return Response({"success": False, "message": "Subscription is already inactive."}, status=400)
+        sub.deactivate()
+        return Response({
+            "success": True,
+            "message": "Subscription deactivated.",
+            "data": {"id": str(sub.id), "is_active": False},
+        })
+
+
+class AdminSubscriptionCreateView(APIView):
+    """
+    POST /api/v1/admin/subscriptions/create/
+    Admin creates/assigns a subscription to a business.
+    """
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        from apps.tenants.models import Business
+        serializer = AdminSubscriptionCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        plan     = Plan.objects.get(pk=data["plan_id"])
+        business = Business.objects.get(pk=data["business_id"])
+        start    = data["start_date"]
+        end      = start + timedelta(days=plan.duration_days)
+
+        sub = Subscription.objects.create(
+            business=business,
+            plan=plan,
+            start_date=start,
+            end_date=end,
+            payment_reference=data.get("payment_reference", ""),
+            notes=data.get("notes", ""),
+        )
+        sub_full = Subscription.objects.select_related(
+            "business", "business__owner", "plan"
+        ).get(pk=sub.pk)
+        return Response(
+            {"success": True, "data": AdminSubscriptionDetailSerializer(sub_full).data},
+            status=201,
+        )

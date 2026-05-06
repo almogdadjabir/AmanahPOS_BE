@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 
 from apps.core.exceptions import NotFound
 from apps.core.pagination import StandardPagination
+from apps.subscriptions.guards import check_product_limit
 from . import schema as _schema
 from .models import Category, Product
 from .serializers import (
@@ -228,6 +229,7 @@ class ProductListCreateView(TenantMixin, APIView):
     @_schema.product_create
     def post(self, request):
         tenant = self.get_tenant()
+        check_product_limit(tenant)
         serializer = ProductCreateSerializer(data=request.data, context={"tenant": tenant})
         serializer.is_valid(raise_exception=True)
 

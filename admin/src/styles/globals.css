@@ -3,6 +3,49 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* ── Core surface ──────────────────────────────────────────────────────── */
+    --background:          215 28% 97%;   /* cool off-white — distinct from card */
+    --foreground:          222 22% 10%;
+
+    /* ── Cards & popovers ─────────────────────────────────────────────────── */
+    --card:                0 0% 100%;
+    --card-foreground:     222 22% 10%;
+    --popover:             0 0% 100%;
+    --popover-foreground:  222 22% 10%;
+
+    /* ── Primary brand — teal ─────────────────────────────────────────────── */
+    --primary:             174 75% 27%;   /* #0F766E */
+    --primary-foreground:  0 0% 100%;
+
+    /* ── Secondary / muted ────────────────────────────────────────────────── */
+    --secondary:           215 28% 94%;
+    --secondary-foreground:222 22% 10%;
+    --muted:               215 22% 93%;
+    --muted-foreground:    215 16% 50%;
+
+    /* ── Accent ───────────────────────────────────────────────────────────── */
+    --accent:              174 75% 27%;
+    --accent-foreground:   0 0% 100%;
+
+    /* ── Destructive ──────────────────────────────────────────────────────── */
+    --destructive:         0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* ── Border & inputs ──────────────────────────────────────────────────── */
+    --border:              215 22% 88%;
+    --input:               215 22% 88%;
+    --ring:                174 75% 27%;
+
+    /* ── Radius ───────────────────────────────────────────────────────────── */
+    --radius: 0.625rem;
+
+    /* ── Status colors ────────────────────────────────────────────────────── */
+    --success:  161 94% 30%;
+    --warning:  37 91% 44%;
+    --info:     217 91% 60%;
+  }
+
   *, *::before, *::after { box-sizing: border-box; }
 
   html {
@@ -15,15 +58,24 @@
   [dir="rtl"] body { font-family: var(--font-tajawal), system-ui, sans-serif; }
 
   body {
-    @apply bg-surface-soft text-text-primary;
+    background-color: hsl(var(--background));
+    /* Subtle teal glow from the top — gives depth behind the sidebar */
+    background-image:
+      radial-gradient(ellipse 120% 55% at 60% -5%, hsl(174 75% 27% / 0.055), transparent);
+    color: hsl(var(--foreground));
     line-height: 1.5;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar       { width: 5px; height: 5px; }
+  /* Refined scrollbar */
+  ::-webkit-scrollbar       { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-border-muted rounded-full; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-text-hint; }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.35);
+  }
 }
 
 @layer utilities {

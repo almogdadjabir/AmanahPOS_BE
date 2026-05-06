@@ -87,8 +87,13 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_stock_level(self, obj):
         try:
             from apps.inventory.models import StockLevel
-            stock = StockLevel.objects.filter(product=obj).first()
-            return stock.quantity if stock else 0
+            from django.db.models import Sum
+            result = StockLevel.objects.filter(product=obj).aggregate(total=Sum("quantity"))
+            total = result["total"]
+            if total is None:
+                return 0
+            # Return as int if whole number, float otherwise
+            return int(total) if total == int(total) else float(total)
         except Exception:
             return None
 

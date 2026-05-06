@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { useLocale } from "next-intl";
+import { useState, useTransition } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
-import { useTransition } from "react";
+import { Menu } from "lucide-react";
 import type { UserProfile } from "@/types/api";
+import { cn } from "@/lib/utils";
 import Sidebar from "./Sidebar";
-import Avatar from "@/components/ui/Avatar";
 import Logo from "@/components/ui/Logo";
+import UserMenu from "./UserMenu";
 
 const PAGE_TITLES: Record<string, string> = {
   "/": "dashboard",
@@ -40,11 +40,9 @@ export default function AppShell({ profile, children }: Props) {
   const [isPending, startTransition] = useTransition();
   const isAdmin = profile.is_staff === true;
 
-  // Strip locale prefix to get the route key
-  const routeKey = "/" + pathname.split("/").slice(2).join("/");
-  const pageKey = PAGE_TITLES[routeKey] ?? "dashboard";
+  const routeKey  = "/" + pathname.split("/").slice(2).join("/");
+  const pageKey   = PAGE_TITLES[routeKey] ?? "dashboard";
 
-  // Determine page title — admin and owner have overlapping keys
   const adminTitles: Record<string, string> = {
     dashboard: "Dashboard",
     owners: "Owner Accounts",
@@ -63,8 +61,7 @@ export default function AppShell({ profile, children }: Props) {
     subscription: "My Subscription",
     settings: "Settings",
   };
-  const titles = isAdmin ? adminTitles : ownerTitles;
-  const pageTitle = titles[pageKey] ?? "Dashboard";
+  const pageTitle = (isAdmin ? adminTitles : ownerTitles)[pageKey] ?? "Dashboard";
 
   function switchLocale() {
     const target = locale === "ar" ? "en" : "ar";
@@ -74,7 +71,7 @@ export default function AppShell({ profile, children }: Props) {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface-soft">
+    <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar
         profile={profile}
         isOpen={sidebarOpen}
@@ -82,13 +79,17 @@ export default function AppShell({ profile, children }: Props) {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
-        <header className="sticky top-0 z-10 h-14 bg-white shadow-header flex items-center gap-3 px-4 shrink-0">
+        {/* ── Header ───────────────────────────────────────────────────────── */}
+        <header className="sticky top-0 z-10 h-14 bg-card border-b border-border flex items-center gap-3 px-4 shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 -ms-1 rounded-md text-text-hint hover:bg-surface-muted transition-colors"
+            className={cn(
+              "lg:hidden p-1.5 -ms-1 rounded-md",
+              "text-muted-foreground hover:text-foreground hover:bg-muted",
+              "transition-colors",
+            )}
           >
-            <HamburgerIcon />
+            <Menu size={18} />
           </button>
 
           {/* Mobile logo */}
@@ -96,57 +97,45 @@ export default function AppShell({ profile, children }: Props) {
             <Logo size={24} />
           </div>
 
-          <h1 className="flex-1 text-[15px] font-semibold text-text-primary hidden lg:block">
+          {/* Page title */}
+          <h1 className="flex-1 text-sm font-semibold text-foreground hidden lg:block">
             {pageTitle}
           </h1>
 
           <div className="flex items-center gap-2 ms-auto">
             {/* Admin badge */}
             {isAdmin && (
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-primary-soft text-primary text-[11px] font-semibold">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-semibold border border-primary/20">
                 Platform Admin
               </span>
             )}
 
+            {/* Locale switcher */}
             <button
               onClick={switchLocale}
               disabled={isPending}
-              className="h-8 px-3 rounded-md border border-border-soft text-xs font-semibold text-text-secondary hover:bg-surface-muted transition-all disabled:opacity-40"
+              className={cn(
+                "h-8 px-3 rounded-md border border-border",
+                "text-xs font-semibold text-muted-foreground",
+                "hover:bg-muted hover:text-foreground",
+                "transition-all disabled:opacity-40",
+              )}
             >
               {tCommon("switchLocale")}
             </button>
 
-            <div className="w-px h-5 bg-border-soft mx-1" />
+            <div className="w-px h-5 bg-border mx-1" />
 
-            <div className="flex items-center gap-2 cursor-default select-none">
-              <Avatar name={profile.full_name || profile.phone} size={30} />
-              <span className="hidden sm:block text-[13px] font-medium text-text-secondary">
-                {profile.full_name || profile.phone}
-              </span>
-            </div>
+            {/* User menu */}
+            <UserMenu profile={profile} />
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-5 lg:p-6">{children}</main>
+        {/* ── Main content ─────────────────────────────────────────────────── */}
+        <main className="flex-1 overflow-y-auto p-5 lg:p-6">
+          {children}
+        </main>
       </div>
     </div>
-  );
-}
-
-function HamburgerIcon() {
-  return (
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    >
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <line x1="3" y1="12" x2="21" y2="12" />
-      <line x1="3" y1="18" x2="21" y2="18" />
-    </svg>
   );
 }

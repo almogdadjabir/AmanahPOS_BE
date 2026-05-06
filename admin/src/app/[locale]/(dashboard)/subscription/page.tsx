@@ -1,114 +1,101 @@
-import { apiGet } from '@/lib/api';
-import type { Subscription, Plan } from '@/types/api';
+import { Suspense } from 'react';
 import PageTitle from '@/components/ds/PageTitle';
-import EmptyState from '@/components/ds/EmptyState';
-import Badge from '@/components/ui/Badge';
+import {
+  fetchMySubscriptionAction,
+  fetchOwnerUsageAction,
+} from '@/actions/my-subscription';
+import { getSubscriptionStatus } from '@/lib/subscription-utils';
+import SubscriptionAlerts from './_components/SubscriptionAlerts';
+import SubscriptionHeroCard, { NoSubscriptionCard } from './_components/SubscriptionSummaryCard';
+import SubscriptionUsage, { UsageUnavailable } from './_components/SubscriptionUsage';
+import SubscriptionFeatures from './_components/SubscriptionFeatures';
+import {
+  SubscriptionSummarySkeleton,
+  SubscriptionBodySkeleton,
+} from './_components/SubscriptionSkeleton';
 
-async function fetchSubscription(): Promise<Subscription | null> {
-  try {
-    return await apiGet<Subscription>('/api/v1/subscriptions/my/');
-  } catch {
-    return null;
+// ── Async slices ──────────────────────────────────────────────────────────────
+
+async function HeroSection() {
+  const result = await fetchMySubscriptionAction();
+
+  if (!result.ok) {
+    return (
+      <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-5 py-8 text-center mb-5">
+        <p className="text-sm font-bold text-destructive">Failed to load subscription</p>
+        <p className="text-xs text-destructive/70 mt-1">{result.error}</p>
+      </div>
+    );
   }
-}
 
-async function fetchPlans(): Promise<Plan[]> {
-  try {
-    const res = await apiGet<Plan[]>('/api/v1/subscriptions/plans/');
-    return Array.isArray(res) ? res : [];
-  } catch {
-    return [];
-  }
-}
-
-export default async function SubscriptionPage() {
-  const [sub, plans] = await Promise.all([fetchSubscription(), fetchPlans()]);
-
-  function fmtDate(d: string) {
-    return new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  }
+  const { sub } = result;
+  const status  = getSubscriptionStatus(sub);
 
   return (
-    <div>
-      <PageTitle
-        title="My Subscription"
-        description="Your current plan and billing details."
+    <>
+      <SubscriptionAlerts
+        status={status}
+        daysRemaining={sub?.days_remaining}
+        planName={sub?.plan.name}
       />
+      {sub
+        ? <SubscriptionHeroCard sub={sub} status={status} />
+        : <NoSubscriptionCard />
+      }
+    </>
+  );
+}
 
-      {/* Current plan */}
-      {sub ? (
-        <div className="bg-white rounded-xl border border-border-soft shadow-card p-5 mb-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-medium text-text-hint mb-1">Current Plan</p>
-              <p className="text-[18px] font-bold text-text-primary">{sub.plan.name}</p>
-              <p className="text-xs text-text-hint mt-1">{sub.plan.description}</p>
-            </div>
-            <Badge variant={sub.is_expired ? 'danger' : sub.days_remaining <= 7 ? 'warning' : 'success'} dot>
-              {sub.is_expired ? 'Expired' : `${sub.days_remaining}d left`}
-            </Badge>
-          </div>
+async function BodySection() {
+  const [subResult, usageResult] = await Promise.all([
+    fetchMySubscriptionAction(),
+    fetchOwnerUsageAction(),
+  ]);
 
-          <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[
-              { label: 'Start Date',  value: fmtDate(sub.start_date) },
-              { label: 'End Date',    value: fmtDate(sub.end_date) },
-              { label: 'Max Shops',   value: String(sub.plan.max_shops) },
-              { label: 'Max Users',   value: String(sub.plan.max_users) },
-            ].map(item => (
-              <div key={item.label} className="bg-surface-soft rounded-lg p-3">
-                <p className="text-[11px] font-medium text-text-hint mb-1">{item.label}</p>
-                <p className="text-[13px] font-semibold text-text-primary">{item.value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-border-soft shadow-card mb-4">
-          <EmptyState
-            icon={<CreditIcon />}
-            title="No active subscription"
-            description="Contact your platform administrator to activate a subscription plan."
-          />
-        </div>
-      )}
+  if (!subResult.ok || !subResult.sub) return null;
 
-      {/* Available plans */}
-      {plans.length > 0 && (
-        <div className="bg-white rounded-xl border border-border-soft shadow-card overflow-hidden">
-          <div className="px-4 py-3 border-b border-border-soft">
-            <p className="text-[13px] font-semibold text-text-primary">Available Plans</p>
-            <p className="text-xs text-text-hint mt-0.5">Plans offered on this platform</p>
-          </div>
-          <div className="divide-y divide-border-soft">
-            {plans.map(plan => {
-              const price = parseFloat(plan.price);
-              const isCurrent = sub?.plan.id === plan.id;
-              return (
-                <div key={plan.id} className={`px-4 py-3 flex items-center gap-4 ${isCurrent ? 'bg-primary/[0.03]' : ''}`}>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[13px] font-semibold text-text-primary">{plan.name}</p>
-                      {plan.is_free && <Badge variant="info">Free</Badge>}
-                      {isCurrent && <Badge variant="success">Current</Badge>}
-                      {!plan.is_active && <Badge variant="danger">Inactive</Badge>}
-                    </div>
-                    <p className="text-xs text-text-hint mt-0.5 truncate">{plan.description}</p>
-                  </div>
-                  <div className="text-end shrink-0">
-                    <p className="text-[13px] font-bold text-text-primary">
-                      {price === 0 ? 'Free' : `${price} ${plan.currency}`}
-                    </p>
-                    <p className="text-[11px] text-text-hint">{plan.duration_days}d · {plan.max_shops} shops</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+  const { sub } = subResult;
+  const plan    = sub.plan;
+  const features = plan.features ?? {};
+  const hasFeatures = Object.keys(features).length > 0;
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      {/* Usage — takes 2/3 */}
+      <div className="lg:col-span-2">
+        {usageResult.ok
+          ? <SubscriptionUsage usage={usageResult.data} plan={plan} />
+          : <UsageUnavailable plan={plan} />
+        }
+      </div>
+
+      {/* Features sidebar — takes 1/3 */}
+      {hasFeatures && (
+        <div className="lg:col-span-1">
+          <SubscriptionFeatures features={features} />
         </div>
       )}
     </div>
   );
 }
 
-function CreditIcon() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>; }
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default async function SubscriptionPage() {
+  return (
+    <div>
+      <PageTitle
+        title="My Subscription"
+        description="Your current plan, usage, and billing details."
+      />
+
+      <Suspense fallback={<SubscriptionSummarySkeleton />}>
+        <HeroSection />
+      </Suspense>
+
+      <Suspense fallback={<SubscriptionBodySkeleton />}>
+        <BodySection />
+      </Suspense>
+    </div>
+  );
+}

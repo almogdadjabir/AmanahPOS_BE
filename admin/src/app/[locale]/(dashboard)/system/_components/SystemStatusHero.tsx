@@ -1,160 +1,90 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
 type SystemHealth = {
   status?: string;
-  checks?: {
-    database?: string;
-    cache?: string;
-  };
+  checks?: { database?: string; cache?: string };
 } | null;
 
-type Props = {
-  health: SystemHealth;
-};
+export default function SystemStatusHero({ health }: { health: SystemHealth }) {
+  const [time, setTime]       = useState('');
+  const [mounted, setMounted] = useState(false);
 
-export default function SystemStatusHero({ health }: Props) {
-  const dbOk = health?.checks?.database === "ok";
-  const cacheOk = health?.checks?.cache === "ok";
-  const sysOk = health?.status === "ok";
+  useEffect(() => {
+    setMounted(true);
+    const tick = () =>
+      setTime(
+        new Date().toLocaleTimeString('en-US', {
+          hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit',
+        }),
+      );
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
 
-  const healthyChecks = [sysOk, dbOk, cacheOk].filter(Boolean).length;
+  const dbOk    = health?.checks?.database === 'ok';
+  const cacheOk = health?.checks?.cache    === 'ok';
+  const sysOk   = health?.status           === 'ok';
 
   return (
-    <div
-      className={`relative overflow-hidden rounded-xl border shadow-card ${
-        sysOk ? "border-success/20 bg-white" : "border-danger/20 bg-white"
-      }`}
-    >
-      <div
-        className={`absolute inset-y-0 start-0 w-1 ${
-          sysOk ? "bg-success" : "bg-danger"
-        }`}
-      />
+    <div className="flex flex-col lg:flex-row items-center gap-6 rounded-2xl border border-border-soft bg-white px-7 py-6 shadow-card">
 
-      <div className="p-5">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-start gap-4">
-            <div
-              className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
-                sysOk
-                  ? "bg-success-light text-success"
-                  : "bg-danger-light text-danger"
-              }`}
-            >
-              {sysOk ? <ShieldCheckIcon /> : <ShieldAlertIcon />}
+      {/* Status indicator */}
+      <div className="shrink-0 flex items-center gap-3">
+        <span className="relative flex h-2.5 w-2.5">
+          <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-40 ${sysOk ? 'bg-success' : 'bg-danger'}`} />
+          <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${sysOk ? 'bg-success' : 'bg-danger'}`} />
+        </span>
+        <span className={`text-[11px] font-bold tracking-[.14em] uppercase ${sysOk ? 'text-success' : 'text-danger'}`}>
+          {sysOk ? 'Live' : 'Alert'}
+        </span>
+      </div>
 
-              {sysOk && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-50" />
-                  <span className="relative inline-flex h-3 w-3 rounded-full border-2 border-white bg-success" />
-                </span>
-              )}
-            </div>
+      {/* Divider */}
+      <div className="hidden lg:block w-px h-10 bg-border-soft shrink-0" />
 
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="text-[18px] font-black text-text-primary">
-                  {sysOk ? "All systems operational" : "System degraded"}
-                </p>
+      {/* Main text */}
+      <div className="flex-1 text-center lg:text-left min-w-0">
+        <h2 className="text-[20px] font-black text-text-primary tracking-tight leading-tight mb-1">
+          {sysOk ? 'All systems operational' : 'System degraded'}
+        </h2>
+        <p className="text-[13px] text-text-hint leading-relaxed">
+          {sysOk
+            ? 'Core services are responding normally. Platform is fully accessible.'
+            : 'One or more services are not responding. Review diagnostics below.'}
+        </p>
 
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
-                    sysOk
-                      ? "bg-success-light text-success"
-                      : "bg-danger-light text-danger"
-                  }`}
-                >
-                  {sysOk ? "Live" : "Action needed"}
-                </span>
-              </div>
-
-              <p className="mt-1 max-w-xl text-sm text-text-secondary">
-                {sysOk
-                  ? "Core platform services are healthy. Admins and owners can continue using the dashboard normally."
-                  : "One or more platform services are not responding as expected. Review diagnostics below."}
-              </p>
-
-              <p className="mt-2 text-xs text-text-hint">
-                Last checked from current server response
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 rounded-xl border border-border-soft bg-surface-soft p-2 lg:min-w-[260px]">
-            <MiniMetric label="Checks" value={`${healthyChecks}/3`} />
-            <MiniMetric
-              label="Database"
-              value={dbOk ? "OK" : "Fail"}
-              ok={dbOk}
-            />
-            <MiniMetric
-              label="Cache"
-              value={cacheOk ? "OK" : "Fail"}
-              ok={cacheOk}
-            />
-          </div>
+        <div className="flex flex-wrap gap-2 mt-4 justify-center lg:justify-start">
+          <ServicePill label="API Gateway" ok={sysOk}   />
+          <ServicePill label="Database"    ok={dbOk}    />
+          <ServicePill label="Cache"       ok={cacheOk} />
         </div>
       </div>
+
+      {/* Live clock */}
+      <div className="shrink-0 text-center hidden lg:block">
+        <p className="text-[9px] font-bold tracking-[.18em] uppercase text-text-hint mb-1.5">Server Time</p>
+        <p className="font-mono text-[22px] font-black text-text-primary tabular-nums leading-none">
+          {mounted ? time : '——:——:——'}
+        </p>
+        <p className="text-[9px] text-text-hint mt-1.5 tracking-widest">UTC</p>
+      </div>
+
     </div>
   );
 }
 
-function MiniMetric({
-  label,
-  value,
-  ok = true,
-}: {
-  label: string;
-  value: string;
-  ok?: boolean;
-}) {
+function ServicePill({ label, ok }: { label: string; ok: boolean }) {
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-center">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-text-hint">
-        {label}
-      </p>
-      <p
-        className={`mt-1 text-[13px] font-black ${
-          ok ? "text-text-primary" : "text-danger"
-        }`}
-      >
-        {value}
-      </p>
+    <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-semibold ${
+      ok
+        ? 'border-success/20 bg-success/5 text-success'
+        : 'border-danger/20 bg-danger/5 text-danger'
+    }`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${ok ? 'bg-success' : 'bg-danger'}`} />
+      {label}
     </div>
-  );
-}
-
-function ShieldCheckIcon() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <polyline points="9 12 11 14 15 10" />
-    </svg>
-  );
-}
-
-function ShieldAlertIcon() {
-  return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
-    </svg>
   );
 }

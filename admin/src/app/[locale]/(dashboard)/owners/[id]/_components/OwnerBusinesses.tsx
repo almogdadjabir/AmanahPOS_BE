@@ -1,5 +1,5 @@
 import type { AdminOwnerBusiness } from '@/types/api';
-import Badge from '@/components/ui/Badge';
+import { Badge } from '@/components/ui/badge';
 import EmptyState from '@/components/ds/EmptyState';
 
 export default function OwnerBusinesses({ businesses }: { businesses: AdminOwnerBusiness[] }) {

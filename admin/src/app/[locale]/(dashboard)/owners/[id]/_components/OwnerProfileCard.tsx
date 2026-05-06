@@ -1,5 +1,5 @@
 import Avatar from "@/components/ui/Avatar";
-import Badge from "@/components/ui/Badge";
+import { Badge } from '@/components/ui/badge';
 import type { AdminOwnerDetail } from "@/types/api";
 
 import { EditOwnerForm, ToggleStatusButton } from "./OwnerActions";

@@ -1,67 +1,95 @@
-import StatCard from "@/components/ds/StatCard";
-import type { AdminStats } from "./types";
-import { AlertIcon, CreditIcon, StoreIcon, UsersIcon } from "./icons";
+import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { AdminStats } from './types';
+import { Users, Store, CreditCard, AlertTriangle } from 'lucide-react';
 
-type Props = {
-  stats: AdminStats;
-};
+type Props = { stats: AdminStats };
+
+interface KpiConfig {
+  label:     string;
+  value:     string;
+  sub:       string;
+  icon:      React.ReactNode;
+  topColor:  string;
+  iconClass: string;
+}
+
+function KpiCard({ label, value, sub, icon, topColor, iconClass }: KpiConfig) {
+  return (
+    <div className={cn(
+      'relative bg-card rounded-xl border border-border border-t-[3px] overflow-hidden',
+      'shadow-card p-5 flex flex-col gap-3 group hover:shadow-card-md transition-shadow duration-200',
+      topColor,
+    )}>
+      <div className="flex items-start justify-between">
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground leading-none pt-0.5 select-none">
+          {label}
+        </p>
+        <span className={cn(
+          'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
+          '[&_svg]:size-[15px]',
+          iconClass,
+        )}>
+          {icon}
+        </span>
+      </div>
+
+      <div>
+        <p className="text-[32px] font-black text-foreground leading-none tabular-nums tracking-tight">
+          {value}
+        </p>
+        <p className="text-[11px] text-muted-foreground mt-2 leading-snug">
+          {sub}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminKpiCards({ stats }: Props) {
-  if (!stats) {
-    return <KpiCardsSkeleton />;
-  }
+  if (!stats) return <KpiCardsSkeleton />;
 
-  const numberFormatter = new Intl.NumberFormat("en-US");
+  const fmt = new Intl.NumberFormat('en-US');
+  const hasExpired = stats.expired_subscriptions > 0;
 
-  const cards = [
+  const cards: KpiConfig[] = [
     {
-      label: "Total Owners",
-      value: numberFormatter.format(stats.total_owners),
-      sub: `${numberFormatter.format(stats.new_owners_this_month)} new this month`,
-      icon: <UsersIcon />,
-      accent: "text-primary bg-primary-soft",
+      label:     'Total Owners',
+      value:     fmt.format(stats.total_owners),
+      sub:       `+${fmt.format(stats.new_owners_this_month)} registered this month`,
+      icon:      <Users />,
+      topColor:  'border-t-primary',
+      iconClass: 'bg-primary/10 text-primary',
     },
     {
-      label: "Total Businesses",
-      value: numberFormatter.format(stats.total_businesses),
-      sub: `${numberFormatter.format(stats.total_shops)} active shops`,
-      icon: <StoreIcon />,
-      accent: "text-info bg-info-light",
+      label:     'Total Businesses',
+      value:     fmt.format(stats.total_businesses),
+      sub:       `${fmt.format(stats.total_shops)} active shops across all owners`,
+      icon:      <Store />,
+      topColor:  'border-t-info',
+      iconClass: 'bg-info/10 text-info',
     },
     {
-      label: "Active Subscriptions",
-      value: numberFormatter.format(stats.active_subscriptions),
-      sub: "paying customers",
-      icon: <CreditIcon />,
-      accent: "text-success bg-success-light",
+      label:     'Active Subscriptions',
+      value:     fmt.format(stats.active_subscriptions),
+      sub:       'owners on a paid or free plan',
+      icon:      <CreditCard />,
+      topColor:  'border-t-success',
+      iconClass: 'bg-success/10 text-success',
     },
     {
-      label: "Expired Subscriptions",
-      value: numberFormatter.format(stats.expired_subscriptions),
-      sub:
-        stats.expired_subscriptions > 0
-          ? "needs follow-up"
-          : "all subscriptions healthy",
-      icon: <AlertIcon />,
-      accent:
-        stats.expired_subscriptions > 0
-          ? "text-danger bg-danger-light"
-          : "text-success bg-success-light",
+      label:     'Expired Subscriptions',
+      value:     fmt.format(stats.expired_subscriptions),
+      sub:       hasExpired ? 'accounts need attention — follow up' : 'no expired accounts right now',
+      icon:      <AlertTriangle />,
+      topColor:  hasExpired ? 'border-t-destructive'  : 'border-t-success',
+      iconClass: hasExpired ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success',
     },
   ];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      {cards.map((card) => (
-        <StatCard
-          key={card.label}
-          label={card.label}
-          value={card.value}
-          sub={card.sub}
-          icon={card.icon}
-          accent={card.accent}
-        />
-      ))}
+      {cards.map(card => <KpiCard key={card.label} {...card} />)}
     </div>
   );
 }
@@ -69,11 +97,8 @@ export default function AdminKpiCards({ stats }: Props) {
 function KpiCardsSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div
-          key={index}
-          className="bg-surface-muted rounded-xl border border-border-soft shadow-card p-4 h-24 animate-pulse"
-        />
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Skeleton key={i} className="h-[116px] rounded-xl" />
       ))}
     </div>
   );
