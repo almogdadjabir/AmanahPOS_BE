@@ -27,6 +27,9 @@ _ERROR_CODES: dict[str, str] = {
     "105": "Message too long",
     "106": "Blocked by carrier",
     "107": "Internal BudgetSMS error",
+    "3001": "Invalid or unroutable destination number — verify the phone number is correct",
+    "3002": "Destination number blocked by operator",
+    "3003": "Message delivery failed",
 }
 
 
