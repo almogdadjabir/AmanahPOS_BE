@@ -139,12 +139,14 @@ def send_sms_otp(phone: str, otp: str) -> bool:
     Returns True on success, False on failure.
     """
     provider = getattr(settings, "SMS_PROVIDER", "stub")
-    message = f"Your AmanaPOS verification code is: {otp}. Valid for {settings.OTP_EXPIRY_SECONDS // 60} minutes."
+    minutes = settings.OTP_EXPIRY_SECONDS // 60
+    message = f"رمز التحقق الخاص بك في AmanaPOS هو {otp}. صالح لمدة {minutes} دقائق."
 
     if provider == "twilio":
         return _send_twilio_sms(phone, message)
+    elif provider == "budgetsms":
+        return _send_budgetsms(phone, message)
     elif provider == "stub":
-        # Log to console for development
         logger.info("[SMS STUB] To: %s | Message: %s", phone, message)
         return True
     else:
@@ -170,6 +172,21 @@ def _send_twilio_sms(phone: str, message: str) -> bool:
         return True
     except Exception as exc:
         logger.exception("Failed to send Twilio SMS to %s: %s", phone, exc)
+        return False
+
+
+def _send_budgetsms(phone: str, message: str) -> bool:
+    """Send SMS using BudgetSMS.net."""
+    try:
+        from apps.notifications.services.sms.budgetsms import BudgetSmsError, BudgetSmsProvider
+        provider = BudgetSmsProvider()
+        if not all([provider.username, provider.userid, provider.handle]):
+            logger.error("BudgetSMS credentials are not fully configured.")
+            return False
+        provider.send(phone, message)
+        return True
+    except Exception as exc:
+        logger.exception("Failed to send BudgetSMS to %s: %s", mask_phone(phone), exc)
         return False
 
 

@@ -333,6 +333,10 @@ SMS_SENDER_ID = env("SMS_SENDER_ID", default="AmanaPOS")
 TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
 TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN", default="")
 TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", default="")
+BUDGETSMS_USERNAME = env("BUDGETSMS_USERNAME", default="")
+BUDGETSMS_USERID = env("BUDGETSMS_USERID", default="")
+BUDGETSMS_HANDLE = env("BUDGETSMS_HANDLE", default="")
+BUDGETSMS_SENDER_ID = env("BUDGETSMS_SENDER_ID", default="AmanaPOS")
 
 # ─── Email ────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
