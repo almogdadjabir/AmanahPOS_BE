@@ -17,6 +17,8 @@ develop-eggs/
 .installed.cfg
 lib/
 lib64/
+!admin/src/lib/
+!landing_page/src/lib/
 .Python
 pip-log.txt
 pip-delete-this-directory.txt
