@@ -6,7 +6,7 @@ import {
 import {
   User, KeyRound, LogOut, ShieldCheck, Pencil, X,
   Eye, EyeOff, AlertCircle, CheckCircle2, Phone,
-  Mail, Calendar, Clock, BadgeCheck,
+  Mail, Calendar, Clock, BadgeCheck, CreditCard, Smartphone,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -26,8 +26,8 @@ import {
 import Avatar from '@/components/ui/Avatar';
 import { logoutAction } from '@/actions/auth';
 import {
-  updateProfileAction, changePasswordAction,
-  type UpdateProfileState, type ChangePasswordState,
+  updateProfileAction, changePasswordAction, updateBankakAction,
+  type UpdateProfileState, type ChangePasswordState, type UpdateBankakState,
 } from '@/actions/profile';
 import type { UserProfile } from '@/types/api';
 
@@ -135,11 +135,17 @@ function ProfileSheet({
   open:    boolean;
   onClose: () => void;
 }) {
-  const [editing, setEditing] = useState(false);
+  const [editing,        setEditing]        = useState(false);
+  const [editingBankak,  setEditingBankak]  = useState(false);
   const router = useRouter();
 
   const [state, dispatch, isPending] = useActionState<UpdateProfileState, FormData>(
     updateProfileAction,
+    null,
+  );
+
+  const [bankakState, bankakDispatch, bankakPending] = useActionState<UpdateBankakState, FormData>(
+    updateBankakAction,
     null,
   );
 
@@ -151,11 +157,21 @@ function ProfileSheet({
   }, [state, router]);
 
   useEffect(() => {
-    if (!open) setEditing(false);
+    if (bankakState && 'success' in bankakState) {
+      setEditingBankak(false);
+      router.refresh();
+    }
+  }, [bankakState, router]);
+
+  useEffect(() => {
+    if (!open) { setEditing(false); setEditingBankak(false); }
   }, [open]);
 
   const error   = state && 'error'   in state ? state.error : null;
   const success = state && 'success' in state;
+
+  const bankakError   = bankakState && 'error'   in bankakState ? bankakState.error : null;
+  const bankakSuccess = bankakState && 'success' in bankakState;
 
   const joined = profile.created_at
     ? new Date(profile.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -208,12 +224,10 @@ function ProfileSheet({
               </div>
             )}
 
-            {/* Edit form or read view */}
+            {/* Edit account form */}
             {editing ? (
               <form action={dispatch} className="space-y-4">
-                {error && (
-                  <InlineError message={error} />
-                )}
+                {error && <InlineError message={error} />}
                 <Input
                   label="Full name"
                   name="full_name"
@@ -238,6 +252,17 @@ function ProfileSheet({
                   </Button>
                 </div>
               </form>
+
+            ) : editingBankak ? (
+              <BankakForm
+                profile={profile}
+                dispatch={bankakDispatch}
+                isPending={bankakPending}
+                error={bankakError}
+                success={!!bankakSuccess}
+                onCancel={() => setEditingBankak(false)}
+              />
+
             ) : (
               <>
                 {/* Account info section */}
@@ -250,14 +275,14 @@ function ProfileSheet({
                     Edit
                   </button>
                 }>
-                  <InfoRow icon={<User size={13} />}      label="Name"  value={profile.full_name || '—'} />
-                  <InfoRow icon={<Mail size={13} />}      label="Email" value={profile.email || '—'} />
+                  <InfoRow icon={<User size={13} />} label="Name"  value={profile.full_name || '—'} />
+                  <InfoRow icon={<Mail size={13} />} label="Email" value={profile.email || '—'} />
                 </InfoSection>
 
                 {/* Identity section */}
                 <InfoSection title="Identity">
-                  <InfoRow icon={<Phone size={13} />}       label="Phone"    value={profile.phone} />
-                  <InfoRow icon={<BadgeCheck size={13} />}  label="Role"     value={profile.role.charAt(0).toUpperCase() + profile.role.slice(1)} />
+                  <InfoRow icon={<Phone size={13} />}       label="Phone"  value={profile.phone} />
+                  <InfoRow icon={<BadgeCheck size={13} />}  label="Role"   value={profile.role.charAt(0).toUpperCase() + profile.role.slice(1)} />
                   <InfoRow
                     icon={<ShieldCheck size={13} />}
                     label="Status"
@@ -271,13 +296,46 @@ function ProfileSheet({
 
                 {/* Activity section */}
                 <InfoSection title="Activity">
-                  {joined && (
-                    <InfoRow icon={<Calendar size={13} />} label="Joined"     value={joined} />
-                  )}
-                  {lastLogin && (
-                    <InfoRow icon={<Clock size={13} />}    label="Last login" value={lastLogin} />
-                  )}
+                  {joined    && <InfoRow icon={<Calendar size={13} />} label="Joined"     value={joined} />}
+                  {lastLogin && <InfoRow icon={<Clock size={13} />}    label="Last login" value={lastLogin} />}
                 </InfoSection>
+
+                {/* Bankak section — owners only */}
+                {!profile.is_staff && (
+                  <InfoSection
+                    title="Bankak"
+                    action={
+                      <button
+                        onClick={() => setEditingBankak(true)}
+                        className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                      >
+                        <Pencil size={11} />
+                        {profile.bankak_phone ? 'Edit' : 'Set up'}
+                      </button>
+                    }
+                  >
+                    {profile.bankak_phone ? (
+                      <>
+                        <InfoRow icon={<Smartphone size={13} />}   label="Account" value={profile.bankak_phone} />
+                        <InfoRow icon={<CreditCard size={13} />}   label="Name"   value={profile.bankak_name || '—'} />
+                        <InfoRow
+                          icon={<CheckCircle2 size={13} />}
+                          label="Status"
+                          value={<Badge variant="success" dot>Connected</Badge>}
+                        />
+                      </>
+                    ) : (
+                      <div className="px-3.5 py-3 flex items-center gap-2.5">
+                        <span className="text-muted-foreground/60 shrink-0">
+                          <CreditCard size={13} />
+                        </span>
+                        <span className="text-[12px] text-muted-foreground/70">
+                          No Bankak account configured yet.
+                        </span>
+                      </div>
+                    )}
+                  </InfoSection>
+                )}
               </>
             )}
           </div>
@@ -435,6 +493,85 @@ function ChangePasswordDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ── Bankak form ────────────────────────────────────────────────────────── */
+
+function BankakForm({
+  profile,
+  dispatch,
+  isPending,
+  error,
+  success,
+  onCancel,
+}: {
+  profile:   UserProfile;
+  dispatch:  (formData: FormData) => void;
+  isPending: boolean;
+  error:     string | null;
+  success:   boolean;
+  onCancel:  () => void;
+}) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-2.5 px-4 py-3 border-b border-border/60 bg-muted/30">
+        <span className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
+          <CreditCard size={12} className="text-primary" />
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-[12.5px] font-bold text-foreground">Bankak Details</p>
+          <p className="text-[11px] text-muted-foreground">Used for receiving payments from customers.</p>
+        </div>
+      </div>
+
+      <form action={dispatch} className="p-4 space-y-3.5">
+        {error && <InlineError message={error} />}
+
+        {success && (
+          <div className="flex items-center gap-2.5 rounded-lg border border-green-200 bg-green-50 px-3.5 py-2.5">
+            <CheckCircle2 size={14} className="text-green-600 shrink-0" />
+            <p className="text-[12.5px] font-semibold text-green-700">Bankak details saved.</p>
+          </div>
+        )}
+
+        <Input
+          label="Bankak account number"
+          name="bankak_phone"
+          defaultValue={profile.bankak_phone ?? ''}
+          placeholder="e.g. 0912345678"
+          hint="Your Bankak account number."
+          icon={<Smartphone size={13} />}
+        />
+
+        <Input
+          label="Display name"
+          name="bankak_name"
+          defaultValue={profile.bankak_name ?? ''}
+          placeholder={profile.full_name || 'Business name'}
+          hint="Name shown to customers on the Bankak payment screen."
+          icon={<CreditCard size={13} />}
+        />
+
+        {/* Info note */}
+        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-muted/50 border border-border/50">
+          <AlertCircle size={12} className="text-muted-foreground shrink-0 mt-0.5" />
+          <p className="text-[11.5px] text-muted-foreground leading-relaxed">
+            Leave both fields empty to remove your Bankak account.
+          </p>
+        </div>
+
+        <div className="flex gap-2 pt-0.5">
+          <Button size="sm" type="submit" disabled={isPending}>
+            {isPending ? 'Saving…' : 'Save'}
+          </Button>
+          <Button size="sm" variant="secondary" type="button" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
 

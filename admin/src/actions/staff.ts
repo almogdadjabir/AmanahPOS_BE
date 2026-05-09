@@ -1,5 +1,6 @@
 'use server';
 
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { extractApiError } from '@/lib/action-error';
@@ -13,6 +14,18 @@ const API = () =>
 async function authToken(): Promise<string> {
   return (await cookies()).get('auth_token')?.value ?? '';
 }
+
+// React.cache deduplicates within a single request — StaffStats and StaffTable
+// both call fetchStaffAction but only ONE network request goes out per render.
+const getRawStaffList = cache(async (): Promise<StaffUser[]> => {
+  const res = await fetch(`${API()}/api/v1/users/`, {
+    headers: { Authorization: `Bearer ${await authToken()}` },
+    cache: 'no-store',
+  });
+  const json = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(extractApiError(json, res.status));
+  return (json as ApiResponse<StaffUser[]>).data ?? [];
+});
 
 // ── Result types ──────────────────────────────────────────────────────────────
 
@@ -37,14 +50,7 @@ export async function fetchStaffAction(params?: {
   limit?:  number;
 }): Promise<StaffListResult> {
   try {
-    const res = await fetch(`${API()}/api/v1/users/`, {
-      headers: { Authorization: `Bearer ${await authToken()}` },
-      cache: 'no-store',
-    });
-    const json = await res.json().catch(() => null);
-    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
-
-    let all: StaffUser[] = (json as ApiResponse<StaffUser[]>).data ?? [];
+    let all: StaffUser[] = await getRawStaffList();
 
     if (params?.search) {
       const q = params.search.toLowerCase();
@@ -74,13 +80,17 @@ export async function createStaffAction(
   _prev: StaffActionState,
   formData: FormData,
 ): Promise<StaffActionState> {
-  const phone     = (formData.get('phone')     as string)?.trim();
-  const full_name = (formData.get('full_name') as string)?.trim();
-  const role      = (formData.get('role')      as string)?.trim();
+  const phoneLocal  = (formData.get('phone_local')     as string)?.trim();
+  const countryCode = (formData.get('country_code')    as string) || '+249';
+  const full_name   = (formData.get('full_name')        as string)?.trim();
+  const role        = (formData.get('role')             as string)?.trim();
+  const shopId      = (formData.get('default_shop_id') as string)?.trim() || null;
 
-  if (!phone)     return { error: 'Phone number is required.' };
-  if (!full_name) return { error: 'Full name is required.' };
+  if (!phoneLocal) return { error: 'Phone number is required.' };
+  if (!full_name)  return { error: 'Full name is required.' };
   if (!role || !['manager', 'cashier'].includes(role)) return { error: 'Please select a valid role.' };
+
+  const phone = `${countryCode}${phoneLocal.replace(/^0+/, '')}`;
 
   try {
     const res = await fetch(`${API()}/api/v1/users/`, {
@@ -89,7 +99,7 @@ export async function createStaffAction(
         Authorization: `Bearer ${await authToken()}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ phone, full_name, role }),
+      body: JSON.stringify({ phone, full_name, role, ...(shopId ? { default_shop_id: shopId } : {}) }),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { error: extractApiError(data, res.status, 'Failed to add staff member.') };
@@ -112,8 +122,14 @@ export async function updateStaffAction(
 
   if (!full_name) return { error: 'Full name is required.' };
 
-  const body: Record<string, string> = { full_name };
+  const body: Record<string, string | null> = { full_name };
   if (role && ['manager', 'cashier'].includes(role)) body.role = role;
+
+  // default_shop_id: empty string → unassign (null); UUID string → assign
+  const shopId = formData.get('default_shop_id');
+  if (shopId !== null) {
+    body.default_shop_id = (shopId as string) || null;
+  }
 
   try {
     const res = await fetch(`${API()}/api/v1/users/${userId}/`, {

@@ -7,13 +7,14 @@ import {
 } from '@/components/ui/table';
 import { fetchStaffAction } from '@/actions/staff';
 import StaffRowActions from './StaffRowActions';
-import type { StaffUser } from '@/types/api';
+import type { Shop, StaffUser } from '@/types/api';
 
 interface Props {
   search?: string;
   status?: string;
   role?:   string;
   page?:   number;
+  shops?:  Shop[];
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -28,7 +29,10 @@ const ROLE_VARIANTS: Record<string, 'primary' | 'info' | 'default'> = {
   cashier: 'default',
 };
 
-export default async function StaffTable({ search, status, role, page = 1 }: Props) {
+export default async function StaffTable({ search, status, role, page = 1, shops = [] }: Props) {
+  // Normalise to lowercase so UUID case differences between the businesses API
+  // and the users API don't cause silent shopMap misses.
+  const shopMap = new Map(shops.map(s => [s.id.toLowerCase(), s.name]));
   let result;
   try {
     result = await fetchStaffAction({
@@ -76,16 +80,21 @@ export default async function StaffTable({ search, status, role, page = 1 }: Pro
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent border-b border-border/60">
-            <TableHead className="w-[35%]">Name</TableHead>
+            <TableHead className="w-[30%]">Name</TableHead>
             <TableHead>Phone</TableHead>
             <TableHead className="hidden sm:table-cell">Role</TableHead>
-            <TableHead className="hidden md:table-cell">Status</TableHead>
-            <TableHead className="hidden lg:table-cell">Last Login</TableHead>
+            <TableHead className="hidden md:table-cell">Shop</TableHead>
+            <TableHead className="hidden lg:table-cell">Status</TableHead>
+            <TableHead className="hidden xl:table-cell">Last Login</TableHead>
             <TableHead className="w-[180px]" />
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map(user => <StaffRow key={user.id} user={user} />)}
+          {users.map(user => {
+            const sid = user.default_shop_id?.toLowerCase();
+            const shopName = sid ? (shopMap.get(sid) ?? `Shop`) : null;
+            return <StaffRow key={user.id} user={user} shopName={shopName} />;
+          })}
         </TableBody>
       </Table>
 
@@ -94,7 +103,7 @@ export default async function StaffTable({ search, status, role, page = 1 }: Pro
   );
 }
 
-function StaffRow({ user }: { user: StaffUser }) {
+function StaffRow({ user, shopName }: { user: StaffUser; shopName: string | null }) {
   const lastLogin = user.last_login_at
     ? new Date(user.last_login_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : null;
@@ -123,12 +132,23 @@ function StaffRow({ user }: { user: StaffUser }) {
       </TableCell>
 
       <TableCell className="hidden md:table-cell">
+        {shopName ? (
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary bg-primary/8 border border-primary/15 px-2 py-0.5 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            {shopName}
+          </span>
+        ) : (
+          <span className="text-[11px] text-muted-foreground">—</span>
+        )}
+      </TableCell>
+
+      <TableCell className="hidden lg:table-cell">
         <Badge dot variant={user.is_active ? 'success' : 'danger'}>
           {user.is_active ? 'Active' : 'Inactive'}
         </Badge>
       </TableCell>
 
-      <TableCell className="hidden lg:table-cell">
+      <TableCell className="hidden xl:table-cell">
         <span className="text-xs text-muted-foreground">
           {lastLogin ?? 'Never'}
         </span>

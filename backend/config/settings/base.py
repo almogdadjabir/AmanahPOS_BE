@@ -67,6 +67,7 @@ LOCAL_APPS = [
     "apps.subscriptions.apps.SubscriptionsConfig",
     "apps.notifications.apps.NotificationsConfig",
     "apps.audit_logs.apps.AuditLogsConfig",
+    "apps.activity_logs.apps.ActivityLogsConfig",
     "apps.admin_panel.apps.AdminPanelConfig",
     "apps.offline.apps.OfflineConfig",
 ]
@@ -234,7 +235,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/day",
-        "user": "1000/day",
+        "user": "10000/day",
         "auth": "10/minute",
         "otp": "5/minute",
     },

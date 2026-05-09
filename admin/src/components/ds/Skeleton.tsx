@@ -1,6 +1,39 @@
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
+export function PageHeaderSkeleton({ withButton = true, withDescription = false }: { withButton?: boolean; withDescription?: boolean }) {
+  return (
+    <div className="flex items-start justify-between gap-4 mb-5">
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-44" />
+        {withDescription && <Skeleton className="h-3.5 w-64" />}
+      </div>
+      {withButton && <Skeleton className="h-9 w-32 rounded-lg shrink-0" />}
+    </div>
+  );
+}
+
+export function FiltersBarSkeleton({ filters = 2 }: { filters?: number }) {
+  return (
+    <div className="flex gap-3 mb-5">
+      <Skeleton className="h-10 flex-1 max-w-xs rounded-lg" />
+      {Array.from({ length: filters }).map((_, i) => (
+        <Skeleton key={i} className="h-10 w-28 rounded-lg shrink-0" />
+      ))}
+    </div>
+  );
+}
+
+export function StatsSectionSkeleton({ count = 3 }: { count?: number }) {
+  return (
+    <div className={`grid grid-cols-1 sm:grid-cols-${count} gap-4 mb-5`}>
+      {Array.from({ length: count }).map((_, i) => (
+        <StatCardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
 export function Bone({ className }: { className?: string }) {
   return <Skeleton className={cn('', className)} />;
 }

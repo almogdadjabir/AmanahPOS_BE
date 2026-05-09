@@ -1,4 +1,6 @@
 import { apiGet, ApiError } from '@/lib/api';
+import { withUserCache } from '@/lib/serverCache';
+import { CACHE_TAGS } from '@/lib/cacheTags';
 import type {
   ApiList,
   ApiResponse,
@@ -27,77 +29,102 @@ export function startOfMonth(): string {
   return toDateStr(d);
 }
 
-// ── Individual fetchers (each safe — returns null on failure) ─────────────────
+// ── Individual fetchers ───────────────────────────────────────────────────────
 
 async function safe<T>(fn: () => Promise<T>): Promise<T | null> {
   try {
     return await fn();
   } catch (e) {
-    if (e instanceof ApiError && e.status === 401) throw e; // let middleware handle
-    console.error('[overview]', e instanceof Error ? e.message : e);
+    if (e instanceof ApiError && e.status === 401) throw e;
     return null;
   }
 }
 
 export async function fetchSalesSummary(dateFrom: string, dateTo: string) {
   return safe(() =>
-    apiGet<ApiResponse<SalesSummary>>('/api/v1/sales/summary/', {
-      date_from: dateFrom,
-      date_to:   dateTo,
-    }),
+    withUserCache(
+      (tok) => apiGet<ApiResponse<SalesSummary>>('/api/v1/sales/summary/', {
+        date_from: dateFrom,
+        date_to:   dateTo,
+      }, { token: tok }),
+      [CACHE_TAGS.salesSummary, dateFrom, dateTo],
+      30,
+    )
   );
 }
 
-// Fetches up to 500 completed sales for chart aggregation.
-// If a business has >500 sales in a period the chart under-counts — acceptable MVP tradeoff.
 export async function fetchSalesForChart(daysBack: number) {
   const { date_from, date_to } = dateRange(daysBack);
   return safe(() =>
-    apiGet<ApiList<Sale>>('/api/v1/sales/', {
-      date_from,
-      date_to,
-      status: 'completed',
-      limit:  500,
-      page:   1,
-    }),
+    withUserCache(
+      (tok) => apiGet<ApiList<Sale>>('/api/v1/sales/', {
+        date_from,
+        date_to,
+        status: 'completed',
+        limit:  500,
+        page:   1,
+      }, { token: tok }),
+      [CACHE_TAGS.sales, 'chart', String(daysBack), date_from],
+      30,
+    )
   );
 }
 
 export async function fetchRecentSales(limit = 8) {
   return safe(() =>
-    apiGet<ApiList<Sale>>('/api/v1/sales/', {
-      status: 'completed',
-      limit,
-      page: 1,
-    }),
+    withUserCache(
+      (tok) => apiGet<ApiList<Sale>>('/api/v1/sales/', {
+        status: 'completed',
+        limit,
+        page: 1,
+      }, { token: tok }),
+      [CACHE_TAGS.sales, 'recent', String(limit)],
+      30,
+    )
   );
 }
 
 export async function fetchLowStock() {
   return safe(() =>
-    apiGet<ApiList<StockLevel>>('/api/v1/inventory/stock/', {
-      low_stock: 'true',
-      limit: 5,
-      page:  1,
-    }),
+    withUserCache(
+      (tok) => apiGet<ApiList<StockLevel>>('/api/v1/inventory/stock/', {
+        low_stock: 'true',
+        limit: 5,
+        page:  1,
+      }, { token: tok }),
+      [CACHE_TAGS.inventory, 'low'],
+      60,
+    )
   );
 }
 
 export async function fetchAllStockCount() {
   return safe(() =>
-    apiGet<ApiList<StockLevel>>('/api/v1/inventory/stock/', { limit: 1, page: 1 }),
+    withUserCache(
+      (tok) => apiGet<ApiList<StockLevel>>('/api/v1/inventory/stock/', { limit: 1, page: 1 }, { token: tok }),
+      [CACHE_TAGS.inventory, 'count'],
+      60,
+    )
   );
 }
 
 export async function fetchStaff() {
   return safe(() =>
-    apiGet<ApiResponse<StaffUser[]>>('/api/v1/users/'),
+    withUserCache(
+      (tok) => apiGet<ApiResponse<StaffUser[]>>('/api/v1/users/', undefined, { token: tok }),
+      [CACHE_TAGS.users],
+      120,
+    )
   );
 }
 
 export async function fetchCustomerCount() {
   return safe(() =>
-    apiGet<ApiList<Customer>>('/api/v1/customers/', { limit: 1, page: 1 }),
+    withUserCache(
+      (tok) => apiGet<ApiList<Customer>>('/api/v1/customers/', { limit: 1, page: 1 }, { token: tok }),
+      [CACHE_TAGS.customers, 'count'],
+      120,
+    )
   );
 }
 
@@ -127,15 +154,15 @@ export async function fetchDashboardData() {
   ]);
 
   return {
-    summaryToday:  summaryToday?.data   ?? null,
-    summaryMonth:  summaryMonth?.data   ?? null,
-    recentSales:   recentSales?.results ?? [],
-    lowStockItems: lowStock?.results    ?? [],
-    lowStockCount: lowStock?.count      ?? 0,
-    totalProducts: allStock?.count      ?? 0,
-    totalStaff:    staff?.data?.length  ?? 0,
-    totalCustomers: customers?.count    ?? 0,
-    chartData:     buildChartData(salesChart?.results ?? [], 30),
+    summaryToday:   summaryToday?.data    ?? null,
+    summaryMonth:   summaryMonth?.data    ?? null,
+    recentSales:    recentSales?.results  ?? [],
+    lowStockItems:  lowStock?.results     ?? [],
+    lowStockCount:  lowStock?.count       ?? 0,
+    totalProducts:  allStock?.count       ?? 0,
+    totalStaff:     staff?.data?.length   ?? 0,
+    totalCustomers: customers?.count      ?? 0,
+    chartData:      buildChartData(salesChart?.results ?? [], 30),
   };
 }
 
@@ -148,15 +175,13 @@ export interface DailyRevenue {
 }
 
 export function buildChartData(sales: Sale[], days: number): DailyRevenue[] {
-  // Build ordered map of last N days initialised to 0
-  const map = new Map<string, { revenue: number; count: number }>();
+  const map   = new Map<string, { revenue: number; count: number }>();
   const today = new Date();
 
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const key = toDateStr(d);
-    map.set(key, { revenue: 0, count: 0 });
+    map.set(toDateStr(d), { revenue: 0, count: 0 });
   }
 
   for (const sale of sales) {
@@ -171,7 +196,7 @@ export function buildChartData(sales: Sale[], days: number): DailyRevenue[] {
   }
 
   return Array.from(map.entries()).map(([date, { revenue, count }]) => {
-    const d = new Date(date + 'T00:00:00');
+    const d     = new Date(date + 'T00:00:00');
     const label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     return { date, label, revenue, count };
   });

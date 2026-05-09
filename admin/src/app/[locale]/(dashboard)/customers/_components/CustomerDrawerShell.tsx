@@ -8,11 +8,21 @@ import Drawer from '@/components/ds/Drawer';
 import ConfirmDialog from '@/components/ds/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PhoneInput from '@/components/ui/PhoneInput';
 import {
   createCustomerAction, updateCustomerAction, toggleCustomerStatusAction,
   type CustomerActionState,
 } from '@/actions/customers';
 import type { Customer } from '@/types/api';
+
+function toLocalPhone(phone: string | null | undefined): string {
+  if (!phone) return '';
+  return phone
+    .replace(/^\+249/, '')
+    .replace(/^00249/, '')
+    .replace(/^249/, '')
+    .replace(/^0+/, '');
+}
 
 export default function CustomerDrawerShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -117,12 +127,7 @@ function AddCustomerForm({ onClose, onSuccess }: { onClose: () => void; onSucces
         placeholder="e.g. Fatima Hassan"
         autoFocus
       />
-      <Input
-        label="Phone"
-        name="phone"
-        type="tel"
-        placeholder="+249…"
-      />
+      <PhoneInput label="Phone" />
       <Input
         label="Email"
         name="email"
@@ -190,13 +195,7 @@ function EditCustomerForm({
         defaultValue={customer.name}
         placeholder="e.g. Fatima Hassan"
       />
-      <Input
-        label="Phone"
-        name="phone"
-        type="tel"
-        defaultValue={customer.phone ?? ''}
-        placeholder="+249…"
-      />
+      <PhoneInput label="Phone" defaultValue={toLocalPhone(customer.phone)} />
       <Input
         label="Email"
         name="email"

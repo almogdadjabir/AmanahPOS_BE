@@ -51,6 +51,39 @@ export async function updateProfileAction(
   }
 }
 
+// ── Update Bankak settings ────────────────────────────────────────────────────
+
+export type UpdateBankakState =
+  | { success: true; data: UserProfile }
+  | { error: string }
+  | null;
+
+export async function updateBankakAction(
+  _prev: UpdateBankakState,
+  formData: FormData,
+): Promise<UpdateBankakState> {
+  const bankak_phone = (formData.get('bankak_phone') as string)?.trim() || null;
+  const bankak_name  = (formData.get('bankak_name')  as string)?.trim() || null;
+
+
+  try {
+    const res = await fetch(`${API()}/api/v1/auth/profile/`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${await authToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ bankak_phone, bankak_name }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: extractApiError(data, res.status, 'Failed to save Bankak details.') };
+    revalidatePath('/', 'layout');
+    return { success: true, data: data.data };
+  } catch {
+    return { error: 'Network error. Please try again.' };
+  }
+}
+
 // ── Change password ───────────────────────────────────────────────────────────
 
 export type ChangePasswordState =

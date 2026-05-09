@@ -8,13 +8,14 @@ import Drawer from '@/components/ds/Drawer';
 import ConfirmDialog from '@/components/ds/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PhoneInput from '@/components/ui/PhoneInput';
 import {
   createStaffAction, updateStaffAction, toggleStaffStatusAction,
   type StaffActionState,
 } from '@/actions/staff';
-import type { StaffUser } from '@/types/api';
+import type { Shop, StaffUser } from '@/types/api';
 
-export default function StaffDrawerShell({ children }: { children: React.ReactNode }) {
+export default function StaffDrawerShell({ children, shops = [] }: { children: React.ReactNode; shops?: Shop[] }) {
   const router = useRouter();
   const [addOpen,        setAddOpen]        = useState(false);
   const [editUser,       setEditUser]       = useState<StaffUser | null>(null);
@@ -54,7 +55,7 @@ export default function StaffDrawerShell({ children }: { children: React.ReactNo
         title="Add Staff Member"
         subtitle="Create a new manager or cashier account."
       >
-        <AddStaffForm onClose={() => setAddOpen(false)} onSuccess={handleSuccess} />
+        <AddStaffForm shops={shops} onClose={() => setAddOpen(false)} onSuccess={handleSuccess} />
       </Drawer>
 
       {/* Edit drawer */}
@@ -62,11 +63,12 @@ export default function StaffDrawerShell({ children }: { children: React.ReactNo
         open={!!editUser}
         onClose={() => setEditUser(null)}
         title="Edit Staff Member"
-        subtitle="Update name or role for this staff account."
+        subtitle="Update name, role, or shop assignment."
       >
         {editUser && (
           <EditStaffForm
             user={editUser}
+            shops={shops}
             onClose={() => setEditUser(null)}
             onSuccess={handleSuccess}
           />
@@ -94,7 +96,15 @@ export default function StaffDrawerShell({ children }: { children: React.ReactNo
 
 // ── Add Staff Form ────────────────────────────────────────────────────────────
 
-function AddStaffForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+function AddStaffForm({
+  shops = [],
+  onClose,
+  onSuccess,
+}: {
+  shops?:     Shop[];
+  onClose:    () => void;
+  onSuccess:  () => void;
+}) {
   const [state, dispatch, isPending] = useActionState<StaffActionState, FormData>(
     createStaffAction,
     null,
@@ -105,7 +115,6 @@ function AddStaffForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: 
   }, [state, onSuccess]);
 
   const error = state && 'error' in state ? state.error : null;
-
   return (
     <form action={dispatch} className="p-5 space-y-4">
       {error && <InlineError message={error} />}
@@ -117,18 +126,22 @@ function AddStaffForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: 
         placeholder="e.g. Ahmed Mohamed"
         autoFocus
       />
-      <Input
-        label="Phone number"
-        name="phone"
-        required
-        placeholder="+249…"
-        type="tel"
-      />
+      <PhoneInput label="Phone number" required />
 
       <div className="space-y-1.5">
         <p className="text-[12.5px] font-semibold text-foreground">Role</p>
         <RoleSelector />
       </div>
+
+      {shops.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-[12.5px] font-semibold text-foreground">Assigned shop</p>
+          <p className="text-[11px] text-muted-foreground">
+            Cashiers can only sell and see products for their assigned shop.
+          </p>
+          <ShopPicker shops={shops.filter(s => s.is_active)} defaultValue="" />
+        </div>
+      )}
 
       <div className="flex gap-2 pt-2">
         <Button size="sm" type="submit" disabled={isPending}>
@@ -146,10 +159,12 @@ function AddStaffForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: 
 
 function EditStaffForm({
   user,
+  shops,
   onClose,
   onSuccess,
 }: {
   user:      StaffUser;
+  shops:     Shop[];
   onClose:   () => void;
   onSuccess: () => void;
 }) {
@@ -164,6 +179,11 @@ function EditStaffForm({
   }, [state, onSuccess]);
 
   const error = state && 'error' in state ? state.error : null;
+  // Show all shops in the picker, not just active, so an existing inactive
+  // assignment is visible and the owner can re-assign or clear it.
+  const pickerShops = shops.length > 0
+    ? shops
+    : [];
 
   return (
     <form action={dispatch} className="p-5 space-y-4">
@@ -189,6 +209,16 @@ function EditStaffForm({
         <p className="text-[12.5px] font-semibold text-foreground">Role</p>
         <RoleSelector defaultValue={user.role === 'owner' ? 'manager' : user.role} />
       </div>
+
+      {pickerShops.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-[12.5px] font-semibold text-foreground">Assigned shop</p>
+          <p className="text-[11px] text-muted-foreground">
+            Cashiers can only sell and see products for their assigned shop.
+          </p>
+          <ShopPicker shops={pickerShops} defaultValue={user.default_shop_id ?? ''} />
+        </div>
+      )}
 
       <div className="flex gap-2 pt-2">
         <Button size="sm" type="submit" disabled={isPending}>
@@ -231,6 +261,63 @@ function RoleSelector({ defaultValue = 'cashier' }: { defaultValue?: string }) {
           <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{r.desc}</p>
         </button>
       ))}
+    </div>
+  );
+}
+
+// ── Shop Picker ───────────────────────────────────────────────────────────────
+
+function ShopPicker({ shops, defaultValue }: { shops: Shop[]; defaultValue: string }) {
+  const [selected, setSelected] = useState(defaultValue);
+
+  return (
+    <div className="space-y-1.5">
+      <input type="hidden" name="default_shop_id" value={selected} />
+      <div className="grid gap-1.5">
+        <button
+          key=""
+          type="button"
+          onClick={() => setSelected('')}
+          className={[
+            'flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-start transition-all',
+            selected === ''
+              ? 'border-border bg-muted/40 opacity-60'
+              : 'border-border hover:border-border/80 hover:bg-muted/20',
+          ].join(' ')}
+        >
+          <span className="w-4 h-4 rounded-full border-2 border-border flex items-center justify-center shrink-0">
+            {selected === '' && <span className="w-2 h-2 rounded-full bg-muted-foreground" />}
+          </span>
+          <span className="text-[12.5px] text-muted-foreground font-medium">No shop assigned</span>
+        </button>
+
+        {shops.map(shop => (
+          <button
+            key={shop.id}
+            type="button"
+            onClick={() => setSelected(shop.id)}
+            className={[
+              'flex items-center gap-2.5 rounded-xl border px-3 py-2.5 text-start transition-all',
+              selected === shop.id
+                ? 'border-primary bg-primary/5 shadow-[0_0_0_1px] shadow-primary/30'
+                : 'border-border hover:border-border/80 hover:bg-muted/20',
+            ].join(' ')}
+          >
+            <span className={[
+              'w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0',
+              selected === shop.id ? 'border-primary' : 'border-border',
+            ].join(' ')}>
+              {selected === shop.id && <span className="w-2 h-2 rounded-full bg-primary" />}
+            </span>
+            <span className={[
+              'text-[12.5px] font-semibold',
+              selected === shop.id ? 'text-primary' : 'text-foreground',
+            ].join(' ')}>
+              {shop.name}
+            </span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

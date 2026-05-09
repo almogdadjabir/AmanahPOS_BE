@@ -13,7 +13,7 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import ViewBusinessButton from './ViewBusinessButton';
-import { Store, ShoppingBag, CreditCard } from 'lucide-react';
+import { Store, ShoppingBag, CreditCard, UtensilsCrossed } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -37,7 +37,6 @@ export default async function BusinessesTable({ search, status, sub, page = 1 }:
   } catch (err) {
     const status  = err instanceof ApiError ? err.status : null;
     const body    = err instanceof ApiError ? JSON.stringify(err.body) : String(err);
-    console.error('[BusinessesTable] fetch failed', { status, body });
     return (
       <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-10 text-center">
         <p className="text-sm font-semibold text-destructive">Failed to load businesses</p>
@@ -139,7 +138,14 @@ function BusinessRow({ biz }: { biz: AdminBusiness }) {
             )} />
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-foreground leading-tight truncate">{biz.name}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-[13px] font-semibold text-foreground leading-tight truncate">{biz.name}</p>
+              {biz.business_type === 'restaurant' && (
+                <span className="shrink-0 inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
+                  <UtensilsCrossed size={8} /> Rest.
+                </span>
+              )}
+            </div>
             <p className="text-[10px] font-mono text-muted-foreground mt-0.5 truncate">{biz.slug}</p>
           </div>
         </div>

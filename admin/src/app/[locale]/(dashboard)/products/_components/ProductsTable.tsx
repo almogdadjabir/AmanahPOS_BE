@@ -5,6 +5,7 @@ import Pagination from '@/components/ds/Pagination';
 import {
   Table, TableHeader, TableHead, TableBody, TableRow, TableCell,
 } from '@/components/ui/table';
+import Image from 'next/image';
 import ProductRowActions from './ProductRowActions';
 import { Package, Tag } from 'lucide-react';
 import type { Product } from '@/types/api';
@@ -14,9 +15,10 @@ interface Props {
   categoryId?: string;
   status?:     string;
   page?:       number;
+  showStock?:  boolean;
 }
 
-export default async function ProductsTable({ search, categoryId, status, page = 1 }: Props) {
+export default async function ProductsTable({ search, categoryId, status, page = 1, showStock = false }: Props) {
   let result;
   try {
     result = await fetchProductsAction({
@@ -80,7 +82,7 @@ export default async function ProductsTable({ search, categoryId, status, page =
             <TableHead className="w-[40%]">Product</TableHead>
             <TableHead className="hidden md:table-cell">Category</TableHead>
             <TableHead className="hidden sm:table-cell">Price</TableHead>
-            <TableHead className="hidden lg:table-cell">Stock</TableHead>
+            {showStock && <TableHead className="hidden lg:table-cell">Stock</TableHead>}
             <TableHead className="hidden sm:table-cell">Status</TableHead>
             <TableHead className="hidden xl:table-cell">Updated</TableHead>
             <TableHead className="w-[100px]" />
@@ -88,7 +90,7 @@ export default async function ProductsTable({ search, categoryId, status, page =
         </TableHeader>
         <TableBody>
           {products.map(product => (
-            <ProductRow key={product.id} product={product} />
+            <ProductRow key={product.id} product={product} showStock={showStock} />
           ))}
         </TableBody>
       </Table>
@@ -98,7 +100,7 @@ export default async function ProductsTable({ search, categoryId, status, page =
   );
 }
 
-function ProductRow({ product }: { product: Product }) {
+function ProductRow({ product, showStock }: { product: Product; showStock: boolean }) {
   const stock   = product.stock_level ?? null;
   const isOut   = stock === 0;
   const isLow   = stock !== null && stock > 0 && stock <= product.min_stock_level;
@@ -118,8 +120,7 @@ function ProductRow({ product }: { product: Product }) {
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-muted border border-border/60 overflow-hidden shrink-0 flex items-center justify-center">
             {product.thumbnail_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={product.thumbnail_url} alt={product.name} className="w-full h-full object-cover" />
+              <Image src={product.thumbnail_url} alt={product.name} width={36} height={36} className="w-full h-full object-cover" />
             ) : (
               <Package className="size-4 text-muted-foreground/40" />
             )}
@@ -168,19 +169,21 @@ function ProductRow({ product }: { product: Product }) {
         )}
       </TableCell>
 
-      {/* Stock */}
-      <TableCell className="hidden lg:table-cell">
-        {stock !== null ? (
-          <Badge
-            variant={isOut ? 'danger' : isLow ? 'warning' : 'success'}
-            dot
-          >
-            {isOut ? 'Out of stock' : isLow ? `Low · ${Number(stock)}` : Number(stock)}
-          </Badge>
-        ) : (
-          <span className="text-[11px] text-muted-foreground/40">—</span>
-        )}
-      </TableCell>
+      {/* Stock — only for shop businesses; absent for restaurants */}
+      {showStock && (
+        <TableCell className="hidden lg:table-cell">
+          {stock !== null ? (
+            <Badge
+              variant={isOut ? 'danger' : isLow ? 'warning' : 'success'}
+              dot
+            >
+              {isOut ? 'Out of stock' : isLow ? `Low · ${Number(stock)}` : Number(stock)}
+            </Badge>
+          ) : (
+            <span className="text-[11px] text-muted-foreground/40">—</span>
+          )}
+        </TableCell>
+      )}
 
       {/* Status */}
       <TableCell className="hidden sm:table-cell">

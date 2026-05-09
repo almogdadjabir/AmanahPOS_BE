@@ -68,13 +68,16 @@ export async function createCustomerAction(
   _prev: CustomerActionState,
   formData: FormData,
 ): Promise<CustomerActionState> {
-  const name    = (formData.get('name')    as string)?.trim();
-  const phone   = (formData.get('phone')   as string)?.trim();
-  const email   = (formData.get('email')   as string)?.trim();
-  const address = (formData.get('address') as string)?.trim();
-  const notes   = (formData.get('notes')   as string)?.trim();
+  const name        = (formData.get('name')         as string)?.trim();
+  const phoneLocal  = (formData.get('phone_local')  as string)?.trim();
+  const countryCode = (formData.get('country_code') as string) || '+249';
+  const email       = (formData.get('email')        as string)?.trim();
+  const address     = (formData.get('address')      as string)?.trim();
+  const notes       = (formData.get('notes')        as string)?.trim();
 
   if (!name) return { error: 'Customer name is required.' };
+
+  const phone = phoneLocal ? `${countryCode}${phoneLocal.replace(/^0+/, '')}` : '';
 
   const body: Record<string, string | null> = { name };
   if (phone)   body.phone   = phone;
@@ -107,13 +110,16 @@ export async function updateCustomerAction(
   _prev:      CustomerActionState,
   formData:   FormData,
 ): Promise<CustomerActionState> {
-  const name    = (formData.get('name')    as string)?.trim();
-  const phone   = (formData.get('phone')   as string)?.trim();
-  const email   = (formData.get('email')   as string)?.trim();
-  const address = (formData.get('address') as string)?.trim();
-  const notes   = (formData.get('notes')   as string)?.trim();
+  const name        = (formData.get('name')         as string)?.trim();
+  const phoneLocal  = (formData.get('phone_local')  as string)?.trim();
+  const countryCode = (formData.get('country_code') as string) || '+249';
+  const email       = (formData.get('email')        as string)?.trim();
+  const address     = (formData.get('address')      as string)?.trim();
+  const notes       = (formData.get('notes')        as string)?.trim();
 
   if (!name) return { error: 'Customer name is required.' };
+
+  const phone = phoneLocal ? `${countryCode}${phoneLocal.replace(/^0+/, '')}` : '';
 
   const body: Record<string, string | null> = {
     name,

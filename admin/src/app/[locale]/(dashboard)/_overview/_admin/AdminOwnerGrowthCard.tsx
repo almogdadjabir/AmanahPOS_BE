@@ -7,7 +7,7 @@ type Props = { stats: AdminStats };
 
 export default function AdminOwnerGrowthCard({ stats }: Props) {
   return (
-    <div className="bg-card rounded-xl border border-border shadow-card p-5 h-full flex flex-col">
+    <div className="bg-card rounded-xl border border-border shadow-card p-5 flex flex-col">
       {/* Card header */}
       <div className="flex items-start justify-between mb-1">
         <div>
@@ -34,7 +34,7 @@ export default function AdminOwnerGrowthCard({ stats }: Props) {
         )}
       </div>
 
-      <div className="mt-4 flex-1">
+      <div className="mt-4">
         {!stats
           ? <Skeleton className="h-[160px] rounded-lg w-full" />
           : <GrowthChartToggle data={stats.monthly_growth} />

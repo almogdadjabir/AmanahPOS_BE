@@ -2,6 +2,7 @@
 Serializers for tenants app.
 """
 from rest_framework import serializers
+from django.utils import timezone
 
 from apps.accounts.serializers import UserProfileSerializer
 from .models import Business, Shop
@@ -39,15 +40,43 @@ class BusinessSerializer(serializers.ModelSerializer):
     owner = UserProfileSerializer(read_only=True)
     shops = ShopSerializer(many=True, read_only=True)
     shop_count = serializers.IntegerField(read_only=True)
+    active_subscription = serializers.SerializerMethodField()
 
     class Meta:
         model = Business
         fields = [
-            "id", "name", "slug", "owner", "logo", "address", "phone", "email",
-            "subscription_plan", "is_active", "shop_count", "shops",
+            "id", "name", "slug", "business_type", "owner", "logo",
+            "address", "phone", "email",
+            "active_subscription", "is_active", "shop_count", "shops",
             "created_at", "updated_at",
         ]
         read_only_fields = ["id", "slug", "owner", "created_at", "updated_at"]
+
+    def get_active_subscription(self, obj):
+        today = timezone.now().date()
+        sub = (
+            obj.subscriptions
+            .filter(is_active=True, end_date__gte=today)
+            .select_related("plan")
+            .order_by("-end_date")
+            .first()
+        )
+        if not sub:
+            return None
+        p = sub.plan
+        return {
+            "id":            str(p.id),
+            "name":          p.name,
+            "max_shops":     p.max_shops,
+            "max_products":  p.max_products,
+            "max_users":     p.max_users,
+            "features":      p.features,
+            "is_free":       p.is_free,
+            "price":         str(p.price),
+            "currency":      p.currency,
+            "end_date":      str(sub.end_date),
+            "days_remaining": sub.days_remaining,
+        }
 
 
 class BusinessCreateSerializer(serializers.ModelSerializer):
@@ -55,7 +84,7 @@ class BusinessCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Business
-        fields = ["name", "address", "phone", "email", "logo"]
+        fields = ["name", "address", "phone", "email", "logo", "business_type"]
 
     def validate_email(self, value):
         return value or ""
@@ -71,7 +100,7 @@ class BusinessUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Business
-        fields = ["name", "address", "phone", "email", "logo", "is_active"]
+        fields = ["name", "address", "phone", "email", "logo", "is_active", "business_type"]
 
     def validate_email(self, value):
         return value or ""

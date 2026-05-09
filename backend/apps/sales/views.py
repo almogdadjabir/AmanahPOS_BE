@@ -223,28 +223,43 @@ class SalesSummaryView(APIView):
             .order_by("payment_method")
         )
 
-        return Response({
-            "success": True,
-            "data": {
-                "total_sales": summary["total_sales"] or 0,
-                "total_revenue": str(summary["total_revenue"] or 0),
-                "total_discount": str(summary["total_discount"] or 0),
-                "total_tax": str(summary["total_tax"] or 0),
-                "avg_sale_value": str(round(summary["avg_sale_value"] or 0, 2)),
-                "cash_sales_count": summary["cash_sales_count"] or 0,
-                "total_cash_sales": str(summary["cash_revenue"] or 0),
-                "bankak_sales_count": summary["bankak_sales_count"] or 0,
-                "total_bankak_sales": str(summary["bankak_revenue"] or 0),
-                "payment_breakdown": [
-                    {
-                        "payment_method": row["payment_method"],
-                        "count": row["count"],
-                        "total": str(row["total"] or 0),
-                    }
-                    for row in payment_breakdown
-                ],
-            }
-        })
+        response_data = {
+            "total_sales": summary["total_sales"] or 0,
+            "total_revenue": str(summary["total_revenue"] or 0),
+            "total_discount": str(summary["total_discount"] or 0),
+            "total_tax": str(summary["total_tax"] or 0),
+            "avg_sale_value": str(round(summary["avg_sale_value"] or 0, 2)),
+            "cash_sales_count": summary["cash_sales_count"] or 0,
+            "total_cash_sales": str(summary["cash_revenue"] or 0),
+            "bankak_sales_count": summary["bankak_sales_count"] or 0,
+            "total_bankak_sales": str(summary["bankak_revenue"] or 0),
+            "payment_breakdown": [
+                {
+                    "payment_method": row["payment_method"],
+                    "count": row["count"],
+                    "total": str(row["total"] or 0),
+                }
+                for row in payment_breakdown
+            ],
+        }
+
+        if request.query_params.get("breakdown") == "shops":
+            shops_rows = list(
+                qs.values("shop_id", "shop__name")
+                .annotate(count=Count("id"), total=Sum("net_amount"))
+                .order_by("-total")
+            )
+            response_data["shops_breakdown"] = [
+                {
+                    "shop_id": str(row["shop_id"]),
+                    "shop_name": row["shop__name"],
+                    "count": row["count"],
+                    "total": str(row["total"] or 0),
+                }
+                for row in shops_rows
+            ]
+
+        return Response({"success": True, "data": response_data})
 
 
 class OfflineSyncView(APIView):

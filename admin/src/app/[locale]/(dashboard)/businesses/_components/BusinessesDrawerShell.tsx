@@ -22,12 +22,12 @@ import {
 import type { AdminBusinessDetail, AdminBusinessShop } from '@/types/api';
 import { cn } from '@/lib/utils';
 import {
-  Phone, Mail, MapPin, Calendar, Clock, Edit2, Ban, Check, X, Info,
-  ShoppingBag, Store, CreditCard,
+  Phone, Mail, MapPin, Calendar, Clock, Edit2, Ban, Check, X,
+  ShoppingBag, Store, CreditCard, UtensilsCrossed,
   Search, ChevronRight, ArrowLeft, CheckCircle2, Loader2,
 } from 'lucide-react';
 import { searchOwnersAction } from '@/actions/subscriptions';
-import type { AdminOwner } from '@/types/api';
+import type { AdminOwner, BusinessType } from '@/types/api';
 
 export default function BusinessesDrawerShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -54,7 +54,7 @@ export default function BusinessesDrawerShell({ children }: { children: React.Re
         onClose={closeCreate}
         title="Create Business"
         subtitle="Register a new business under an owner"
-        width={480}
+        width={560}
       >
         <CreateBusinessContent onSuccess={handleCreateSuccess} onClose={closeCreate} />
       </Drawer>
@@ -80,54 +80,6 @@ type SelectedOwner = {
   ownerPhone: string;
 };
 
-function CreateStepBar({ step }: { step: 'search' | 'form' }) {
-  const atForm = step === 'form';
-  return (
-    <div className="px-5 py-3.5 border-b border-border/60 bg-muted/20">
-      <div className="flex items-center gap-2">
-        {/* Step 1 */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold shadow-sm shadow-primary/20">
-            {atForm ? <Check size={10} strokeWidth={3} /> : '1'}
-          </span>
-          <span className={cn(
-            'text-[11px] font-semibold transition-colors duration-300',
-            !atForm ? 'text-foreground' : 'text-muted-foreground',
-          )}>
-            Select Owner
-          </span>
-        </div>
-
-        {/* Connecting line */}
-        <div className="flex-1 h-[2px] rounded-full bg-border/60 overflow-hidden mx-1">
-          <div className={cn(
-            'h-full rounded-full bg-primary transition-all duration-500 ease-out',
-            atForm ? 'w-full' : 'w-0',
-          )} />
-        </div>
-
-        {/* Step 2 */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className={cn(
-            'w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300',
-            atForm
-              ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
-              : 'bg-muted text-muted-foreground border border-border',
-          )}>
-            2
-          </span>
-          <span className={cn(
-            'text-[11px] font-semibold transition-colors duration-300',
-            atForm ? 'text-foreground' : 'text-muted-foreground',
-          )}>
-            Business Details
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function CreateBusinessContent({
   onSuccess,
   onClose,
@@ -141,6 +93,7 @@ function CreateBusinessContent({
 
   const [step,          setStep]          = useState<'search' | 'form'>('search');
   const [selected,      setSelected]      = useState<SelectedOwner | null>(null);
+  const [selectedType,  setSelectedType]  = useState<BusinessType>('shop');
   const [searchQuery,   setSearchQuery]   = useState('');
   const [searchResults, setSearchResults] = useState<AdminOwner[]>([]);
   const [searching,     setSearching]     = useState(false);
@@ -170,223 +123,258 @@ function CreateBusinessContent({
 
   const error = state && 'error' in state ? state.error : null;
 
-  return (
-    <div className="flex flex-col h-full">
-      <CreateStepBar step={step} />
+  // ── Step 1: Search owner ──────────────────────────────────────────────────────
+  if (step === 'search') {
+    return (
+      <div className="p-5 space-y-4">
+        <p className="text-xs text-muted-foreground">
+          Search for the owner by name or phone number, then select their account.
+        </p>
 
-      {/* ── Step 1: Search ─────────────────────────────────────────────────── */}
-      {step === 'search' && (
-        <div className="flex-1 overflow-y-auto p-5 space-y-4 animate-in fade-in-0 slide-in-from-left-2 duration-200">
-          <p className="text-[11.5px] text-muted-foreground leading-relaxed">
-            Search by name, phone, or email to find the owner account.
-          </p>
-
-          {/* Search input */}
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Name, phone, or email…"
-              autoFocus
-              className={cn(inputCls, 'pl-9 pr-9')}
-            />
-            {searching && (
-              <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground animate-spin" />
-            )}
-          </div>
-
-          {/* Search error */}
-          {searchErr && (
-            <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2.5">
-              <p className="text-xs font-semibold text-destructive">{searchErr}</p>
-            </div>
+        <div className="relative">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search owner name or phone…"
+            autoFocus
+            className={cn(inputCls, 'pl-9')}
+          />
+          {searching && (
+            <Loader2 size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground animate-spin" />
           )}
-
-          {/* Results */}
-          {searchResults.length > 0 && (
-            <div className="space-y-1.5">
-              {searchResults.map((owner, i) => (
-                <button
-                  key={owner.id}
-                  type="button"
-                  onClick={() => handleOwnerSelect(owner)}
-                  style={{ animationDelay: `${i * 35}ms` }}
-                  className="w-full group flex items-center gap-3 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/[0.025] px-3.5 py-3 transition-all text-left animate-in fade-in-0 slide-in-from-bottom-1 duration-150"
-                >
-                  {/* Avatar with status dot */}
-                  <div className="relative shrink-0">
-                    <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-[13px] font-bold text-primary">
-                      {owner.full_name.charAt(0).toUpperCase()}
-                    </span>
-                    <span className={cn(
-                      'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-[1.5px] border-card',
-                      owner.is_active ? 'bg-success' : 'bg-muted-foreground/50',
-                    )} />
-                  </div>
-
-                  {/* Name + phone */}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-[13px] font-semibold text-foreground truncate">{owner.full_name}</p>
-                      {owner.is_verified && (
-                        <CheckCircle2 size={11} className="text-primary/70 shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-[11px] font-mono text-muted-foreground mt-0.5">{owner.phone}</p>
-                  </div>
-
-                  {/* Badges */}
-                  <div className="shrink-0 flex flex-col items-end gap-1.5">
-                    <span className={cn(
-                      'text-[10px] font-bold px-2 py-0.5 rounded-full leading-tight',
-                      owner.has_active_subscription
-                        ? 'bg-success/10 text-success'
-                        : 'bg-muted text-muted-foreground',
-                    )}>
-                      {owner.has_active_subscription ? 'Active plan' : 'No plan'}
-                    </span>
-                    <span className="text-[10px] text-muted-foreground tabular-nums">
-                      {owner.business_count} {owner.business_count === 1 ? 'business' : 'businesses'}
-                    </span>
-                  </div>
-
-                  <ChevronRight size={13} className="text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* No results */}
-          {!searching && searchQuery.trim() && searchResults.length === 0 && !searchErr && (
-            <div className="rounded-xl border border-border/50 bg-muted/20 px-4 py-8 text-center">
-              <p className="text-sm font-semibold text-foreground mb-1">No owners found</p>
-              <p className="text-[11.5px] text-muted-foreground">Try a different name, phone, or email</p>
-            </div>
-          )}
-
-          {/* Idle */}
-          {!searchQuery.trim() && (
-            <div className="rounded-xl border border-dashed border-border/50 bg-muted/10 px-4 py-10 flex flex-col items-center gap-2 text-center">
-              <span className="w-10 h-10 rounded-full bg-muted/70 flex items-center justify-center mb-1">
-                <Search size={16} className="text-muted-foreground/50" />
-              </span>
-              <p className="text-[12px] font-semibold text-muted-foreground">Find an owner to continue</p>
-              <p className="text-[11px] text-muted-foreground/60 max-w-[190px]">
-                Search by name, phone number, or email address
-              </p>
-            </div>
-          )}
-
-          <div className="pt-2 border-t border-border flex justify-end">
-            <Button variant="secondary" size="sm" type="button" onClick={onClose}>Cancel</Button>
-          </div>
         </div>
-      )}
 
-      {/* ── Step 2: Business Details ────────────────────────────────────────── */}
-      {step === 'form' && (
-        <div className="flex-1 overflow-y-auto animate-in fade-in-0 slide-in-from-right-2 duration-200">
-          <div className="p-5 space-y-5">
-            {/* Selected owner card */}
-            <div className="relative rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.06] to-transparent overflow-hidden">
-              <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-primary via-primary/50 to-transparent" />
-              <div className="p-3.5 flex items-center gap-3">
-                <div className="relative shrink-0">
-                  <span className="w-10 h-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-[14px] font-bold text-primary">
-                    {selected!.ownerName.charAt(0).toUpperCase()}
-                  </span>
-                  <span className="absolute -bottom-0.5 -right-0.5 w-[11px] h-[11px] rounded-full bg-success border-2 border-card" />
-                </div>
+        {searchErr && (
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2">
+            <p className="text-xs font-semibold text-destructive">{searchErr}</p>
+          </div>
+        )}
+
+        {searchResults.length > 0 && (
+          <div className="space-y-1.5">
+            {searchResults.map(owner => (
+              <button
+                key={owner.id}
+                type="button"
+                onClick={() => handleOwnerSelect(owner)}
+                className="w-full flex items-center gap-3 rounded-xl border border-border bg-card hover:bg-muted/40 px-4 py-3 transition-colors text-left"
+              >
+                <span className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-[13px] font-bold text-primary">
+                  {owner.full_name.charAt(0).toUpperCase()}
+                </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] font-bold text-foreground leading-tight truncate">{selected!.ownerName}</p>
-                  <p className="text-[11px] font-mono text-muted-foreground mt-0.5">{selected!.ownerPhone}</p>
+                  <p className="text-[13px] font-semibold text-foreground truncate">{owner.full_name}</p>
+                  <p className="text-[11px] font-mono text-muted-foreground">{owner.phone}</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setStep('search')}
-                  className="shrink-0 flex items-center gap-1.5 text-[11px] font-semibold text-primary hover:text-primary/70 transition-colors"
-                >
-                  <ArrowLeft size={10} />
-                  Change
-                </button>
-              </div>
-            </div>
-
-            {/* Error */}
-            {error && (
-              <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-3.5 py-2.5">
-                <p className="text-xs font-semibold text-destructive">{error}</p>
-              </div>
-            )}
-
-            {/* Form */}
-            <form action={dispatch} className="space-y-4">
-              <input type="hidden" name="owner_phone" value={selected!.ownerPhone} />
-
-              <CreateFormField label="Business name" required>
-                <input
-                  name="name"
-                  type="text"
-                  placeholder="e.g. Al-Hassan Trading"
-                  required
-                  autoFocus
-                  className={inputCls}
-                />
-              </CreateFormField>
-
-              <CreateFormField label="Address" hint="Optional physical address of this business.">
-                <div className="relative">
-                  <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none" />
-                  <input
-                    name="address"
-                    type="text"
-                    placeholder="e.g. Block 5, Khartoum North"
-                    className={cn(inputCls, 'pl-9')}
-                  />
+                <div className="shrink-0 flex flex-col items-end gap-1">
+                  <span className={cn(
+                    'text-[10px] font-semibold px-1.5 py-0.5 rounded',
+                    owner.has_active_subscription
+                      ? 'bg-warning/10 text-warning'
+                      : 'bg-muted text-muted-foreground',
+                  )}>
+                    {owner.has_active_subscription ? 'Has Sub' : 'No Sub'}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {owner.business_count} {owner.business_count === 1 ? 'biz' : 'bizs'}
+                  </span>
                 </div>
-              </CreateFormField>
-
-              <div className="grid grid-cols-2 gap-3">
-                <CreateFormField label="Phone">
-                  <div className="relative">
-                    <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none" />
-                    <input
-                      name="phone"
-                      type="tel"
-                      placeholder="+249 91 234 567"
-                      className={cn(inputCls, 'pl-9')}
-                    />
-                  </div>
-                </CreateFormField>
-                <CreateFormField label="Email">
-                  <div className="relative">
-                    <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none" />
-                    <input
-                      name="email"
-                      type="email"
-                      placeholder="biz@example.com"
-                      className={cn(inputCls, 'pl-9')}
-                    />
-                  </div>
-                </CreateFormField>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-border">
-                <Button variant="secondary" size="sm" type="button" onClick={onClose}>Cancel</Button>
-                <Button variant="default" size="sm" type="submit" disabled={isPending}>
-                  {isPending
-                    ? <><Loader2 size={13} className="animate-spin" /> Creating…</>
-                    : 'Create Business'
-                  }
-                </Button>
-              </div>
-            </form>
+                <ChevronRight size={13} className="text-muted-foreground shrink-0" />
+              </button>
+            ))}
           </div>
+        )}
+
+        {!searching && searchQuery.trim() && searchResults.length === 0 && !searchErr && (
+          <p className="text-sm text-muted-foreground text-center py-4">
+            No owners found for &ldquo;{searchQuery}&rdquo;
+          </p>
+        )}
+
+        {!searchQuery.trim() && (
+          <div className="rounded-xl border border-border/60 bg-muted/20 px-4 py-6 text-center">
+            <Search size={20} className="text-muted-foreground/40 mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground">Type to search for an owner</p>
+          </div>
+        )}
+
+        <div className="flex justify-end pt-2 border-t border-border">
+          <Button variant="secondary" size="sm" type="button" onClick={onClose}>Cancel</Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 2: Business details ──────────────────────────────────────────────────
+  return (
+    <div className="p-5">
+      {/* Selected owner banner — matches subscription pattern */}
+      <div className="flex items-center gap-3 rounded-xl border border-success/20 bg-success/5 px-4 py-3 mb-5">
+        <CheckCircle2 size={16} className="text-success shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-[13px] font-semibold text-foreground truncate">{selected!.ownerName}</p>
+          <p className="text-[11px] font-mono text-muted-foreground">{selected!.ownerPhone}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setStep('search')}
+          className="shrink-0 flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+        >
+          <ArrowLeft size={11} /> Change
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3">
+          <p className="text-sm font-semibold text-destructive">{error}</p>
         </div>
       )}
+
+      <form action={dispatch} className="space-y-4">
+        <input type="hidden" name="owner_id" value={selected!.ownerId} />
+        <input type="hidden" name="business_type" value={selectedType} />
+
+        <CreateFormField label="Business type" required hint="Determines how inventory and sales work for this business.">
+          <BusinessTypeSelector value={selectedType} onChange={setSelectedType} />
+        </CreateFormField>
+
+        <CreateFormField label="Business name" required>
+          <input
+            name="name"
+            type="text"
+            placeholder="e.g. Al-Hassan Trading"
+            required
+            autoFocus
+            className={inputCls}
+          />
+        </CreateFormField>
+
+        <CreateFormField label="Address">
+          <div className="relative">
+            <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none" />
+            <input
+              name="address"
+              type="text"
+              placeholder="e.g. Block 5, Khartoum North"
+              className={cn(inputCls, 'pl-9')}
+            />
+          </div>
+        </CreateFormField>
+
+        <div className="grid grid-cols-2 gap-3">
+          <CreateFormField label="Business phone">
+            <div className="relative">
+              <Phone size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none" />
+              <input
+                name="phone"
+                type="tel"
+                placeholder="Optional contact number"
+                className={cn(inputCls, 'pl-9')}
+              />
+            </div>
+          </CreateFormField>
+          <CreateFormField label="Email">
+            <div className="relative">
+              <Mail size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 pointer-events-none" />
+              <input
+                name="email"
+                type="email"
+                placeholder="biz@example.com"
+                className={cn(inputCls, 'pl-9')}
+              />
+            </div>
+          </CreateFormField>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2 border-t border-border">
+          <Button variant="secondary" size="sm" type="button" onClick={onClose}>Cancel</Button>
+          <Button variant="default" size="sm" type="submit" disabled={isPending}>
+            {isPending
+              ? <><Loader2 size={13} className="animate-spin" /> Creating…</>
+              : 'Create Business'
+            }
+          </Button>
+        </div>
+      </form>
     </div>
+  );
+}
+
+function BusinessTypeSelector({
+  value,
+  onChange,
+}: {
+  value:    BusinessType;
+  onChange: (v: BusinessType) => void;
+}) {
+  const options: { value: BusinessType; label: string; desc: string; icon: React.ReactNode }[] = [
+    {
+      value: 'shop',
+      label: 'Shop / Retail',
+      desc: 'Products with inventory tracking and stock levels.',
+      icon: <Store size={16} />,
+    },
+    {
+      value: 'restaurant',
+      label: 'Restaurant / Café',
+      desc: 'Menu items sold without stock tracking.',
+      icon: <UtensilsCrossed size={16} />,
+    },
+  ];
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={cn(
+            'relative flex flex-col gap-2.5 rounded-xl border p-4 text-left transition-all',
+            value === opt.value
+              ? 'border-primary/40 bg-primary/[0.05] ring-1 ring-primary/20'
+              : 'border-border bg-card hover:border-border/80 hover:bg-muted/30',
+          )}
+        >
+          <div className={cn(
+            'w-9 h-9 rounded-lg flex items-center justify-center [&_svg]:size-[17px] transition-colors',
+            value === opt.value ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground/60',
+          )}>
+            {opt.icon}
+          </div>
+          <div>
+            <p className={cn(
+              'text-[13px] font-bold leading-tight',
+              value === opt.value ? 'text-foreground' : 'text-muted-foreground',
+            )}>
+              {opt.label}
+            </p>
+            <p className="text-[11px] text-muted-foreground/70 leading-snug mt-0.5">{opt.desc}</p>
+          </div>
+          {value === opt.value && (
+            <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+              <Check size={9} strokeWidth={3} className="text-primary-foreground" />
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function BusinessTypeBadge({ type }: { type: BusinessType }) {
+  if (type === 'restaurant') {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
+        <UtensilsCrossed size={9} /> Restaurant
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+      <Store size={9} /> Shop
+    </span>
   );
 }
 
@@ -486,6 +474,7 @@ function BusinessDetailContent({
               <Badge dot variant={business.is_active ? 'success' : 'danger'}>
                 {business.is_active ? 'Active' : 'Inactive'}
               </Badge>
+              <BusinessTypeBadge type={business.business_type ?? 'shop'} />
             </div>
             <p className="text-[11px] font-mono text-muted-foreground mt-1">{business.slug}</p>
           </div>
@@ -778,24 +767,6 @@ function ToggleStatusInline({
 
 // ── Micro-components ──────────────────────────────────────────────────────────
 
-function FormField({ label, required, hint, children }: {
-  label:     string;
-  required?: boolean;
-  hint?:     string;
-  children:  React.ReactNode;
-}) {
-  return (
-    <div>
-      <label className="block text-xs font-semibold text-foreground mb-1.5">
-        {label}
-        {required && <span className="text-destructive ms-0.5">*</span>}
-      </label>
-      {children}
-      {hint && <p className="text-[11px] text-muted-foreground mt-1">{hint}</p>}
-    </div>
-  );
-}
-
 function MetaRow({ icon, value, mono }: { icon: React.ReactNode; value: string; mono?: boolean }) {
   return (
     <span className={cn('flex items-center gap-1.5 text-xs text-muted-foreground', mono && 'font-mono')}>
@@ -820,4 +791,4 @@ function StatBox({ label, value, color, bg }: {
 }
 
 const inputCls =
-  'w-full h-9 px-3 rounded-md border border-input bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 transition-colors';
+  'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors';

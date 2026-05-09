@@ -1,13 +1,15 @@
 import { apiGet, apiPatch, ApiError } from '@/lib/api';
+import { withUserCache } from '@/lib/serverCache';
+import { CACHE_TAGS } from '@/lib/cacheTags';
 import type { ApiResponse, StaffUser, UserRole } from '@/types/api';
 
 export type { StaffUser };
 
 export interface GetUsersParams {
-  search?:  string;
-  status?:  'active' | 'inactive' | 'all';
-  role?:    UserRole | 'all';
-  page?:    number;
+  search?:   string;
+  status?:   'active' | 'inactive' | 'all';
+  role?:     UserRole | 'all';
+  page?:     number;
   pageSize?: number;
 }
 
@@ -22,10 +24,15 @@ export async function getUsers(params: GetUsersParams = {}): Promise<PaginatedSt
   const { page = 1, pageSize = 10 } = params;
 
   try {
-    const res = await apiGet<ApiResponse<StaffUser[]>>('/api/v1/users/');
-    let all = res.data ?? [];
+    // Fetch the full list once (cached 120s) then filter client-side.
+    // The backend returns a flat array without server-side pagination.
+    const res = await withUserCache(
+      (tok) => apiGet<ApiResponse<StaffUser[]>>('/api/v1/users/', undefined, { token: tok }),
+      [CACHE_TAGS.users],
+      120,
+    );
+    let all = res?.data ?? [];
 
-    // Client-side filtering (backend returns flat list without pagination)
     if (params.search) {
       const q = params.search.toLowerCase();
       all = all.filter(u =>
@@ -60,8 +67,12 @@ export async function toggleUserStatus(id: string, currentlyActive: boolean): Pr
 // Exported for overview page
 export async function fetchStaffList(): Promise<StaffUser[]> {
   try {
-    const res = await apiGet<ApiResponse<StaffUser[]>>('/api/v1/users/');
-    return res.data ?? [];
+    const res = await withUserCache(
+      (tok) => apiGet<ApiResponse<StaffUser[]>>('/api/v1/users/', undefined, { token: tok }),
+      [CACHE_TAGS.users],
+      120,
+    );
+    return res?.data ?? [];
   } catch {
     return [];
   }

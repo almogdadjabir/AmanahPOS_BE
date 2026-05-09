@@ -21,9 +21,13 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 
 from apps.accounts.models import BankakAccount, CustomUser
 from apps.tenants.models import Business, Shop
+from apps.tenants.services import create_business
 from apps.subscriptions.models import Subscription
 
 from apps.subscriptions.models import Plan
+
+from apps.activity_logs.service import log_activity
+from apps.activity_logs.models import ActivityLog as AL
 
 from .serializers import (
     AdminStatsSerializer,
@@ -140,7 +144,10 @@ class AdminStatsView(APIView):
 
         # ── 6. Recent 10 owners ───────────────────────────────────────────────
         recent_owners = list(
-            owner_qs.annotate(business_count=Count("businesses", distinct=True))
+            owner_qs.annotate(
+                business_count=Count("businesses", distinct=True),
+                has_active_subscription=_active_sub_exists("pk"),
+            )
             .order_by("-created_at")[:10]
         )
 
@@ -326,6 +333,12 @@ class AdminOwnerDetailView(APIView):
         serializer = AdminOwnerUpdateSerializer(owner, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        log_activity(
+            actor=request.user, action=AL.ActionType.OWNER_UPDATED,
+            entity_type="owner", entity_id=pk,
+            entity_label=owner.full_name or owner.phone,
+            request=request,
+        )
         return Response({"success": True, "data": AdminOwnerDetailSerializer(self._get_owner(pk)).data})
 
 
@@ -347,6 +360,13 @@ class AdminOwnerToggleStatusView(APIView):
         owner.is_active = not owner.is_active
         owner.save(update_fields=["is_active"])
         label = "activated" if owner.is_active else "deactivated"
+        log_activity(
+            actor=request.user,
+            action=AL.ActionType.OWNER_ACTIVATED if owner.is_active else AL.ActionType.OWNER_DEACTIVATED,
+            entity_type="owner", entity_id=pk,
+            entity_label=owner.full_name or owner.phone,
+            request=request,
+        )
         return Response({
             "success": True,
             "message": f"Owner {label} successfully.",
@@ -393,6 +413,12 @@ class AdminBusinessDetailView(APIView):
         serializer = AdminBusinessUpdateSerializer(business, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        log_activity(
+            actor=request.user, action=AL.ActionType.BUSINESS_UPDATED,
+            entity_type="business", entity_id=pk,
+            entity_label=business.name,
+            request=request,
+        )
         return Response({"success": True, "data": AdminBusinessDetailSerializer(self._get_business(pk)).data})
 
 
@@ -412,6 +438,13 @@ class AdminBusinessToggleStatusView(APIView):
         business.is_active = not business.is_active
         business.save(update_fields=["is_active"])
         label = "activated" if business.is_active else "deactivated"
+        log_activity(
+            actor=request.user,
+            action=AL.ActionType.BUSINESS_ACTIVATED if business.is_active else AL.ActionType.BUSINESS_DEACTIVATED,
+            entity_type="business", entity_id=pk,
+            entity_label=business.name,
+            request=request,
+        )
         return Response({
             "success": True,
             "message": f"Business {label} successfully.",
@@ -432,16 +465,15 @@ class AdminBusinessCreateView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
-        owner = CustomUser.objects.get(
-            phone=data["owner_phone"], is_staff=False, role="owner"
-        )
+        owner = get_object_or_404(CustomUser, id=data["owner_id"], is_staff=False, role="owner")
         today = _today()
-        business = Business.objects.create(
+        business = create_business(
             owner=owner,
             name=data["name"],
             address=data.get("address", ""),
             phone=data.get("phone", ""),
             email=data.get("email", ""),
+            business_type=data.get("business_type", "shop"),
         )
         # Re-fetch with annotations for the response
         business = (
@@ -461,6 +493,12 @@ class AdminBusinessCreateView(APIView):
                 ),
             )
             .get(pk=business.pk)
+        )
+        log_activity(
+            actor=request.user, action=AL.ActionType.BUSINESS_CREATED,
+            entity_type="business", entity_id=business.pk,
+            entity_label=business.name,
+            request=request,
         )
         return Response(
             {"success": True, "data": AdminBusinessDetailSerializer(business).data},
@@ -527,6 +565,12 @@ class AdminPlanDetailView(APIView):
         serializer = AdminPlanCreateUpdateSerializer(plan, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        log_activity(
+            actor=request.user, action=AL.ActionType.PLAN_UPDATED,
+            entity_type="plan", entity_id=pk,
+            entity_label=plan.name,
+            request=request,
+        )
         return Response({"success": True, "data": AdminPlanSerializer(self._get_plan(pk)).data})
 
 
@@ -549,6 +593,12 @@ class AdminPlanCreateView(APIView):
                 distinct=True,
             )
         ).get(pk=plan.pk)
+        log_activity(
+            actor=request.user, action=AL.ActionType.PLAN_CREATED,
+            entity_type="plan", entity_id=plan.pk,
+            entity_label=plan.name,
+            request=request,
+        )
         return Response({"success": True, "data": AdminPlanSerializer(plan).data}, status=201)
 
 
@@ -564,6 +614,13 @@ class AdminPlanToggleActiveView(APIView):
         plan.is_active = not plan.is_active
         plan.save(update_fields=["is_active", "updated_at"])
         label = "activated" if plan.is_active else "deactivated"
+        log_activity(
+            actor=request.user,
+            action=AL.ActionType.PLAN_ACTIVATED if plan.is_active else AL.ActionType.PLAN_DEACTIVATED,
+            entity_type="plan", entity_id=pk,
+            entity_label=plan.name,
+            request=request,
+        )
         return Response({
             "success": True,
             "message": f"Plan {label} successfully.",
@@ -594,6 +651,12 @@ class AdminSubscriptionDetailView(APIView):
         serializer = AdminSubscriptionUpdateSerializer(sub, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        log_activity(
+            actor=request.user, action=AL.ActionType.SUBSCRIPTION_UPDATED,
+            entity_type="subscription", entity_id=pk,
+            entity_label=sub.business.name,
+            request=request,
+        )
         return Response({"success": True, "data": AdminSubscriptionDetailSerializer(self._get_sub(pk)).data})
 
 
@@ -608,6 +671,12 @@ class AdminSubscriptionDeactivateView(APIView):
         if not sub.is_active:
             return Response({"success": False, "message": "Subscription is already inactive."}, status=400)
         sub.deactivate()
+        log_activity(
+            actor=request.user, action=AL.ActionType.SUBSCRIPTION_DEACTIVATED,
+            entity_type="subscription", entity_id=pk,
+            entity_label=sub.business.name,
+            request=request,
+        )
         return Response({
             "success": True,
             "message": "Subscription deactivated.",
@@ -633,6 +702,8 @@ class AdminSubscriptionCreateView(APIView):
         start    = data["start_date"]
         end      = start + timedelta(days=plan.duration_days)
 
+        Subscription.objects.filter(business=business, is_active=True).update(is_active=False)
+
         sub = Subscription.objects.create(
             business=business,
             plan=plan,
@@ -641,9 +712,21 @@ class AdminSubscriptionCreateView(APIView):
             payment_reference=data.get("payment_reference", ""),
             notes=data.get("notes", ""),
         )
+
+        # Keep the denormalised FK in sync so mobile API returns the correct plan
+        business.subscription_plan = plan
+        business.save(update_fields=["subscription_plan", "updated_at"])
+
         sub_full = Subscription.objects.select_related(
             "business", "business__owner", "plan"
         ).get(pk=sub.pk)
+        log_activity(
+            actor=request.user, action=AL.ActionType.SUBSCRIPTION_CREATED,
+            entity_type="subscription", entity_id=sub.pk,
+            entity_label=business.name,
+            metadata={"plan": plan.name, "end_date": str(end)},
+            request=request,
+        )
         return Response(
             {"success": True, "data": AdminSubscriptionDetailSerializer(sub_full).data},
             status=201,

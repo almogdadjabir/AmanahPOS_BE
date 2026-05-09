@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.utils import timezone
 
 from apps.accounts.models import BankakAccount, CustomUser
-from apps.tenants.models import Business, Shop
+from apps.tenants.models import Business, BusinessType, Shop
 from apps.subscriptions.models import Plan, Subscription
 from apps.sales.models import Sale
 
@@ -39,7 +39,7 @@ class AdminBusinessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
         fields = [
-            "id", "name", "slug", "is_active", "created_at",
+            "id", "name", "slug", "business_type", "is_active", "created_at",
             "owner_name", "owner_phone",
             "shop_count", "has_active_subscription", "subscription_end_date",
         ]
@@ -167,11 +167,15 @@ class MonthlyGrowthSerializer(serializers.Serializer):
 
 
 class RecentOwnerSerializer(serializers.ModelSerializer):
-    business_count = serializers.IntegerField(read_only=True)
+    business_count          = serializers.IntegerField(read_only=True)
+    has_active_subscription = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ["id", "phone", "full_name", "is_active", "created_at", "business_count"]
+        fields = [
+            "id", "phone", "full_name", "is_active", "is_verified",
+            "created_at", "last_login_at", "business_count", "has_active_subscription",
+        ]
 
 
 # ── Owner detail (nested) ────────────────────────────────────────────────────
@@ -189,7 +193,7 @@ class AdminOwnerBusinessSerializer(serializers.ModelSerializer):
 
     class Meta:
         model  = Business
-        fields = ["id", "name", "slug", "is_active", "created_at",
+        fields = ["id", "name", "slug", "business_type", "is_active", "created_at",
                   "shop_count", "active_subscription", "shops"]
 
     def get_active_subscription(self, obj):
@@ -287,7 +291,7 @@ class AdminBusinessDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Business
         fields = [
-            "id", "name", "slug", "is_active", "created_at", "updated_at",
+            "id", "name", "slug", "business_type", "is_active", "created_at", "updated_at",
             "address", "phone", "email",
             "owner_id", "owner_name", "owner_phone",
             "shop_count", "has_active_subscription", "subscription_end_date",
@@ -320,25 +324,35 @@ class AdminBusinessDetailSerializer(serializers.ModelSerializer):
 class AdminBusinessUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Business
-        fields = ["name", "address", "phone", "email"]
+        fields = ["name", "address", "phone", "email", "business_type"]
 
     def validate_name(self, value):
         return value.strip() if value else value
 
+    def validate_business_type(self, value):
+        valid = [c[0] for c in BusinessType.choices]
+        if value and value not in valid:
+            raise serializers.ValidationError(f"Invalid business type. Choose from: {valid}.")
+        return value
+
 
 class AdminBusinessCreateSerializer(serializers.Serializer):
-    owner_phone = serializers.CharField(max_length=20)
-    name        = serializers.CharField(max_length=255)
-    address     = serializers.CharField(max_length=500, required=False, allow_blank=True)
-    phone       = serializers.CharField(max_length=20,  required=False, allow_blank=True)
-    email       = serializers.EmailField(required=False, allow_blank=True)
+    owner_id      = serializers.UUIDField()
+    name          = serializers.CharField(max_length=255)
+    address       = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    phone         = serializers.CharField(max_length=20,  required=False, allow_blank=True)
+    email         = serializers.EmailField(required=False, allow_blank=True)
+    business_type = serializers.ChoiceField(
+        choices=BusinessType.choices,
+        default=BusinessType.SHOP,
+        required=False,
+    )
 
-    def validate_owner_phone(self, value):
+    def validate_owner_id(self, value):
         from apps.accounts.models import CustomUser
-        phone = value.strip()
-        if not CustomUser.objects.filter(phone=phone, is_staff=False, role="owner").exists():
-            raise serializers.ValidationError(f"No owner account found with phone {phone}.")
-        return phone
+        if not CustomUser.objects.filter(id=value, is_staff=False, role="owner").exists():
+            raise serializers.ValidationError("No owner account found with this ID.")
+        return value
 
     def validate_name(self, value):
         return value.strip()

@@ -2,8 +2,9 @@
 
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { apiGet, ApiError } from '@/lib/api';
 import { extractApiError } from '@/lib/action-error';
-import type { ApiList, Category, Product } from '@/types/api';
+import type { ApiList, ApiResponse, Category, Product } from '@/types/api';
 
 const API = () =>
   process.env.INTERNAL_API_URL ||
@@ -33,15 +34,11 @@ export type ProductsResult =
 
 export async function fetchCategoriesAction(): Promise<CategoriesResult> {
   try {
-    const res = await fetch(`${API()}/api/v1/products/categories/`, {
-      headers: { Authorization: `Bearer ${await authToken()}` },
-      cache: 'no-store',
-    });
-    const json = await res.json().catch(() => null);
-    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
-    return { ok: true, data: json?.data ?? [] };
+    const data = await apiGet<ApiResponse<Category[]>>('/api/v1/products/categories/');
+    return { ok: true, data: data.data ?? [] };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
+    const msg = e instanceof ApiError ? `API error ${e.status}` : (e instanceof Error ? e.message : 'Network error');
+    return { ok: false, error: msg };
   }
 }
 
@@ -143,24 +140,17 @@ export async function fetchProductsAction(params?: {
   limit?: number;
 }): Promise<ProductsResult> {
   try {
-    const url = new URL(`${API()}/api/v1/products/`);
-    if (params?.category) url.searchParams.set('category', params.category);
-    if (params?.search)   url.searchParams.set('search', params.search);
-    if (params?.status === 'active')   url.searchParams.set('is_active', 'true');
-    if (params?.status === 'inactive') url.searchParams.set('is_active', 'false');
-    if (params?.page)     url.searchParams.set('page', String(params.page));
-    url.searchParams.set('page_size', String(params?.limit ?? 25));
-
-    const res = await fetch(url.toString(), {
-      headers: { Authorization: `Bearer ${await authToken()}` },
-      cache: 'no-store',
+    const list = await apiGet<ApiList<Product>>('/api/v1/products/', {
+      category:  params?.category || undefined,
+      search:    params?.search   || undefined,
+      is_active: params?.status === 'active' ? 'true' : params?.status === 'inactive' ? 'false' : undefined,
+      page:      params?.page,
+      page_size: params?.limit ?? 25,
     });
-    const json = await res.json().catch(() => null);
-    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
-    const list = json as ApiList<Product>;
     return { ok: true, data: list.results ?? [], count: list.count ?? 0, total_pages: list.total_pages ?? 1 };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
+    const msg = e instanceof ApiError ? `API error ${e.status}` : (e instanceof Error ? e.message : 'Network error');
+    return { ok: false, error: msg };
   }
 }
 

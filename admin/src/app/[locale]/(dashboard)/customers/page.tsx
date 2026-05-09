@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import { TableSkeleton } from '@/components/ds/Skeleton';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SectionError } from '@/components/SectionError';
 import CustomerDrawerShell from './_components/CustomerDrawerShell';
 import CustomerPageHeader from './_components/CustomerPageHeader';
 import CustomerStats, { CustomerStatsSkeleton } from './_components/CustomerStats';
@@ -23,21 +25,27 @@ export default async function CustomersPage({ searchParams }: Props) {
     <CustomerDrawerShell>
       <CustomerPageHeader />
 
-      <Suspense fallback={<CustomerStatsSkeleton />}>
-        <CustomerStats />
-      </Suspense>
+      <ErrorBoundary fallback={<SectionError message="Failed to load customer stats" />}>
+        <Suspense fallback={<CustomerStatsSkeleton />}>
+          <CustomerStats />
+        </Suspense>
+      </ErrorBoundary>
 
-      <Suspense fallback={<div className="h-[52px] rounded-xl bg-muted animate-pulse mb-5" />}>
-        <CustomerFilters />
-      </Suspense>
+      <ErrorBoundary fallback={<SectionError message="Failed to load filters" />}>
+        <Suspense fallback={<div className="h-[52px] rounded-xl bg-muted animate-pulse mb-5" />}>
+          <CustomerFilters />
+        </Suspense>
+      </ErrorBoundary>
 
-      <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={6} />}>
-        <CustomersTable
-          search={params.search}
-          status={params.status}
-          page={page}
-        />
-      </Suspense>
+      <ErrorBoundary fallback={<SectionError message="Failed to load customers" />}>
+        <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={6} />}>
+          <CustomersTable
+            search={params.search}
+            status={params.status}
+            page={page}
+          />
+        </Suspense>
+      </ErrorBoundary>
     </CustomerDrawerShell>
   );
 }

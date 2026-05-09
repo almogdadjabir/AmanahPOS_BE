@@ -11,25 +11,29 @@ import SubscriptionUsage, { UsageUnavailable } from './_components/SubscriptionU
 import SubscriptionFeatures from './_components/SubscriptionFeatures';
 import {
   SubscriptionSummarySkeleton,
-  SubscriptionBodySkeleton,
 } from './_components/SubscriptionSkeleton';
 
-// ── Async slices ──────────────────────────────────────────────────────────────
+// Fetches subscription + usage in a single async pass so the two API calls
+// are never duplicated. Previously HeroSection and BodySection each called
+// fetchMySubscriptionAction() independently, causing /subscriptions/current/
+// to be fetched twice per page render.
+async function SubscriptionContent() {
+  const [subResult, usageResult] = await Promise.all([
+    fetchMySubscriptionAction(),
+    fetchOwnerUsageAction(),
+  ]);
 
-async function HeroSection() {
-  const result = await fetchMySubscriptionAction();
-
-  if (!result.ok) {
+  if (!subResult.ok) {
     return (
       <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-5 py-8 text-center mb-5">
         <p className="text-sm font-bold text-destructive">Failed to load subscription</p>
-        <p className="text-xs text-destructive/70 mt-1">{result.error}</p>
+        <p className="text-xs text-destructive/70 mt-1">{subResult.error}</p>
       </div>
     );
   }
 
-  const { sub } = result;
-  const status  = getSubscriptionStatus(sub);
+  const { sub } = subResult;
+  const status   = getSubscriptionStatus(sub);
 
   return (
     <>
@@ -38,48 +42,27 @@ async function HeroSection() {
         daysRemaining={sub?.days_remaining}
         planName={sub?.plan.name}
       />
-      {sub
-        ? <SubscriptionHeroCard sub={sub} status={status} />
-        : <NoSubscriptionCard />
-      }
+
+      {sub ? <SubscriptionHeroCard sub={sub} status={status} /> : <NoSubscriptionCard />}
+
+      {sub && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
+          <div className="lg:col-span-2">
+            {usageResult.ok
+              ? <SubscriptionUsage usage={usageResult.data} plan={sub.plan} />
+              : <UsageUnavailable plan={sub.plan} />
+            }
+          </div>
+          {Object.keys(sub.plan.features ?? {}).length > 0 && (
+            <div className="lg:col-span-1">
+              <SubscriptionFeatures features={sub.plan.features ?? {}} />
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }
-
-async function BodySection() {
-  const [subResult, usageResult] = await Promise.all([
-    fetchMySubscriptionAction(),
-    fetchOwnerUsageAction(),
-  ]);
-
-  if (!subResult.ok || !subResult.sub) return null;
-
-  const { sub } = subResult;
-  const plan    = sub.plan;
-  const features = plan.features ?? {};
-  const hasFeatures = Object.keys(features).length > 0;
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-      {/* Usage — takes 2/3 */}
-      <div className="lg:col-span-2">
-        {usageResult.ok
-          ? <SubscriptionUsage usage={usageResult.data} plan={plan} />
-          : <UsageUnavailable plan={plan} />
-        }
-      </div>
-
-      {/* Features sidebar — takes 1/3 */}
-      {hasFeatures && (
-        <div className="lg:col-span-1">
-          <SubscriptionFeatures features={features} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function SubscriptionPage() {
   return (
@@ -90,11 +73,7 @@ export default async function SubscriptionPage() {
       />
 
       <Suspense fallback={<SubscriptionSummarySkeleton />}>
-        <HeroSection />
-      </Suspense>
-
-      <Suspense fallback={<SubscriptionBodySkeleton />}>
-        <BodySection />
+        <SubscriptionContent />
       </Suspense>
     </div>
   );

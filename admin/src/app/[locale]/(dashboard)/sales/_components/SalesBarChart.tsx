@@ -1,6 +1,12 @@
 'use client';
 
-import { BarChart } from '@/components/charts';
+import dynamic from 'next/dynamic';
+import { ChartSkeleton } from '@/components/ds/Skeleton';
+
+const BarChart = dynamic(() => import('@/components/charts/BarChart'), {
+  ssr: false,
+  loading: () => <ChartSkeleton />,
+});
 
 interface Props {
   data: { label: string; value: number }[];

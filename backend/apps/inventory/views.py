@@ -12,7 +12,7 @@ from apps.core.exceptions import NotFound, BusinessLogicError
 from apps.core.pagination import StandardPagination
 from apps.products.models import Product
 from apps.products.services import get_tenant_from_request
-from apps.tenants.models import Shop
+from apps.tenants.models import BusinessType, Shop
 from .models import StockLevel, StockMovement
 from .serializers import (
     StockAdjustmentSerializer,
@@ -38,6 +38,12 @@ class StockLevelListView(APIView):
         if not tenant:
             raise BusinessLogicError("No active business found.")
 
+        # Restaurants have no inventory — return empty paginated response.
+        if tenant.business_type == BusinessType.RESTAURANT:
+            paginator = StandardPagination()
+            paginator.paginate_queryset([], request)
+            return paginator.get_paginated_response([])
+
         qs = StockLevel.objects.filter(
             product__tenant=tenant
         ).select_related("product", "shop")
@@ -52,7 +58,6 @@ class StockLevelListView(APIView):
 
         low_stock = request.query_params.get("low_stock")
         if low_stock == "true":
-            # Filter where quantity <= min_stock_level
             from django.db.models import F
             qs = qs.filter(quantity__lte=F("product__min_stock_level"))
 
@@ -73,6 +78,11 @@ class StockMovementListView(APIView):
         tenant = get_tenant_from_request(request)
         if not tenant:
             raise BusinessLogicError("No active business found.")
+
+        if tenant.business_type == BusinessType.RESTAURANT:
+            paginator = StandardPagination()
+            paginator.paginate_queryset([], request)
+            return paginator.get_paginated_response([])
 
         qs = StockMovement.objects.filter(
             product__tenant=tenant
@@ -107,6 +117,9 @@ class StockAddView(APIView):
         tenant = get_tenant_from_request(request)
         if not tenant:
             raise BusinessLogicError("No active business found.")
+
+        if tenant.business_type == BusinessType.RESTAURANT:
+            raise BusinessLogicError("Inventory management is not available for restaurant businesses.")
 
         serializer = StockMovementCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -149,6 +162,9 @@ class StockAdjustView(APIView):
         if not tenant:
             raise BusinessLogicError("No active business found.")
 
+        if tenant.business_type == BusinessType.RESTAURANT:
+            raise BusinessLogicError("Inventory management is not available for restaurant businesses.")
+
         serializer = StockAdjustmentSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
@@ -187,6 +203,9 @@ class StockTransferView(APIView):
         tenant = get_tenant_from_request(request)
         if not tenant:
             raise BusinessLogicError("No active business found.")
+
+        if tenant.business_type == BusinessType.RESTAURANT:
+            raise BusinessLogicError("Inventory management is not available for restaurant businesses.")
 
         serializer = StockTransferSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -66,6 +66,13 @@ export interface SalesSummary {
   avg_sale_value: string;
 }
 
+export interface SalesShopBreakdown {
+  shop_id: string;
+  shop_name: string;
+  count: number;
+  total: string;
+}
+
 // ── Inventory ────────────────────────────────────────────────────────────────
 export type MovementType =
   | 'in' | 'out' | 'adjustment' | 'sale' | 'return'
@@ -127,6 +134,8 @@ export interface UserProfile {
   default_shop_id: string | null;
   created_at: string;
   last_login_at: string | null;
+  bankak_phone: string | null;
+  bankak_name: string | null;
 }
 
 // ── Customers ────────────────────────────────────────────────────────────────
@@ -157,16 +166,31 @@ export interface Shop {
   updated_at: string;
 }
 
+export interface BusinessActiveSubscription {
+  id: string;
+  name: string;
+  max_shops: number;
+  max_products: number;
+  max_users: number;
+  features: Record<string, unknown>;
+  is_free: boolean;
+  price: string;
+  currency: string;
+  end_date: string;
+  days_remaining: number;
+}
+
 export interface Business {
   id: string;
   name: string;
   slug: string;
+  business_type: BusinessType;
   owner: UserProfile;
   logo: string | null;
   address: string | null;
   phone: string | null;
   email: string | null;
-  subscription_plan: string | null;
+  active_subscription: BusinessActiveSubscription | null;
   is_active: boolean;
   shop_count: number;
   shops: Shop[];
@@ -197,10 +221,13 @@ export interface AdminOwnerShop {
   created_at: string;
 }
 
+export type BusinessType = 'shop' | 'restaurant';
+
 export interface AdminOwnerBusiness {
   id: string;
   name: string;
   slug: string;
+  business_type: BusinessType;
   is_active: boolean;
   created_at: string;
   shop_count: number;
@@ -224,6 +251,7 @@ export interface AdminBusiness {
   id: string;
   name: string;
   slug: string;
+  business_type: BusinessType;
   is_active: boolean;
   created_at: string;
   owner_name: string;
@@ -360,6 +388,32 @@ export interface AdminList<T> {
     previous: string | null;
     results: T[];
   };
+}
+
+// ── Activity Logs ────────────────────────────────────────────────────────────
+
+export type ActivityAction =
+  | 'owner_created' | 'owner_updated' | 'owner_activated' | 'owner_deactivated'
+  | 'business_created' | 'business_updated' | 'business_activated' | 'business_deactivated'
+  | 'subscription_created' | 'subscription_updated' | 'subscription_deactivated'
+  | 'plan_created' | 'plan_updated' | 'plan_activated' | 'plan_deactivated';
+
+export type ActivityEntityType = 'owner' | 'business' | 'subscription' | 'plan';
+
+export interface ActivityLog {
+  id:           string;
+  action:       ActivityAction;
+  action_label: string;
+  entity_type:  ActivityEntityType;
+  entity_id:    string;
+  entity_label: string;
+  description:  string;
+  metadata:     Record<string, unknown>;
+  actor_id:     string | null;
+  actor_name:   string | null;
+  actor_phone:  string | null;
+  ip_address:   string | null;
+  created_at:   string;
 }
 
 // ── Products ─────────────────────────────────────────────────────────────────

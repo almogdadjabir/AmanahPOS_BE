@@ -11,7 +11,7 @@ from apps.core.utils import generate_receipt_number
 from apps.inventory.services import deduct_stock, add_stock
 from apps.inventory.models import MovementType, StockLevel
 from apps.products.models import Product
-from apps.tenants.models import Business, Shop
+from apps.tenants.models import Business, BusinessType, Shop
 from .models import PaymentMethod, Sale, SaleItem, SaleStatus
 
 logger = logging.getLogger(__name__)
@@ -55,6 +55,14 @@ def create_sale(
     """
     if not items:
         raise BusinessLogicError("Sale must have at least one item.")
+
+    # Cashiers can only sell at their assigned shop
+    if cashier.role == "cashier" and cashier.default_shop_id:
+        if str(cashier.default_shop_id) != str(shop.id):
+            raise BusinessLogicError(
+                "You can only create sales for your assigned shop.",
+                code="SHOP_MISMATCH",
+            )
 
     # Bankak requires a configured account on the business owner
     bankak_snapshot = ""
@@ -130,6 +138,11 @@ def create_sale(
             subtotal=item_data["subtotal"],
         )
 
+        # Skip stock operations entirely for restaurant businesses.
+        # Restaurants sell menu items with no inventory concept.
+        if tenant.business_type == BusinessType.RESTAURANT:
+            continue
+
         # Deduct inventory if tracking is enabled, or a stock record already exists.
         # track_inventory=False only means "don't enforce sell limits/warnings",
         # not "ignore qty changes entirely".
@@ -164,20 +177,24 @@ def cancel_sale(sale: Sale, reason: str = "", cancelled_by=None) -> Sale:
         raise BusinessLogicError(f"Sale {sale.receipt_number} is already {sale.status}.")
 
     with transaction.atomic():
+        # Restaurants have no inventory — skip stock restoration on cancel.
+        is_restaurant = sale.tenant.business_type == BusinessType.RESTAURANT
+
         for item in sale.items.select_related("product").all():
-            has_stock_record = StockLevel.objects.filter(
-                product=item.product, shop=sale.shop
-            ).exists()
-            if item.product.track_inventory or has_stock_record:
-                add_stock(
-                    product=item.product,
-                    shop=sale.shop,
-                    quantity=item.quantity,
-                    reference=sale.receipt_number,
-                    notes=f"Cancellation of sale {sale.receipt_number}: {reason}",
-                    created_by=cancelled_by,
-                    movement_type=MovementType.RETURN,
-                )
+            if not is_restaurant:
+                has_stock_record = StockLevel.objects.filter(
+                    product=item.product, shop=sale.shop
+                ).exists()
+                if item.product.track_inventory or has_stock_record:
+                    add_stock(
+                        product=item.product,
+                        shop=sale.shop,
+                        quantity=item.quantity,
+                        reference=sale.receipt_number,
+                        notes=f"Cancellation of sale {sale.receipt_number}: {reason}",
+                        created_by=cancelled_by,
+                        movement_type=MovementType.RETURN,
+                    )
 
         sale.status = SaleStatus.CANCELLED
         sale.notes = f"{sale.notes}\n[CANCELLED] {reason}".strip()

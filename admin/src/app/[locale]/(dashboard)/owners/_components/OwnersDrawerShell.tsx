@@ -8,6 +8,7 @@ import Avatar from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import PhoneInput from '@/components/ui/PhoneInput';
 import ConfirmDialog from '@/components/ds/ConfirmDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -71,14 +72,6 @@ export default function OwnersDrawerShell({ children }: { children: React.ReactN
 
 // ── Create Owner ──────────────────────────────────────────────────────────────
 
-const COUNTRY_CODES = [
-  { code: '+249', label: 'SD +249' },
-  { code: '+971', label: 'AE +971' },
-  { code: '+966', label: 'SA +966' },
-  { code: '+20',  label: 'EG +20'  },
-  { code: '+1',   label: 'US +1'   },
-] as const;
-
 function CreateOwnerContent({
   onSuccess,
   onClose,
@@ -110,28 +103,12 @@ function CreateOwnerContent({
           <input name="full_name" type="text" placeholder="e.g. Ahmed Al-Hassan" required className={inputCls} />
         </FormField>
 
-        <FormField label="Phone number" required hint="The owner will log in using this number via OTP.">
-          <div className="flex gap-2">
-            <select
-              name="country_code"
-              defaultValue="+249"
-              className={cn(inputCls, 'w-auto px-2')}
-            >
-              {COUNTRY_CODES.map(c => (
-                <option key={c.code} value={c.code}>{c.label}</option>
-              ))}
-            </select>
-            <input
-              name="phone_local"
-              type="tel"
-              inputMode="numeric"
-              placeholder="912345678"
-              required
-              pattern="[0-9]{7,15}"
-              className={cn(inputCls, 'flex-1')}
-            />
-          </div>
-        </FormField>
+        <PhoneInput
+          label="Phone number"
+          required
+          hint="The owner will log in using this number via OTP."
+          placeholder="912345678"
+        />
 
         <FormField label="Email address" hint="Optional — used for notifications.">
           <input name="email" type="email" placeholder="owner@example.com" className={inputCls} />

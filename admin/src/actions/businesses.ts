@@ -3,6 +3,8 @@
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import type { AdminBusinessDetail } from '@/types/api';
+import { extractApiError } from '@/lib/action-error';
+import { devFetch, logFormData } from '@/lib/dev-logger';
 
 const API = () =>
   process.env.INTERNAL_API_URL ||
@@ -44,22 +46,27 @@ export async function createBusinessAction(
   _prev: CreateBusinessState,
   formData: FormData,
 ): Promise<CreateBusinessState> {
-  const owner_phone = (formData.get('owner_phone') as string)?.trim();
-  const name        = (formData.get('name') as string)?.trim();
-  const address     = (formData.get('address') as string)?.trim();
-  const phone       = (formData.get('phone') as string)?.trim();
-  const email       = (formData.get('email') as string)?.trim();
+  // Logs raw FormData keys to confirm whether Next.js strips the "1_" prefix
+  // before the action runs (it should). No-op in production.
+  logFormData(formData, 'createBusinessAction — FormData');
 
-  if (!owner_phone) return { error: 'Owner phone is required.' };
-  if (!name)        return { error: 'Business name is required.' };
+  const owner_id       = (formData.get('owner_id')       as string)?.trim();
+  const name           = (formData.get('name')           as string)?.trim();
+  const address        = (formData.get('address')        as string)?.trim();
+  const phone          = (formData.get('phone')          as string)?.trim();
+  const email          = (formData.get('email')          as string)?.trim();
+  const business_type  = (formData.get('business_type')  as string)?.trim() || 'shop';
 
-  const body: Record<string, string> = { owner_phone, name };
+  if (!owner_id) return { error: 'Owner is required.' };
+  if (!name)     return { error: 'Business name is required.' };
+
+  const body: Record<string, string> = { owner_id, name, business_type };
   if (address) body.address = address;
   if (phone)   body.phone   = phone;
   if (email)   body.email   = email.toLowerCase();
 
   try {
-    const res = await fetch(`${API()}/api/v1/admin/businesses/create/`, {
+    const res = await devFetch(`${API()}/api/v1/admin/businesses/create/`, {
       method:  'POST',
       headers: authHeaders(await authToken()),
       body:    JSON.stringify(body),
@@ -68,13 +75,7 @@ export async function createBusinessAction(
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      const msg =
-        data?.message ||
-        data?.owner_phone?.[0] ||
-        data?.name?.[0] ||
-        data?.non_field_errors?.[0] ||
-        'Failed to create business.';
-      return { error: msg };
+      return { error: extractApiError(data, res.status, 'Failed to create business.') };
     }
 
     const business_id: string = data?.data?.id ?? '';
@@ -91,7 +92,7 @@ export async function fetchBusinessDetailAction(businessId: string): Promise<Bus
   try {
     const token = await authToken();
     const url   = `${API()}/api/v1/admin/businesses/${businessId}/`;
-    const res   = await fetch(url, {
+    const res   = await devFetch(url, {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       cache: 'no-store',
     });
@@ -134,7 +135,7 @@ export async function updateBusinessAction(
   if (email   !== undefined) body.email   = email.toLowerCase();
 
   try {
-    const res = await fetch(`${API()}/api/v1/admin/businesses/${businessId}/`, {
+    const res = await devFetch(`${API()}/api/v1/admin/businesses/${businessId}/`, {
       method:  'PATCH',
       headers: authHeaders(await authToken()),
       body:    JSON.stringify(body),
@@ -158,7 +159,7 @@ export async function toggleBusinessStatusAction(
   businessId: string,
 ): Promise<ToggleBusinessStatusState> {
   try {
-    const res = await fetch(`${API()}/api/v1/admin/businesses/${businessId}/toggle-status/`, {
+    const res = await devFetch(`${API()}/api/v1/admin/businesses/${businessId}/toggle-status/`, {
       method:  'POST',
       headers: authHeaders(await authToken()),
       body:    JSON.stringify({}),

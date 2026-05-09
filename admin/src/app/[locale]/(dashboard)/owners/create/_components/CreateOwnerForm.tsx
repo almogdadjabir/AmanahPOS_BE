@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import CreateOwnerHeader from './CreateOwnerHeader';
 import OwnerFormField from './OwnerFormField';
 import { ownerInputClassName } from './createOwner.constants';
-import SudanPhoneField from '@/components/ui/SudanPhoneField';
+import PhoneInput from '@/components/ui/PhoneInput';
 
 export default function CreateOwnerForm() {
   const params = useParams();
@@ -49,15 +49,11 @@ export default function CreateOwnerForm() {
             />
           </OwnerFormField>
 
-          <SudanPhoneField
+          <PhoneInput
             label="Phone number"
             required
             hint="The owner will log in using this number via OTP."
-            phoneName="phone_local"
-            countryCodeName="country_code"
             placeholder="912345678"
-            heightClassName="h-9"
-            inputClassName="text-[13px]"
           />
 
           <OwnerFormField label="Email address" hint="Optional — used for notifications.">

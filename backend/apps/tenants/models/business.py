@@ -4,9 +4,20 @@ from django.db import models
 from django.utils.text import slugify
 
 
+class BusinessType(models.TextChoices):
+    SHOP       = "shop",       "Shop"
+    RESTAURANT = "restaurant", "Restaurant"
+
+
 class Business(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, db_index=True)
+    business_type = models.CharField(
+        max_length=20,
+        choices=BusinessType.choices,
+        default=BusinessType.SHOP,
+        db_index=True,
+    )
     slug = models.SlugField(max_length=255, unique=True, db_index=True, blank=True)
     owner = models.ForeignKey(
         "accounts.CustomUser",

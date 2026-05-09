@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "86fd01c0-7a9f-4f48-b0eb-377924dbd511",
     "name": "AmanaPOS API",
-    "description": "AmanaPOS API \u2014 Full test flow:\n\n**Public** (no token): `/api-public/v1/...`\n**Private** (token required): `/api/v1/...`\n\n### Flow\n1. Staff creates owner \u2192 `POST /api/v1/auth/register/` (staff JWT)\n2. Owner logs in \u2192 Login/OTP (public)\n3. Owner creates business \u2192 `POST /api/v1/tenants/businesses/`\n4. Owner creates staff \u2192 `POST /api/v1/users/`\n5. Staff logs in \u2192 Login/OTP (public)\n\n**Dev OTP:** `123456`  \n**Swagger:** `http://localhost:8080/api/docs/`",
+    "description": "AmanaPOS API — Full test flow:\n\n**Public** (no token): `/api-public/v1/...`\n**Private** (token required): `/api/v1/...`\n\n### Flow\n1. Staff creates owner → `POST /api/v1/auth/register/` (staff JWT)\n2. Owner logs in → Login/OTP (public)\n3. Owner creates business → `POST /api/v1/tenants/businesses/`\n4. Owner creates staff → `POST /api/v1/users/`\n5. Staff logs in → Login/OTP (public)\n\n**Dev OTP:** `123456`  \n**Swagger:** `http://localhost:8080/api/docs/`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -28,6 +28,11 @@
     },
     {
       "key": "business_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "restaurant_business_id",
       "value": "",
       "type": "string"
     },
@@ -107,7 +112,7 @@
       "name": "Public Auth",
       "item": [
         {
-          "name": "Login \u2014 Request OTP",
+          "name": "Login — Request OTP",
           "request": {
             "method": "POST",
             "header": [
@@ -149,7 +154,7 @@
           "response": []
         },
         {
-          "name": "Login \u2014 Verify OTP",
+          "name": "Login — Verify OTP",
           "request": {
             "method": "POST",
             "header": [
@@ -175,7 +180,7 @@
                 ""
               ]
             },
-            "description": "Step 2: verify OTP \u2192 receive access + refresh tokens.",
+            "description": "Step 2: verify OTP → receive access + refresh tokens.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"otp\": \"{{otp}}\"\n}",
@@ -769,7 +774,7 @@
       "description": "Platform-admin-only endpoints. Requires is_staff=True JWT token.\n\n**Login as:** `+249900000000` / `@$Sudanafoog9696`\n\nAll responses wrapped in `{success, data}`. Lists use DRF PageNumberPagination.",
       "item": [
         {
-          "name": "Stats \u2014 Platform Overview",
+          "name": "Stats — Platform Overview",
           "request": {
             "method": "GET",
             "header": [
@@ -796,7 +801,7 @@
           "response": []
         },
         {
-          "name": "Owners \u2014 List All",
+          "name": "Owners — List All",
           "request": {
             "method": "GET",
             "header": [
@@ -849,7 +854,7 @@
           "response": []
         },
         {
-          "name": "Owners \u2014 Search by name/phone",
+          "name": "Owners — Search by name/phone",
           "request": {
             "method": "GET",
             "header": [
@@ -882,7 +887,7 @@
           "response": []
         },
         {
-          "name": "Owners \u2014 Active only",
+          "name": "Owners — Active only",
           "request": {
             "method": "GET",
             "header": [
@@ -915,7 +920,7 @@
           "response": []
         },
         {
-          "name": "Businesses \u2014 List All",
+          "name": "Businesses — List All",
           "request": {
             "method": "GET",
             "header": [
@@ -963,7 +968,7 @@
           "response": []
         },
         {
-          "name": "Businesses \u2014 Search",
+          "name": "Businesses — Search",
           "request": {
             "method": "GET",
             "header": [
@@ -996,7 +1001,7 @@
           "response": []
         },
         {
-          "name": "Subscriptions \u2014 All",
+          "name": "Subscriptions — All",
           "request": {
             "method": "GET",
             "header": [
@@ -1039,7 +1044,7 @@
           "response": []
         },
         {
-          "name": "Subscriptions \u2014 Active",
+          "name": "Subscriptions — Active",
           "request": {
             "method": "GET",
             "header": [
@@ -1072,7 +1077,7 @@
           "response": []
         },
         {
-          "name": "Subscriptions \u2014 Expired",
+          "name": "Subscriptions — Expired",
           "request": {
             "method": "GET",
             "header": [
@@ -1101,6 +1106,183 @@
               ]
             },
             "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Admin — Create Business (shop)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/businesses/create/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "businesses",
+                "create",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_phone\": \"{{phone}}\",\n  \"name\": \"Al-Hassan Trading\",\n  \"address\": \"Khartoum North, Block 5\",\n  \"phone\": \"+249912345678\",\n  \"email\": \"shop@example.com\",\n  \"business_type\": \"shop\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create a shop-type business. Inventory and stock tracking are enabled. business_type defaults to 'shop' if omitted."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r = pm.response.json();",
+                  "if (r.data && r.data.id) pm.collectionVariables.set('business_id', r.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin — Create Business (restaurant)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/businesses/create/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "businesses",
+                "create",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"owner_phone\": \"{{phone}}\",\n  \"name\": \"Caf\\u00e9 Nile\",\n  \"address\": \"Downtown Khartoum\",\n  \"phone\": \"+249912345679\",\n  \"email\": \"cafe@example.com\",\n  \"business_type\": \"restaurant\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create a restaurant-type business. Inventory is disabled. Sales do not require or deduct stock. stock[] in bootstrap will be empty."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r = pm.response.json();",
+                  "if (r.data && r.data.id) pm.collectionVariables.set('restaurant_business_id', r.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin — Update Business Type (to restaurant)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/businesses/{{business_id}}/",
+              "host": [
+                "http://localhost:8080/api/v1/admin/businesses/{{business_id}}/"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"business_type\": \"restaurant\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Change an existing business to restaurant type. Valid values: shop, restaurant."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin — Get Business Detail (shows business_type)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/businesses/{{business_id}}/",
+              "host": [
+                "http://localhost:8080/api/v1/admin/businesses/{{business_id}}/"
+              ],
+              "query": []
+            },
+            "description": "Full business detail including business_type, shops, active subscription."
           },
           "response": []
         }
@@ -1423,7 +1605,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Amana Store\",\n  \"address\": \"Khartoum, Sudan\",\n  \"phone\": \"+249912345678\",\n  \"email\": \"store@example.com\"\n}",
+              "raw": "{\n  \"name\": \"Amana Store\",\n  \"address\": \"Khartoum, Sudan\",\n  \"phone\": \"+249912345678\",\n  \"email\": \"store@example.com\",\n  \"business_type\": \"shop\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2833,6 +3015,98 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Stock Levels — Restaurant (returns empty)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/inventory/stock/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "inventory",
+                "stock",
+                ""
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "For a RESTAURANT tenant, this always returns an empty paginated list: {count:0, results:[]}. Inventory is not applicable for restaurant businesses."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Stock — Restaurant (blocked)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/inventory/stock/add/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "inventory",
+                "stock",
+                "add",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product\": \"{{product_id}}\",\n  \"shop\": \"{{shop_id}}\",\n  \"quantity\": \"10\",\n  \"movement_type\": \"restock\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "For a RESTAURANT tenant, this returns a 400 error: 'Inventory management is not available for restaurant businesses.'"
+          },
+          "response": []
         }
       ]
     },
@@ -3440,6 +3714,146 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Create Sale — Shop (with stock deduction)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/sales/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "sales",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shop\": \"{{shop_id}}\",\n  \"customer\": \"{{customer_id}}\",\n  \"payment_method\": \"cash\",\n  \"items\": [\n    {\n      \"product_id\": \"{{product_id}}\",\n      \"quantity\": \"2\"\n    }\n  ],\n  \"discount_amount\": \"0\",\n  \"tax_amount\": \"0\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Sale for a SHOP business. If product.track_inventory=true, stock is validated and deducted. Returns error if insufficient stock."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "",
+                  "var d = pm.response.json();",
+                  "if (d.data && d.data.id) pm.collectionVariables.set(\"sale_id\", d.data.id);",
+                  ""
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Sale — Restaurant (no stock check)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Tenant-ID",
+                "value": "{{business_id}}",
+                "description": "Override active business (owners only). Defaults to user.business_id.",
+                "disabled": true
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/sales/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "sales",
+                ""
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shop\": \"{{shop_id}}\",\n  \"payment_method\": \"cash\",\n  \"items\": [\n    {\n      \"product_id\": \"{{product_id}}\",\n      \"quantity\": \"2\"\n    }\n  ],\n  \"discount_amount\": \"0\",\n  \"tax_amount\": \"0\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "description": "Sale for a RESTAURANT business. No StockLevel required. No stock deduction occurs. Sale always succeeds regardless of inventory state."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var r = pm.response.json();",
+                  "if (r.data && r.data.id) pm.collectionVariables.set('sale_id', r.data.id);"
+                ]
+              }
+            }
+          ]
         }
       ]
     },

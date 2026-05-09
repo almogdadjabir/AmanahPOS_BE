@@ -42,6 +42,7 @@
     "subscriptions": "Subscriptions",
     "plans":         "Plans",
     "system":        "System",
+    "activityLogs":  "Activity Log",
     "sales":         "Sales",
     "products":      "Products",
     "inventory":     "Inventory",

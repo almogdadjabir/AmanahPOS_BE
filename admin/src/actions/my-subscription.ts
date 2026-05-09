@@ -1,8 +1,9 @@
 'use server';
 
 import { apiGet, ApiError } from '@/lib/api';
+import { fetchBusiness } from '@/services/owner';
 import type {
-  Subscription, Plan, Business,
+  Subscription, Plan,
   ApiResponse, ApiList, StaffUser, Customer, Product,
 } from '@/types/api';
 
@@ -66,10 +67,10 @@ export async function fetchOwnerUsageAction(): Promise<OwnerUsageResult> {
   const [staffResult, customersResult, productsResult, businessResult] =
     await Promise.allSettled([
       apiGet<ApiResponse<StaffUser[]>>('/api/v1/users/'),
-      apiGet<ApiList<Customer>>('/api/v1/customers/',         { limit: 1, page: 1 }),
-      apiGet<ApiList<Product>>('/api/v1/products/',           { limit: 1, page: 1 }),
-      // Business contains shop_count — confirmed in services/owner.ts
-      apiGet<ApiResponse<Business[]>>('/api/v1/tenants/businesses/'),
+      apiGet<ApiList<Customer>>('/api/v1/customers/',   { limit: 1, page: 1 }),
+      apiGet<ApiList<Product>>('/api/v1/products/',     { limit: 1, page: 1 }),
+      // Use the React.cache'd fetchBusiness — deduplicates with layout's call
+      fetchBusiness(),
     ]);
 
   const current_staff =
@@ -91,6 +92,7 @@ export async function fetchOwnerUsageAction(): Promise<OwnerUsageResult> {
     businessResult.status === 'fulfilled'
       ? (businessResult.value?.data?.[0]?.shop_count ?? null)
       : null;
+
 
   return {
     ok: true,

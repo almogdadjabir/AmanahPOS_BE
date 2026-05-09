@@ -13,7 +13,7 @@ from apps.customers.models import Customer
 from apps.inventory.models import StockLevel
 from apps.products.models import Category, Product
 from apps.products.services import get_tenant_from_request
-from apps.tenants.models import Shop
+from apps.tenants.models import BusinessType, Shop
 
 from .serializers import (
     AssetManifestItemSerializer,
@@ -43,7 +43,10 @@ class BootstrapView(APIView):
         if not tenant:
             raise BusinessLogicError("No active business found.")
 
+        from django.db.models import Q
+
         ctx = {"request": request}
+        user = request.user
 
         shops = Shop.objects.filter(business=tenant, is_active=True).order_by("-is_main", "name")
 
@@ -51,17 +54,36 @@ class BootstrapView(APIView):
             tenant=tenant, is_active=True
         ).order_by("sort_order", "name")
 
-        products = Product.objects.filter(
-            tenant=tenant, is_active=True
-        ).select_related("category", "shop").order_by("name")
+        # Cashiers: only shared (shop=NULL) + their assigned shop products
+        if user.role == "cashier" and user.default_shop_id:
+            products = Product.objects.filter(
+                tenant=tenant, is_active=True,
+            ).filter(
+                Q(shop__isnull=True) | Q(shop_id=user.default_shop_id)
+            ).select_related("category", "shop").order_by("name")
+        else:
+            products = Product.objects.filter(
+                tenant=tenant, is_active=True
+            ).select_related("category", "shop").order_by("name")
 
         customers = Customer.objects.filter(
             tenant=tenant, is_active=True
         ).order_by("name")
 
-        stock = StockLevel.objects.filter(
-            product__tenant=tenant
-        ).select_related("product", "shop")
+        # Restaurants have no inventory — return empty stock array.
+        if tenant.business_type == BusinessType.RESTAURANT:
+            stock_data = []
+        elif user.role == "cashier" and user.default_shop_id:
+            # Cashiers only receive stock for their assigned shop
+            stock_qs = StockLevel.objects.filter(
+                product__tenant=tenant, shop_id=user.default_shop_id
+            ).select_related("product", "shop")
+            stock_data = BootstrapStockSerializer(stock_qs, many=True, context=ctx).data
+        else:
+            stock_qs = StockLevel.objects.filter(
+                product__tenant=tenant
+            ).select_related("product", "shop")
+            stock_data = BootstrapStockSerializer(stock_qs, many=True, context=ctx).data
 
         data = {
             "success": True,
@@ -71,7 +93,7 @@ class BootstrapView(APIView):
             "categories": BootstrapCategorySerializer(categories, many=True, context=ctx).data,
             "products": BootstrapProductSerializer(products, many=True, context=ctx).data,
             "customers": BootstrapCustomerSerializer(customers, many=True, context=ctx).data,
-            "stock": BootstrapStockSerializer(stock, many=True, context=ctx).data,
+            "stock": stock_data,
         }
 
         logger.info(

@@ -1,4 +1,4 @@
-import { fetchAdminDashboard } from '@/services/admin';
+import { fetchHealth } from '@/services/admin';
 import { Activity }            from 'lucide-react';
 
 import SystemErrorState    from './_components/SystemErrorState';
@@ -8,7 +8,7 @@ import SystemStatusHero    from './_components/SystemStatusHero';
 
 export default async function SystemPage() {
   try {
-    const { health } = await fetchAdminDashboard();
+    const health = await fetchHealth();
 
     return (
       <div>

@@ -2,6 +2,8 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+import { setRefreshToken } from '@/lib/tokens';
 
 export type LoginState    = { error: 'invalid_credentials' | 'network_error' | 'required' | 'too_many_attempts' | 'no_password' | string } | null;
 export type OtpSendState  = { error: string } | { sent: true; phone: string } | null;
@@ -23,6 +25,17 @@ async function setAuthCookie(token: string) {
     sameSite: 'lax',
     maxAge: 60 * 60 * 24 * 7,
     path: '/',
+  });
+}
+
+async function setProfileCookie(user: unknown) {
+  if (!user) return;
+  (await cookies()).set('user_profile', JSON.stringify(user), {
+    httpOnly: true,
+    secure:   process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge:   60 * 60 * 8,
+    path:     '/',
   });
 }
 
@@ -51,11 +64,15 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
       return { error: 'invalid_credentials' };
     }
 
-    const data = await res.json();
-    const token: string = data?.data?.access ?? data?.access ?? '';
+    const data         = await res.json();
+    const token: string   = data?.data?.access  ?? data?.access  ?? '';
+    const refresh: string = data?.data?.refresh ?? data?.refresh ?? '';
     if (!token) return { error: 'invalid_credentials' };
 
+    const user = data?.data?.user ?? data?.user ?? null;
     await setAuthCookie(token);
+    if (refresh) await setRefreshToken(refresh);
+    await setProfileCookie(user);
   } catch {
     return { error: 'network_error' };
   }
@@ -105,11 +122,15 @@ export async function verifyOtpAction(_prev: OtpVerifyState, formData: FormData)
 
     if (!res.ok) return { error: 'otp_invalid' };
 
-    const data = await res.json();
-    const token: string = data?.data?.access ?? data?.access ?? '';
+    const data         = await res.json();
+    const token: string   = data?.data?.access  ?? data?.access  ?? '';
+    const refresh: string = data?.data?.refresh ?? data?.refresh ?? '';
     if (!token) return { error: 'otp_invalid' };
 
+    const user = data?.data?.user ?? data?.user ?? null;
     await setAuthCookie(token);
+    if (refresh) await setRefreshToken(refresh);
+    await setProfileCookie(user);
   } catch {
     return { error: 'network_error' };
   }
@@ -120,6 +141,10 @@ export async function verifyOtpAction(_prev: OtpVerifyState, formData: FormData)
 // ── Logout ────────────────────────────────────────────────────────────────────
 
 export async function logoutAction() {
-  (await cookies()).delete('auth_token');
+  const jar = await cookies();
+  jar.delete('auth_token');
+  jar.delete('auth_refresh_token');
+  jar.delete('user_profile');
+  revalidatePath('/', 'layout');
   redirect('/ar/login');
 }

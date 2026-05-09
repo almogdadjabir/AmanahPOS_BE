@@ -1,12 +1,22 @@
 import { fetchOwnerDashboard } from '@/services/owner';
-import type { Sale, StockLevel, Subscription } from '@/types/api';
+import { formatCurrency } from '@/lib/formatters';
+import type { BusinessType, Sale, StockLevel, Subscription } from '@/types/api';
 import RevenueLineChart from './RevenueLineChart';
 import StatCard from '@/components/ds/StatCard';
 import EmptyState from '@/components/ds/EmptyState';
 import { Badge } from '@/components/ui/badge';
 import Avatar from '@/components/ui/Avatar';
 
-export default async function OwnerOverview() {
+interface Props {
+  businessType?: BusinessType;
+  selectedShop?: string;
+}
+
+export default async function OwnerOverview({ businessType, selectedShop }: Props) {
+  // Only show inventory features when we are CERTAIN the business type is 'shop'.
+  // Unknown type defaults to hiding inventory (safer than accidentally showing stock data).
+  const isRestaurant = businessType !== 'shop';
+
   const {
     todaySummary,
     monthSummary,
@@ -15,66 +25,71 @@ export default async function OwnerOverview() {
     lowStockCount,
     subscription,
     chartData,
-  } = await fetchOwnerDashboard();
+  } = await fetchOwnerDashboard(selectedShop);
 
-  const todayRevenue  = parseFloat(todaySummary?.total_revenue  ?? '0');
-  const monthRevenue  = parseFloat(monthSummary?.total_revenue  ?? '0');
-  const todaySales    = todaySummary?.total_sales ?? 0;
-  const monthSales    = monthSummary?.total_sales ?? 0;
-  const avgSale       = parseFloat(monthSummary?.avg_sale_value ?? '0');
+  const todayRevenue = parseFloat(todaySummary?.total_revenue ?? '0');
+  const monthRevenue = parseFloat(monthSummary?.total_revenue ?? '0');
+  const todaySales   = todaySummary?.total_sales ?? 0;
+  const monthSales   = monthSummary?.total_sales ?? 0;
+  const avgSale      = parseFloat(monthSummary?.avg_sale_value ?? '0');
 
   return (
     <div className="space-y-5">
 
       {/* ── Subscription status banner ────────────────────────────────────── */}
-      {subscription && (
-        <SubscriptionBanner sub={subscription} />
-      )}
+      {subscription && <SubscriptionBanner sub={subscription} />}
 
       {/* ── KPI cards ─────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className={`grid gap-4 ${isRestaurant ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2 xl:grid-cols-4'}`}>
         <StatCard
           label="Today's Revenue"
-          value={fmt(todayRevenue)}
+          value={formatCurrency(todayRevenue)}
           sub={`${todaySales} sale${todaySales !== 1 ? 's' : ''} today`}
           icon={<CashIcon />}
           accent="text-primary bg-primary-soft"
         />
         <StatCard
           label="Monthly Revenue"
-          value={fmt(monthRevenue)}
+          value={formatCurrency(monthRevenue)}
           sub={`${monthSales} sales this month`}
           icon={<TrendIcon />}
           accent="text-info bg-info-light"
         />
         <StatCard
           label="Avg. Sale Value"
-          value={fmt(avgSale)}
+          value={formatCurrency(avgSale)}
           sub="completed sales"
           icon={<AvgIcon />}
           accent="text-warning bg-warning-light"
         />
-        <StatCard
-          label="Low Stock"
-          value={String(lowStockCount)}
-          sub="products need restock"
-          icon={<AlertIcon />}
-          accent={lowStockCount > 0 ? 'text-danger bg-danger-light' : 'text-success bg-success-light'}
-        />
+        {!isRestaurant && (
+          <StatCard
+            label="Low Stock"
+            value={String(lowStockCount)}
+            sub="products need restock"
+            icon={<AlertIcon />}
+            accent={lowStockCount > 0 ? 'text-danger bg-danger-light' : 'text-success bg-success-light'}
+          />
+        )}
       </div>
 
       {/* ── Charts row ────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className={`grid grid-cols-1 gap-4 ${!isRestaurant ? 'lg:grid-cols-3' : ''}`}>
 
         {/* Revenue chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-border-soft shadow-card p-4">
+        <div className={`bg-white rounded-xl border border-border-soft shadow-card p-4 ${!isRestaurant ? 'lg:col-span-2' : ''}`}>
           <div className="flex items-start justify-between mb-4">
             <div>
               <p className="text-[13px] font-semibold text-text-primary">Daily Revenue</p>
-              <p className="text-xs text-text-hint mt-0.5">Last 30 days · SDG</p>
+              <p className="text-xs text-text-hint mt-0.5">
+                Last 30 days · SDG
+                {selectedShop && (
+                  <span className="ml-1.5 text-primary font-semibold">· filtered</span>
+                )}
+              </p>
             </div>
             <div className="text-end">
-              <p className="text-lg font-bold text-text-primary">{fmt(monthRevenue)}</p>
+              <p className="text-lg font-bold text-text-primary">{formatCurrency(monthRevenue)}</p>
               <p className="text-[11px] text-text-hint">{monthSales} transactions</p>
             </div>
           </div>
@@ -89,30 +104,32 @@ export default async function OwnerOverview() {
           }
         </div>
 
-        {/* Low stock */}
-        <div className="bg-white rounded-xl border border-border-soft shadow-card p-4 flex flex-col">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <p className="text-[13px] font-semibold text-text-primary">Low Stock</p>
-              <p className="text-xs text-text-hint mt-0.5">Needs restocking</p>
-            </div>
-            {lowStockCount > 0 && <Badge dot variant="danger">{lowStockCount}</Badge>}
-          </div>
-
-          {lowStockItems.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
-              <div className="w-10 h-10 rounded-full bg-success-light text-success flex items-center justify-center mb-3">
-                <CheckIcon />
+        {/* Low stock — shops only */}
+        {!isRestaurant && (
+          <div className="bg-white rounded-xl border border-border-soft shadow-card p-4 flex flex-col">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="text-[13px] font-semibold text-text-primary">Low Stock</p>
+                <p className="text-xs text-text-hint mt-0.5">Needs restocking</p>
               </div>
-              <p className="text-[13px] font-medium text-text-primary">All stocked up</p>
-              <p className="text-xs text-text-hint mt-1">No items below minimum level</p>
+              {lowStockCount > 0 && <Badge dot variant="danger">{lowStockCount}</Badge>}
             </div>
-          ) : (
-            <div className="flex-1 space-y-2 overflow-y-auto">
-              {lowStockItems.map(item => <LowStockRow key={item.id} item={item} />)}
-            </div>
-          )}
-        </div>
+
+            {lowStockItems.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-6 text-center">
+                <div className="w-10 h-10 rounded-full bg-success-light text-success flex items-center justify-center mb-3">
+                  <CheckIcon />
+                </div>
+                <p className="text-[13px] font-medium text-text-primary">All stocked up</p>
+                <p className="text-xs text-text-hint mt-1">No items below minimum level</p>
+              </div>
+            ) : (
+              <div className="flex-1 space-y-2 overflow-y-auto">
+                {lowStockItems.map(item => <LowStockRow key={item.id} item={item} />)}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Recent sales ──────────────────────────────────────────────────── */}
@@ -208,7 +225,7 @@ function SaleRow({ sale }: { sale: Sale }) {
         </span>
       </td>
       <td className="px-4 py-3 text-[13px] text-text-secondary">{sale.item_count}</td>
-      <td className="px-4 py-3 font-semibold text-text-primary text-[13px]">{fmt(parseFloat(sale.net_amount))}</td>
+      <td className="px-4 py-3 font-semibold text-text-primary text-[13px]">{formatCurrency(parseFloat(sale.net_amount))}</td>
       <td className="px-4 py-3 text-xs text-text-hint text-end">{time}</td>
     </tr>
   );
@@ -226,14 +243,6 @@ function LowStockRow({ item }: { item: StockLevel }) {
       </Badge>
     </div>
   );
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function fmt(v: number): string {
-  if (!v) return '0';
-  if (v >= 1_000_000) return `${(v/1_000_000).toFixed(1)}M SDG`;
-  if (v >= 1_000)     return `${(v/1_000).toFixed(1)}K SDG`;
-  return `${v.toFixed(0)} SDG`;
 }
 
 function CashIcon()    { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>; }

@@ -4,11 +4,13 @@ import { useState, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
-import type { UserProfile } from "@/types/api";
+import type { UserProfile, BusinessType } from "@/types/api";
 import { cn } from "@/lib/utils";
 import Sidebar from "./Sidebar";
 import Logo from "@/components/ui/Logo";
 import UserMenu from "./UserMenu";
+import NavProgress from "@/components/NavProgress";
+import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 
 const PAGE_TITLES: Record<string, string> = {
   "/": "dashboard",
@@ -26,11 +28,12 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 interface Props {
-  profile: UserProfile;
-  children: React.ReactNode;
+  profile:       UserProfile;
+  businessType?: BusinessType;
+  children:      React.ReactNode;
 }
 
-export default function AppShell({ profile, children }: Props) {
+export default function AppShell({ profile, businessType, children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const t = useTranslations("nav");
   const tCommon = useTranslations("common");
@@ -72,8 +75,11 @@ export default function AppShell({ profile, children }: Props) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
+      <NavProgress />
+      <KeyboardShortcuts isAdmin={isAdmin} />
       <Sidebar
         profile={profile}
+        businessType={businessType}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
@@ -132,7 +138,7 @@ export default function AppShell({ profile, children }: Props) {
         </header>
 
         {/* ── Main content ─────────────────────────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto p-5 lg:p-6">
+        <main className="flex-1 overflow-y-auto p-5 lg:p-6 [&>*]:animate-page-enter">
           {children}
         </main>
       </div>

@@ -126,7 +126,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
         ]
 
     def get_bankak_account(self, obj):
-        account = obj.bankak_accounts.filter(is_default=True, is_active=True).first()
+        if obj.role == "owner":
+            target = obj
+        else:
+            # Cashiers/managers don't have their own bankak account — return the owner's
+            business = obj.business
+            if not business:
+                return None
+            target = business.owner
+
+        account = target.bankak_accounts.filter(is_default=True, is_active=True).first()
         if not account:
             return None
         return {"id": str(account.id), "account_number": account.account_number}
@@ -247,13 +256,23 @@ class StaffUserCreateSerializer(serializers.Serializer):
 
 
 class StaffUserUpdateSerializer(serializers.ModelSerializer):
-    """Owner updates a staff member's name, role, or active status."""
+    """Owner updates a staff member's name, role, active status, or assigned shop."""
+    default_shop_id = serializers.UUIDField(required=False, allow_null=True)
 
     class Meta:
         model = CustomUser
-        fields = ["full_name", "role", "is_active"]
+        fields = ["full_name", "role", "is_active", "default_shop_id"]
 
     def validate_role(self, value):
         if value == "owner":
             raise serializers.ValidationError("Cannot assign owner role to staff.")
+        return value
+
+    def validate_default_shop_id(self, value):
+        if value is None:
+            return value
+        from apps.tenants.models import Shop
+        business = self.context.get("business")
+        if not Shop.objects.filter(pk=value, business=business, is_active=True).exists():
+            raise serializers.ValidationError("Shop not found in your business.")
         return value

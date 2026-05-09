@@ -12,6 +12,9 @@ export function StaffStatsSkeleton() {
 }
 
 export default async function StaffStats() {
+  // fetchStaffAction always fetches all users from the API then filters client-side.
+  // A single call with limit: 500 is correct — the 4-parallel-calls variant was a regression
+  // that made 4 full API requests instead of 1.
   const result   = await fetchStaffAction({ limit: 500 });
   const items    = result.ok ? result.data : [];
   const total    = result.ok ? result.count : 0;

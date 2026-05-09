@@ -1,10 +1,14 @@
+import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { TableSkeleton } from '@/components/ds/Skeleton';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SectionError } from '@/components/SectionError';
 import InventoryDrawerShell from './_components/InventoryDrawerShell';
 import InventoryPageHeader from './_components/InventoryPageHeader';
 import InventoryStats, { InventoryStatsSkeleton } from './_components/InventoryStats';
 import InventoryFilters from './_components/InventoryFilters';
 import InventoryTable from './_components/InventoryTable';
+import { fetchBusiness } from '@/services/owner';
 
 interface Props {
   searchParams: Promise<{
@@ -15,6 +19,8 @@ interface Props {
 }
 
 export default async function InventoryPage({ searchParams }: Props) {
+  const bizRes = await fetchBusiness();
+  if (bizRes?.data?.[0]?.business_type !== 'shop') notFound();
   const params  = await searchParams;
   const page    = Math.max(1, Number(params.page) || 1);
   const tableKey = JSON.stringify({ search: params.search, status: params.status, page });
@@ -23,21 +29,27 @@ export default async function InventoryPage({ searchParams }: Props) {
     <InventoryDrawerShell>
       <InventoryPageHeader />
 
-      <Suspense fallback={<InventoryStatsSkeleton />}>
-        <InventoryStats />
-      </Suspense>
+      <ErrorBoundary fallback={<SectionError message="Failed to load inventory stats" />}>
+        <Suspense fallback={<InventoryStatsSkeleton />}>
+          <InventoryStats />
+        </Suspense>
+      </ErrorBoundary>
 
-      <Suspense fallback={<div className="h-[52px] rounded-xl bg-muted animate-pulse mb-5" />}>
-        <InventoryFilters />
-      </Suspense>
+      <ErrorBoundary fallback={<SectionError message="Failed to load filters" />}>
+        <Suspense fallback={<div className="h-[52px] rounded-xl bg-muted animate-pulse mb-5" />}>
+          <InventoryFilters />
+        </Suspense>
+      </ErrorBoundary>
 
-      <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={6} />}>
-        <InventoryTable
-          search={params.search}
-          status={params.status}
-          page={page}
-        />
-      </Suspense>
+      <ErrorBoundary fallback={<SectionError message="Failed to load inventory" />}>
+        <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={6} />}>
+          <InventoryTable
+            search={params.search}
+            status={params.status}
+            page={page}
+          />
+        </Suspense>
+      </ErrorBoundary>
     </InventoryDrawerShell>
   );
 }

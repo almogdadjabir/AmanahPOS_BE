@@ -52,11 +52,20 @@ class HasBusiness(BasePermission):
     message = "You need to create a business first."
 
     def has_permission(self, request, view):
-        return bool(
-            request.user
-            and request.user.is_authenticated
-            and request.user.business_id is not None
-        )
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if request.user.business_id is not None:
+            return True
+        # business_id denormalised field may be null for owners whose business
+        # was created before the FK sync was in place — auto-heal it.
+        if request.user.role == "owner":
+            from apps.tenants.models import Business
+            biz = Business.objects.filter(owner=request.user, is_active=True).first()
+            if biz:
+                request.user.business = biz
+                request.user.save(update_fields=["business", "updated_at"])
+                return True
+        return False
 
 
 class IsTenantMember(BasePermission):

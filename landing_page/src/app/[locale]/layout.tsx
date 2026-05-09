@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
-import { nunitoSans, tajawal } from '@/lib/fonts';
+import { reemKufi, tajawal, geist, jetbrainsMono } from '@/lib/fonts';
 import '@/styles/globals.css';
 
 type Props = {
@@ -12,9 +12,9 @@ type Props = {
 };
 
 export const metadata: Metadata = {
-  title: 'أمانة POS | نقطة البيع للسودان',
+  title: 'أمانة · AmanaPOS',
   description:
-    'نقطة بيع مصممة للتجار السودانيين — تسجيل مبيعات، مخزون، موظفون وتقارير على هاتفك.',
+    'نظام نقاط بيع متكامل للمطاعم والمحلات في السودان. يقبل بنكك والكاش، يحسب القيمة المضافة، ويعمل حتى بدون إنترنت.',
   icons: {
     icon: '/favicon.svg',
     apple: '/favicon.svg',
@@ -36,7 +36,11 @@ export default async function LocaleLayout({ children, params }: Props) {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={dir} className={`${nunitoSans.variable} ${tajawal.variable}`}>
+    <html
+      lang={locale}
+      dir={dir}
+      className={`${reemKufi.variable} ${tajawal.variable} ${geist.variable} ${jetbrainsMono.variable}`}
+    >
       <body>
         <NextIntlClientProvider messages={messages}>
           {children}

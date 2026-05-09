@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
 import { TableSkeleton } from '@/components/ds/Skeleton';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SectionError } from '@/components/SectionError';
 
 import BusinessesDrawerShell from './_components/BusinessesDrawerShell';
 import BusinessesPageHeader from './_components/BusinessesPageHeader';
@@ -31,18 +33,22 @@ export default async function BusinessesPage({ searchParams }: Props) {
       <div>
         <BusinessesPageHeader />
 
-        <Suspense fallback={<div className="h-14 rounded-xl bg-muted animate-pulse mb-5" />}>
-          <BusinessesControls />
-        </Suspense>
+        <ErrorBoundary fallback={<SectionError message="Failed to load filters" />}>
+          <Suspense fallback={<div className="h-14 rounded-xl bg-muted animate-pulse mb-5" />}>
+            <BusinessesControls />
+          </Suspense>
+        </ErrorBoundary>
 
-        <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={7} />}>
-          <BusinessesTable
-            search={params.search}
-            status={params.status}
-            sub={params.sub}
-            page={page}
-          />
-        </Suspense>
+        <ErrorBoundary fallback={<SectionError message="Failed to load businesses" />}>
+          <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={7} />}>
+            <BusinessesTable
+              search={params.search}
+              status={params.status}
+              sub={params.sub}
+              page={page}
+            />
+          </Suspense>
+        </ErrorBoundary>
       </div>
     </BusinessesDrawerShell>
   );

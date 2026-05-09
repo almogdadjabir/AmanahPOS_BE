@@ -12,13 +12,15 @@ export function InventoryStatsSkeleton() {
 }
 
 export default async function InventoryStats() {
-  const result = await fetchStockLevelsAction({ limit: 500 });
-  const items  = result.ok ? result.data : [];
-
-  const total    = result.ok ? result.count : 0;
-  const outCount = items.filter(i => i.is_out_of_stock).length;
-  const lowCount = items.filter(i => i.is_low_stock && !i.is_out_of_stock).length;
-  const okCount  = items.filter(i => !i.is_low_stock && !i.is_out_of_stock).length;
+  const [totalRes, outRes, lowRes] = await Promise.all([
+    fetchStockLevelsAction({ limit: 1 }),
+    fetchStockLevelsAction({ limit: 1, status: 'out_of_stock' }),
+    fetchStockLevelsAction({ limit: 1, status: 'low_stock' }),
+  ]);
+  const total    = totalRes.ok ? totalRes.count : 0;
+  const outCount = outRes.ok   ? outRes.count   : 0;
+  const lowCount = lowRes.ok   ? Math.max(0, lowRes.count - outCount) : 0;
+  const okCount  = Math.max(0, total - outCount - lowCount);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

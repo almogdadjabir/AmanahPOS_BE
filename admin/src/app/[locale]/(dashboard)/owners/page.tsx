@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import { TableSkeleton } from "@/components/ds/Skeleton";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { SectionError } from "@/components/SectionError";
 
 import OwnersTable from "./_components/OwnersTable";
 import OwnersControls from "./_components/OwnersControls";
@@ -31,22 +33,22 @@ export default async function OwnersPage({ searchParams }: Props) {
       <div>
         <OwnersPageHeader />
 
-        <Suspense
-          fallback={
-            <div className="h-14 rounded-xl bg-muted animate-pulse mb-5" />
-          }
-        >
-          <OwnersControls />
-        </Suspense>
+        <ErrorBoundary fallback={<SectionError message="Failed to load filters" />}>
+          <Suspense fallback={<div className="h-14 rounded-xl bg-muted animate-pulse mb-5" />}>
+            <OwnersControls />
+          </Suspense>
+        </ErrorBoundary>
 
-        <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={7} />}>
-          <OwnersTable
-            search={params.search}
-            status={params.status}
-            sub={params.sub}
-            page={page}
-          />
-        </Suspense>
+        <ErrorBoundary fallback={<SectionError message="Failed to load owners" />}>
+          <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={7} />}>
+            <OwnersTable
+              search={params.search}
+              status={params.status}
+              sub={params.sub}
+              page={page}
+            />
+          </Suspense>
+        </ErrorBoundary>
       </div>
     </OwnersDrawerShell>
   );

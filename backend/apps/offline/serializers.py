@@ -16,7 +16,7 @@ from apps.tenants.models import Business, Shop
 class BootstrapBusinessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
-        fields = ["id", "name", "slug", "address", "phone", "email", "is_active", "updated_at"]
+        fields = ["id", "name", "slug", "business_type", "address", "phone", "email", "is_active", "updated_at"]
 
 
 # ── Shops ─────────────────────────────────────────────────────────────────────

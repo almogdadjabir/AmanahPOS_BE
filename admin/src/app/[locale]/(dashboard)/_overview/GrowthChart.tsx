@@ -1,9 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import type { MonthlyGrowth } from '@/types/api';
-import { BarChart, LineChart } from '@/components/charts';
+import { ChartSkeleton } from '@/components/ds/Skeleton';
 import { BarChart2, TrendingUp } from 'lucide-react';
+
+const BarChart  = dynamic(() => import('@/components/charts/BarChart'),  { ssr: false, loading: () => <ChartSkeleton /> });
+const LineChart = dynamic(() => import('@/components/charts/LineChart'), { ssr: false, loading: () => <ChartSkeleton /> });
 import { cn } from '@/lib/utils';
 
 type ChartType = 'bar' | 'line';

@@ -6,11 +6,11 @@ import { Link } from '@/i18n/navigation';
 import Logo from '@/components/ui/Logo';
 import { logoutAction } from '@/actions/auth';
 import { cn } from '@/lib/utils';
-import type { UserProfile } from '@/types/api';
+import type { UserProfile, BusinessType } from '@/types/api';
 import {
   LayoutGrid, Users, Store, CreditCard, Server,
   Receipt, Package, BarChart2, UserCheck, CreditCard as SubIcon,
-  LogOut,
+  LogOut, History,
 } from 'lucide-react';
 
 const ADMIN_NAV = [
@@ -19,7 +19,8 @@ const ADMIN_NAV = [
   { key: 'businesses',    href: '/businesses',    Icon: Store },
   { key: 'subscriptions', href: '/subscriptions', Icon: CreditCard },
   { key: 'plans',         href: '/plans',         Icon: Package },
-  { key: 'system',        href: '/system',        Icon: Server },
+  { key: 'activityLogs', href: '/activity-logs', Icon: History },
+  { key: 'system',       href: '/system',        Icon: Server },
 ] as const;
 
 const OWNER_NAV = [
@@ -32,13 +33,16 @@ const OWNER_NAV = [
   { key: 'subscription', href: '/subscription', Icon: SubIcon },
 ] as const;
 
-interface Props { profile: UserProfile; isOpen: boolean; onClose: () => void }
+interface Props { profile: UserProfile; businessType?: BusinessType; isOpen: boolean; onClose: () => void }
 
-export default function Sidebar({ profile, isOpen, onClose }: Props) {
+export default function Sidebar({ profile, businessType, isOpen, onClose }: Props) {
   const tNav    = useTranslations('nav');
   const pathname = usePathname();
   const isAdmin  = profile.is_staff === true;
-  const navItems = isAdmin ? ADMIN_NAV : OWNER_NAV;
+  const ownerNav = businessType !== 'shop'
+    ? OWNER_NAV.filter(item => item.key !== 'inventory')
+    : OWNER_NAV;
+  const navItems = isAdmin ? ADMIN_NAV : ownerNav;
 
   function isActive(href: string) {
     return href === '/' ? pathname === '/' : pathname.startsWith(href);

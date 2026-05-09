@@ -1,4 +1,4 @@
-from .business import Business
+from .business import Business, BusinessType
 from .shop import Shop
 
-__all__ = ["Business", "Shop"]
+__all__ = ["Business", "BusinessType", "Shop"]

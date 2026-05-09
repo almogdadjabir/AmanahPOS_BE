@@ -36,7 +36,6 @@ export default async function SubscriptionsTable({ search, status, page = 1 }: P
   } catch (err) {
     const httpStatus = err instanceof ApiError ? err.status : null;
     const body       = err instanceof ApiError ? JSON.stringify(err.body) : String(err);
-    console.error('[SubscriptionsTable] fetch failed', { httpStatus, body });
     return (
       <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-10 text-center">
         <p className="text-sm font-semibold text-destructive">Failed to load subscriptions</p>

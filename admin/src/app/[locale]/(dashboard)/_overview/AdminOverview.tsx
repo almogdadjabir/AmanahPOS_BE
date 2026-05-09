@@ -58,7 +58,7 @@ export default async function AdminOverview() {
           <AdminKpiCards stats={stats} />
 
           {/* ── Main content row: chart + recent owners ────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
             <div className="lg:col-span-2">
               <AdminOwnerGrowthCard stats={stats} />
             </div>

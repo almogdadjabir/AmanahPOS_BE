@@ -201,6 +201,8 @@ class ProductListCreateView(TenantMixin, APIView):
 
     @_schema.product_list
     def get(self, request):
+        from django.db.models import Q
+
         tenant = self.get_tenant()
         qs = Product.objects.filter(tenant=tenant, is_active=True).select_related("category", "shop")
 
@@ -209,8 +211,18 @@ class ProductListCreateView(TenantMixin, APIView):
             qs = qs.filter(category_id=category_id)
 
         shop_id = request.query_params.get("shop")
-        if shop_id:
-            qs = qs.filter(shop_id=shop_id)
+        user = request.user
+
+        if user.role == "cashier":
+            # Cashiers always see shared (shop=NULL) + their assigned shop only
+            if user.default_shop_id:
+                qs = qs.filter(Q(shop__isnull=True) | Q(shop_id=user.default_shop_id))
+            else:
+                qs = qs.filter(shop__isnull=True)
+        elif shop_id:
+            # Owner/manager filtered by specific shop: include shared products too
+            qs = qs.filter(Q(shop__isnull=True) | Q(shop_id=shop_id))
+        # Owner/manager with no shop filter: see everything
 
         search = request.query_params.get("search")
         if search:

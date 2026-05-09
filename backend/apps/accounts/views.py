@@ -216,7 +216,12 @@ class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = UserProfileSerializer(request.user)
+        user = (
+            CustomUser.objects
+            .select_related("business__owner")
+            .get(pk=request.user.pk)
+        )
+        serializer = UserProfileSerializer(user)
         return Response({"success": True, "data": serializer.data})
 
     def patch(self, request):
@@ -333,7 +338,10 @@ class UserDetailView(APIView):
 
     def patch(self, request, pk):
         user = self._get_staff(request, pk)
-        serializer = StaffUserUpdateSerializer(user, data=request.data, partial=True)
+        serializer = StaffUserUpdateSerializer(
+            user, data=request.data, partial=True,
+            context={"business": request.user.business},
+        )
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({
