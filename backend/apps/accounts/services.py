@@ -112,6 +112,17 @@ def send_otp(phone: str) -> str:
     """
     from django.conf import settings
     phone = format_phone(phone)
+
+    # Single test-account bypass — active only when TEST_PHONE is set in env.
+    # Remove TEST_PHONE from .env.prod to disable permanently.
+    test_phone = getattr(settings, "TEST_PHONE", "")
+    if test_phone and phone == test_phone:
+        otp = getattr(settings, "TEST_OTP", "222222")
+        store_otp_in_redis(phone, otp)
+        set_otp_cooldown(phone)
+        logger.info("[TEST ACCOUNT] Skipped SMS for test phone")
+        return otp
+
     otp = generate_otp(length=getattr(settings, "OTP_LENGTH", 6))
     store_otp_in_redis(phone, otp)
     set_otp_cooldown(phone)

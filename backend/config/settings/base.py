@@ -325,6 +325,9 @@ MAX_IMAGE_UPLOAD_MB = env.int("MAX_IMAGE_UPLOAD_MB", default=10)
 OTP_LENGTH = env("OTP_LENGTH")
 OTP_EXPIRY_SECONDS = env("OTP_EXPIRY_SECONDS")
 OTP_REDIS_PREFIX = "otp"
+# Single test-account bypass — unset TEST_PHONE to disable
+TEST_PHONE = env("TEST_PHONE", default="")
+TEST_OTP   = env("TEST_OTP",   default="222222")
 
 # ─── SMS Settings ─────────────────────────────────────────────────────────────
 SMS_PROVIDER = env("SMS_PROVIDER", default="stub")
