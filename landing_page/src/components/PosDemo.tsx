@@ -6,12 +6,12 @@ import { useLocale } from 'next-intl';
 type CartItem = { nameAr: string; nameEn: string; price: number; qty: number };
 
 const PRODUCTS = [
-  { color: 'hibiscus', nameAr: 'كركديه',    nameEn: 'Hibiscus',     price: 800  },
+  { color: 'hibiscus', nameAr: 'كركديه',    nameEn: 'Hibiscus',      price: 800  },
   { color: 'coffee',   nameAr: 'قهوة جبنة',  nameEn: 'Jebena Coffee', price: 1200 },
-  { color: 'tea',      nameAr: 'شاي بالحليب', nameEn: 'Milk Tea',     price: 600  },
-  { color: 'bean',     nameAr: 'فول مدمس',   nameEn: 'Ful Medames',  price: 2500 },
-  { color: 'bread',    nameAr: 'قرّاصة',     nameEn: 'Gurassa',      price: 500  },
-  { color: 'dolma',    nameAr: 'ملوخية',     nameEn: 'Mulukhiyah',   price: 2000 },
+  { color: 'tea',      nameAr: 'شاي بالحليب', nameEn: 'Milk Tea',      price: 600  },
+  { color: 'bean',     nameAr: 'فول مدمس',   nameEn: 'Ful Medames',   price: 2500 },
+  { color: 'bread',    nameAr: 'قرّاصة',     nameEn: 'Gurassa',       price: 500  },
+  { color: 'dolma',    nameAr: 'ملوخية',     nameEn: 'Mulukhiyah',    price: 2000 },
 ];
 
 const AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
@@ -22,8 +22,6 @@ function fmtPrice(n: number, isAr: boolean) {
   const s = n.toLocaleString('en-US');
   return isAr ? `${toAr(s)} ج.س` : `${s} SDG`;
 }
-
-function sleep(ms: number) { return new Promise<void>(r => setTimeout(r, ms)); }
 
 function pickSequence(len: number) {
   const n = 3 + Math.floor(Math.random() * 2);
@@ -45,14 +43,20 @@ export default function PosDemo() {
   const [showReceipt, setShowReceipt] = useState(false);
   const [checkoutFlash, setCheckoutFlash] = useState(false);
   const [clock, setClock] = useState('');
-  const [bumpCount, setBumpCount] = useState(0);
 
   const abortRef = useRef(false);
+  // Paused when tab is hidden or stage is scrolled off-screen
+  const pausedRef = useRef(false);
+  const stageRef = useRef<HTMLDivElement>(null);
 
-  const getCartTotal = (items: CartItem[]) =>
-    items.reduce((s, i) => s + i.price * i.qty, 0);
-  const getCartCount = (items: CartItem[]) =>
-    items.reduce((s, i) => s + i.qty, 0);
+  // Never run the animation loop for users who prefer reduced motion
+  const reducedMotion = useRef(
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+
+  const getCartTotal = (items: CartItem[]) => items.reduce((s, i) => s + i.price * i.qty, 0);
+  const getCartCount = (items: CartItem[]) => items.reduce((s, i) => s + i.qty, 0);
 
   const tickClock = useCallback(() => {
     const now = new Date();
@@ -63,24 +67,53 @@ export default function PosDemo() {
 
   useEffect(() => {
     tickClock();
-    const id = setInterval(tickClock, 10000);
+    const id = setInterval(tickClock, 10_000);
     return () => clearInterval(id);
   }, [tickClock]);
 
+  // Pause loop when user switches tabs — zero CPU wasted in background
+  useEffect(() => {
+    const onVisibility = () => { pausedRef.current = document.hidden; };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
+  // Pause loop when the stage is scrolled out of view
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { pausedRef.current = !entry.isIntersecting; },
+      { threshold: 0.1 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   const tapProduct = useCallback((idx: number) => {
     setTappedIdx(idx);
-    setTimeout(() => setTappedIdx(null), 600);
+    // Guard: don't update state if component unmounted before the timeout fires
+    setTimeout(() => { if (!abortRef.current) setTappedIdx(null); }, 600);
     setCart(prev => {
       const nameAr = PRODUCTS[idx].nameAr;
       const found = prev.find(i => i.nameAr === nameAr);
       if (found) return prev.map(i => i.nameAr === nameAr ? { ...i, qty: i.qty + 1 } : i);
       return [...prev, { nameAr, nameEn: PRODUCTS[idx].nameEn, price: PRODUCTS[idx].price, qty: 1 }];
     });
-    setBumpCount(c => c + 1);
   }, []);
 
   useEffect(() => {
+    if (reducedMotion.current) return;
+
     abortRef.current = false;
+
+    // sleep that also holds when the tab is hidden or stage is off-screen
+    async function sleep(ms: number) {
+      await new Promise<void>(r => setTimeout(r, ms));
+      while (pausedRef.current && !abortRef.current) {
+        await new Promise<void>(r => setTimeout(r, 200));
+      }
+    }
 
     async function loop() {
       while (!abortRef.current) {
@@ -102,6 +135,7 @@ export default function PosDemo() {
         setTimeout(() => setCheckoutFlash(false), 200);
         await sleep(450);
         if (abortRef.current) break;
+
         setShowReceipt(true);
         await sleep(3200);
       }
@@ -128,11 +162,11 @@ export default function PosDemo() {
   const basketLabel = isAr ? 'السلة' : 'Basket';
   const checkoutLabel = isAr ? 'ادفع' : 'Checkout';
   const countText = isAr
-    ? `${toAr(count)} ${count === 1 ? 'صنف' : 'صنف'}`
+    ? `${toAr(count)} صنف`
     : `${count} item${count === 1 ? '' : 's'}`;
 
   return (
-    <div className="pos-stage" aria-label="Live POS demo">
+    <div className="pos-stage" ref={stageRef} aria-label="Live POS demo">
       <span className="corner tl" />
       <span className="corner tr" />
       <span className="corner bl" />
@@ -183,12 +217,15 @@ export default function PosDemo() {
         <div className="pos-cart">
           <div>
             <div className="label">{basketLabel}</div>
-            <div className={`count${bumpCount > 0 && count > 0 ? ' bump' : ''}`}>{countText}</div>
+            <div className={`count${count > 0 ? ' bump' : ''}`}>{countText}</div>
           </div>
           <div className="total">{total ? fmtPrice(total, isAr) : (isAr ? '٠ ج.س' : '0 SDG')}</div>
           <span
             className="checkout-btn"
-            style={checkoutFlash ? { transform: 'scale(0.94)', transition: 'transform .15s' } : { transition: 'transform .15s' }}
+            style={checkoutFlash
+              ? { transform: 'scale(0.94)', transition: 'transform .15s' }
+              : { transition: 'transform .15s' }
+            }
           >
             {checkoutLabel}
           </span>
