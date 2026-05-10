@@ -2,39 +2,41 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import type { ActivityAction, ActivityEntityType } from '@/types/api';
 
-const ACTIONS: { value: ActivityAction | ''; label: string }[] = [
-  { value: '', label: 'All actions' },
-  { value: 'owner_created',    label: 'Owner created' },
-  { value: 'owner_updated',    label: 'Owner updated' },
-  { value: 'owner_activated',   label: 'Owner activated' },
-  { value: 'owner_deactivated', label: 'Owner deactivated' },
-  { value: 'business_created',     label: 'Business created' },
-  { value: 'business_updated',     label: 'Business updated' },
-  { value: 'business_activated',   label: 'Business activated' },
-  { value: 'business_deactivated', label: 'Business deactivated' },
-  { value: 'subscription_created',     label: 'Subscription created' },
-  { value: 'subscription_updated',     label: 'Subscription updated' },
-  { value: 'subscription_deactivated', label: 'Subscription deactivated' },
-  { value: 'plan_created',    label: 'Plan created' },
-  { value: 'plan_updated',    label: 'Plan updated' },
-  { value: 'plan_activated',   label: 'Plan activated' },
-  { value: 'plan_deactivated', label: 'Plan deactivated' },
-];
-
-const ENTITY_TYPES: { value: ActivityEntityType | ''; label: string }[] = [
-  { value: '', label: 'All entities' },
-  { value: 'owner',        label: 'Owners' },
-  { value: 'business',     label: 'Businesses' },
-  { value: 'subscription', label: 'Subscriptions' },
-  { value: 'plan',         label: 'Plans' },
-];
-
 export default function ActivityFilters() {
+  const t = useTranslations('activityLog');
   const router      = useRouter();
   const pathname    = usePathname();
   const searchParams = useSearchParams();
+
+  const ACTIONS: { value: ActivityAction | ''; label: string }[] = [
+    { value: '', label: t('actions.all') },
+    { value: 'owner_created',          label: t('actions.owner_created') },
+    { value: 'owner_updated',          label: t('actions.owner_updated') },
+    { value: 'owner_activated',        label: t('actions.owner_activated') },
+    { value: 'owner_deactivated',      label: t('actions.owner_deactivated') },
+    { value: 'business_created',       label: t('actions.business_created') },
+    { value: 'business_updated',       label: t('actions.business_updated') },
+    { value: 'business_activated',     label: t('actions.business_activated') },
+    { value: 'business_deactivated',   label: t('actions.business_deactivated') },
+    { value: 'subscription_created',   label: t('actions.subscription_created') },
+    { value: 'subscription_updated',   label: t('actions.subscription_updated') },
+    { value: 'subscription_deactivated', label: t('actions.subscription_deactivated') },
+    { value: 'plan_created',           label: t('actions.plan_created') },
+    { value: 'plan_updated',           label: t('actions.plan_updated') },
+    { value: 'plan_activated',         label: t('actions.plan_activated') },
+    { value: 'plan_deactivated',       label: t('actions.plan_deactivated') },
+  ];
+
+  const ENTITY_TYPES: { value: ActivityEntityType | ''; label: string }[] = [
+    { value: '',             label: t('entities.all') },
+    { value: 'owner',        label: t('entities.owner') },
+    { value: 'business',     label: t('entities.business') },
+    { value: 'subscription', label: t('entities.subscription') },
+    { value: 'plan',         label: t('entities.plan') },
+  ];
 
   const update = useCallback((key: string, value: string) => {
     const p = new URLSearchParams(searchParams.toString());
@@ -53,7 +55,7 @@ export default function ActivityFilters() {
     <div className="flex flex-wrap gap-2 mb-5">
       <input
         type="search"
-        placeholder="Search by entity or actor..."
+        placeholder={t('searchPlaceholder')}
         defaultValue={search}
         onChange={(e) => update('search', e.target.value)}
         className="h-9 flex-1 min-w-[180px] max-w-xs rounded-lg border border-input bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50"

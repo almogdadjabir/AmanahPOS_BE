@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 type SystemHealth = {
   status?: string;
@@ -8,6 +9,7 @@ type SystemHealth = {
 } | null;
 
 export default function SystemHealthPayload({ health }: { health: SystemHealth }) {
+  const t = useTranslations('system');
   const [copied, setCopied] = useState(false);
   if (!health) return null;
 
@@ -25,8 +27,8 @@ export default function SystemHealthPayload({ health }: { health: SystemHealth }
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border-soft px-5 py-4">
         <div>
-          <p className="text-[13px] font-bold text-text-primary">Diagnostics Payload</p>
-          <p className="text-[11px] text-text-hint mt-0.5">Raw backend health response for debugging</p>
+          <p className="text-[13px] font-bold text-text-primary">{t('diagnostics')}</p>
+          <p className="text-[11px] text-text-hint mt-0.5">{t('diagnosticsSub')}</p>
         </div>
         <span className={`text-[10px] font-black tracking-[.14em] uppercase px-2.5 py-1 rounded-full ${
           sysOk ? 'bg-success/10 text-success' : 'bg-danger/10 text-danger'
@@ -52,7 +54,7 @@ export default function SystemHealthPayload({ health }: { health: SystemHealth }
             className="text-[10px] font-semibold text-white/35 hover:text-white/65 transition-colors
                        px-2.5 py-1 rounded border border-white/[0.09] hover:border-white/20"
           >
-            {copied ? '✓ Copied' : 'Copy'}
+            {copied ? t('copied') : t('copy')}
           </button>
         </div>
 

@@ -1,13 +1,15 @@
 import Avatar from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getTranslations } from 'next-intl/server';
 import { Users, Clock } from 'lucide-react';
 import type { AdminOwner } from '@/types/api';
 import type { AdminStats } from './types';
 
 type Props = { stats: AdminStats };
 
-export default function AdminRecentOwners({ stats }: Props) {
+export default async function AdminRecentOwners({ stats }: Props) {
+  const t = await getTranslations('dashboard');
   return (
     <div className="bg-card rounded-xl border border-border shadow-card flex flex-col h-full">
       {/* Header */}
@@ -17,14 +19,14 @@ export default function AdminRecentOwners({ stats }: Props) {
             <Clock />
           </span>
           <div>
-            <p className="text-sm font-bold text-foreground leading-tight">Recent Owners</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Latest registrations</p>
+            <p className="text-sm font-bold text-foreground leading-tight">{t('recentOwners.title')}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{t('recentOwners.sub')}</p>
           </div>
         </div>
 
         {stats && stats.total_owners > 0 && (
           <span className="text-[11px] font-bold text-muted-foreground tabular-nums">
-            {stats.total_owners.toLocaleString('en-US')} total
+            {stats.total_owners.toLocaleString('en-US')} {t('recentOwners.total')}
           </span>
         )}
       </div>
@@ -47,9 +49,16 @@ export default function AdminRecentOwners({ stats }: Props) {
   );
 }
 
-function OwnerRow({ owner }: { owner: AdminOwner }) {
-  const status    = getOwnerStatus(owner);
+async function OwnerRow({ owner }: { owner: AdminOwner }) {
+  const t  = await getTranslations('dashboard');
+  const tc = await getTranslations('common');
   const ownerName = owner.full_name || owner.phone;
+  const variant = getOwnerStatusVariant(owner);
+  const label = owner.has_active_subscription
+    ? tc('active')
+    : owner.is_active
+    ? t('recentOwners.statusNoSub')
+    : tc('inactive');
 
   return (
     <div className="flex items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-muted/60 transition-colors cursor-default">
@@ -58,21 +67,21 @@ function OwnerRow({ owner }: { owner: AdminOwner }) {
       <div className="flex-1 min-w-0">
         <p className="text-[12.5px] font-semibold text-foreground truncate leading-tight">{ownerName}</p>
         <p className="text-[11px] text-muted-foreground mt-0.5">
-          {owner.business_count} {owner.business_count === 1 ? 'business' : 'businesses'}
+          {owner.business_count} {owner.business_count === 1 ? t('recentOwners.business') : t('recentOwners.businesses')}
         </p>
       </div>
 
-      <Badge dot variant={status.variant} className="shrink-0 text-[10px]">
-        {status.label}
+      <Badge dot variant={variant} className="shrink-0 text-[10px]">
+        {label}
       </Badge>
     </div>
   );
 }
 
-function getOwnerStatus(owner: AdminOwner): { label: string; variant: 'success' | 'warning' | 'danger' } {
-  if (owner.has_active_subscription) return { label: 'Active',   variant: 'success' };
-  if (owner.is_active)               return { label: 'No sub',   variant: 'warning' };
-  return                                    { label: 'Inactive', variant: 'danger'  };
+function getOwnerStatusVariant(owner: AdminOwner): 'success' | 'warning' | 'danger' {
+  if (owner.has_active_subscription) return 'success';
+  if (owner.is_active)               return 'warning';
+  return 'danger';
 }
 
 function RecentOwnersSkeleton() {
@@ -85,14 +94,15 @@ function RecentOwnersSkeleton() {
   );
 }
 
-function RecentOwnersEmpty() {
+async function RecentOwnersEmpty() {
+  const t = await getTranslations('dashboard');
   return (
     <div className="flex flex-col items-center justify-center py-10 text-center">
       <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-3">
         <Users className="size-4 text-muted-foreground" />
       </div>
-      <p className="text-[13px] font-semibold text-foreground">No owners yet</p>
-      <p className="text-xs text-muted-foreground mt-1">Register the first owner to get started.</p>
+      <p className="text-[13px] font-semibold text-foreground">{t('recentOwners.empty.title')}</p>
+      <p className="text-xs text-muted-foreground mt-1">{t('recentOwners.empty.desc')}</p>
     </div>
   );
 }

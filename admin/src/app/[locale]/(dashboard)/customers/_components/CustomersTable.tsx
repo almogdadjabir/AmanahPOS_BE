@@ -1,4 +1,5 @@
 import { Users } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import EmptyState from '@/components/ds/EmptyState';
 import Pagination from '@/components/ds/Pagination';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default async function CustomersTable({ search, status, page = 1 }: Props) {
+  const t = await getTranslations('customers');
   let result;
   try {
     result = await fetchCustomersAction({
@@ -25,7 +27,7 @@ export default async function CustomersTable({ search, status, page = 1 }: Props
       limit: 25,
     });
   } catch {
-    return <TableError message="Check your API connection and try again." />;
+    return <TableError message={t('error.failedToLoad')} />;
   }
 
   if (!result.ok) return <TableError message={result.error} />;
@@ -37,12 +39,8 @@ export default async function CustomersTable({ search, status, page = 1 }: Props
       <div className="rounded-xl border border-border bg-card shadow-card">
         <EmptyState
           icon={<Users />}
-          title={search ? 'No customers match your search' : 'No customers yet'}
-          description={
-            search
-              ? 'Try different keywords or clear the filters.'
-              : 'Add your first customer to start tracking purchases and loyalty points.'
-          }
+          title={search ? t('empty.titleSearch') : t('empty.title')}
+          description={search ? t('empty.descSearch') : t('empty.desc')}
         />
       </div>
     );
@@ -62,12 +60,12 @@ export default async function CustomersTable({ search, status, page = 1 }: Props
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent border-b border-border/60">
-            <TableHead className="w-[30%]">Name</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead className="hidden md:table-cell">Email</TableHead>
-            <TableHead className="hidden sm:table-cell">Loyalty</TableHead>
-            <TableHead className="hidden lg:table-cell">Purchases</TableHead>
-            <TableHead className="hidden md:table-cell">Status</TableHead>
+            <TableHead className="w-[30%]">{t('columns.name')}</TableHead>
+            <TableHead>{t('columns.phone')}</TableHead>
+            <TableHead className="hidden md:table-cell">{t('columns.email')}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t('columns.loyalty')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('columns.purchases')}</TableHead>
+            <TableHead className="hidden md:table-cell">{t('columns.status')}</TableHead>
             <TableHead className="w-[180px]" />
           </TableRow>
         </TableHeader>
@@ -81,7 +79,8 @@ export default async function CustomersTable({ search, status, page = 1 }: Props
   );
 }
 
-function CustomerRow({ customer }: { customer: Customer }) {
+async function CustomerRow({ customer }: { customer: Customer }) {
+  const t = await getTranslations('customers');
   const purchases = parseFloat(customer.total_purchases || '0');
 
   return (
@@ -121,7 +120,7 @@ function CustomerRow({ customer }: { customer: Customer }) {
 
       <TableCell className="hidden md:table-cell">
         <Badge dot variant={customer.is_active ? 'success' : 'danger'}>
-          {customer.is_active ? 'Active' : 'Inactive'}
+          {customer.is_active ? t('active') : t('inactive')}
         </Badge>
       </TableCell>
 
@@ -135,8 +134,7 @@ function CustomerRow({ customer }: { customer: Customer }) {
 function TableError({ message }: { message: string }) {
   return (
     <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-10 text-center">
-      <p className="text-sm font-semibold text-destructive">Failed to load customers</p>
-      <p className="text-xs text-destructive/70 mt-1">{message}</p>
+      <p className="text-sm font-semibold text-destructive">{message}</p>
     </div>
   );
 }

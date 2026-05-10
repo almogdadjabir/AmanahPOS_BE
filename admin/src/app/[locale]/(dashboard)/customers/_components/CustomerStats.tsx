@@ -1,4 +1,5 @@
 import { Users, UserCheck, Star, TrendingUp } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import StatCard from '@/components/ds/StatCard';
 import { StatCardSkeleton } from '@/components/ds/Skeleton';
 import { fetchCustomersAction } from '@/actions/customers';
@@ -12,7 +13,10 @@ export function CustomerStatsSkeleton() {
 }
 
 export default async function CustomerStats() {
-  const result  = await fetchCustomersAction({ limit: 500 });
+  const [t, result] = await Promise.all([
+    getTranslations('customers'),
+    fetchCustomersAction({ limit: 500 }),
+  ]);
   const items   = result.ok ? result.data : [];
   const total   = result.ok ? result.count : 0;
   const active  = items.filter(c => c.is_active).length;
@@ -22,30 +26,30 @@ export default async function CustomerStats() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <StatCard
-        label="Total Customers"
+        label={t('stats.total')}
         value={total}
-        sub="All profiles"
+        sub={t('stats.totalSub')}
         icon={<Users />}
         accent="text-primary bg-primary/10"
       />
       <StatCard
-        label="Active"
+        label={t('stats.active')}
         value={active}
-        sub="Currently enabled"
+        sub={t('stats.activeSub')}
         icon={<UserCheck />}
         accent="text-green-600 bg-green-50"
       />
       <StatCard
-        label="Loyalty Points"
+        label={t('stats.loyalty')}
         value={loyalty.toLocaleString()}
-        sub="Total issued"
+        sub={t('stats.loyaltySub')}
         icon={<Star />}
         accent="text-amber-600 bg-amber-50"
       />
       <StatCard
-        label="Total Revenue"
+        label={t('stats.revenue')}
         value={`SDG ${revenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
-        sub="Lifetime purchases"
+        sub={t('stats.revenueSub')}
         icon={<TrendingUp />}
         accent="text-blue-600 bg-blue-50"
       />

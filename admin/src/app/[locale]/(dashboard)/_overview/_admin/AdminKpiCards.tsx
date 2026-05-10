@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getTranslations } from 'next-intl/server';
 import type { AdminStats } from './types';
 import { Users, Store, CreditCard, AlertTriangle } from 'lucide-react';
 
@@ -46,41 +47,42 @@ function KpiCard({ label, value, sub, icon, topColor, iconClass }: KpiConfig) {
   );
 }
 
-export default function AdminKpiCards({ stats }: Props) {
+export default async function AdminKpiCards({ stats }: Props) {
   if (!stats) return <KpiCardsSkeleton />;
 
+  const t = await getTranslations('dashboard');
   const fmt = new Intl.NumberFormat('en-US');
   const hasExpired = stats.expired_subscriptions > 0;
 
   const cards: KpiConfig[] = [
     {
-      label:     'Total Owners',
+      label:     t('kpi.totalOwners'),
       value:     fmt.format(stats.total_owners),
-      sub:       `+${fmt.format(stats.new_owners_this_month)} registered this month`,
+      sub:       `+${fmt.format(stats.new_owners_this_month)} ${t('kpi.totalOwnersSub')}`,
       icon:      <Users />,
       topColor:  'border-t-primary',
       iconClass: 'bg-primary/10 text-primary',
     },
     {
-      label:     'Total Businesses',
+      label:     t('kpi.totalBusinesses'),
       value:     fmt.format(stats.total_businesses),
-      sub:       `${fmt.format(stats.total_shops)} active shops across all owners`,
+      sub:       `${fmt.format(stats.total_shops)} ${t('kpi.totalBusinessesSub')}`,
       icon:      <Store />,
       topColor:  'border-t-info',
       iconClass: 'bg-info/10 text-info',
     },
     {
-      label:     'Active Subscriptions',
+      label:     t('kpi.activeSubscriptions'),
       value:     fmt.format(stats.active_subscriptions),
-      sub:       'owners on a paid or free plan',
+      sub:       t('kpi.activeSubscriptionsSub'),
       icon:      <CreditCard />,
       topColor:  'border-t-success',
       iconClass: 'bg-success/10 text-success',
     },
     {
-      label:     'Expired Subscriptions',
+      label:     t('kpi.expiredSubscriptions'),
       value:     fmt.format(stats.expired_subscriptions),
-      sub:       hasExpired ? 'accounts need attention — follow up' : 'no expired accounts right now',
+      sub:       hasExpired ? t('kpi.expiredSubscriptionsSub') : t('kpi.noExpiredSub'),
       icon:      <AlertTriangle />,
       topColor:  hasExpired ? 'border-t-destructive'  : 'border-t-success',
       iconClass: hasExpired ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success',

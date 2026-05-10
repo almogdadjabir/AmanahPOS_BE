@@ -2,22 +2,12 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import SearchInput from '@/components/ds/SearchInput';
 
-const STATUS_TABS = [
-  { label: 'All',      value: ''         },
-  { label: 'Active',   value: 'active'   },
-  { label: 'Inactive', value: 'inactive' },
-] as const;
-
-const ROLE_TABS = [
-  { label: 'All Roles', value: ''        },
-  { label: 'Manager',   value: 'manager' },
-  { label: 'Cashier',   value: 'cashier' },
-] as const;
-
 export default function StaffFilters() {
+  const t = useTranslations('staff');
   const router       = useRouter();
   const pathname     = usePathname();
   const searchParams = useSearchParams();
@@ -25,6 +15,18 @@ export default function StaffFilters() {
 
   const activeStatus = searchParams.get('status') ?? '';
   const activeRole   = searchParams.get('role')   ?? '';
+
+  const STATUS_TABS = [
+    { label: t('tabAll'),      value: ''         },
+    { label: t('tabActive'),   value: 'active'   },
+    { label: t('tabInactive'), value: 'inactive' },
+  ] as const;
+
+  const ROLE_TABS = [
+    { label: t('tabAllRoles'), value: ''        },
+    { label: t('tabManager'),  value: 'manager' },
+    { label: t('tabCashier'),  value: 'cashier' },
+  ] as const;
 
   function update(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -36,7 +38,7 @@ export default function StaffFilters() {
 
   return (
     <div className="flex flex-wrap items-center gap-3 mb-5">
-      <SearchInput placeholder="Search by name or phone…" className="w-full sm:w-64" />
+      <SearchInput placeholder={t('searchPlaceholder')} className="w-full sm:w-64" />
 
       <div className="flex items-center gap-1 p-1 rounded-lg bg-muted border border-border">
         {STATUS_TABS.map(tab => (

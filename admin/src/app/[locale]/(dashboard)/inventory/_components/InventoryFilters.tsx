@@ -2,22 +2,24 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import SearchInput from '@/components/ds/SearchInput';
 
-const STATUS_TABS = [
-  { label: 'All',          value: ''            },
-  { label: 'Low Stock',    value: 'low_stock'   },
-  { label: 'Out of Stock', value: 'out_of_stock' },
-] as const;
-
 export default function InventoryFilters() {
+  const t = useTranslations('inventory');
   const router       = useRouter();
   const pathname     = usePathname();
   const searchParams = useSearchParams();
   const [, start]    = useTransition();
 
   const activeStatus = searchParams.get('status') ?? '';
+
+  const STATUS_TABS = [
+    { label: t('tabAll'),          value: ''            },
+    { label: t('tabLowStock'),     value: 'low_stock'   },
+    { label: t('tabOutOfStock'),   value: 'out_of_stock' },
+  ] as const;
 
   function setStatus(value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -29,7 +31,7 @@ export default function InventoryFilters() {
 
   return (
     <div className="flex flex-wrap items-center gap-3 mb-5">
-      <SearchInput placeholder="Search products…" className="w-full sm:w-64" />
+      <SearchInput placeholder={t('searchPlaceholder')} className="w-full sm:w-64" />
 
       <div className="flex items-center gap-1 p-1 rounded-lg bg-muted border border-border">
         {STATUS_TABS.map(tab => (

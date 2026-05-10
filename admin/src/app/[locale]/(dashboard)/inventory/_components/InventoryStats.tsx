@@ -1,4 +1,5 @@
 import { Package, AlertTriangle, XCircle, CheckCircle } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import StatCard from '@/components/ds/StatCard';
 import { StatCardSkeleton } from '@/components/ds/Skeleton';
 import { fetchStockLevelsAction } from '@/actions/inventory';
@@ -12,7 +13,8 @@ export function InventoryStatsSkeleton() {
 }
 
 export default async function InventoryStats() {
-  const [totalRes, outRes, lowRes] = await Promise.all([
+  const [t, totalRes, outRes, lowRes] = await Promise.all([
+    getTranslations('inventory'),
     fetchStockLevelsAction({ limit: 1 }),
     fetchStockLevelsAction({ limit: 1, status: 'out_of_stock' }),
     fetchStockLevelsAction({ limit: 1, status: 'low_stock' }),
@@ -25,30 +27,30 @@ export default async function InventoryStats() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <StatCard
-        label="Total SKUs"
+        label={t('stats.totalSkus')}
         value={total}
-        sub="Tracked across all shops"
+        sub={t('stats.totalSkusSub')}
         icon={<Package />}
         accent="text-primary bg-primary/10"
       />
       <StatCard
-        label="In Stock"
+        label={t('stats.inStock')}
         value={okCount}
-        sub="At healthy levels"
+        sub={t('stats.inStockSub')}
         icon={<CheckCircle />}
         accent="text-green-600 bg-green-50"
       />
       <StatCard
-        label="Low Stock"
+        label={t('stats.lowStock')}
         value={lowCount}
-        sub="Below minimum level"
+        sub={t('stats.lowStockSub')}
         icon={<AlertTriangle />}
         accent="text-amber-600 bg-amber-50"
       />
       <StatCard
-        label="Out of Stock"
+        label={t('stats.outOfStock')}
         value={outCount}
-        sub="Needs restocking"
+        sub={t('stats.outOfStockSub')}
         icon={<XCircle />}
         accent="text-destructive bg-destructive/10"
       />

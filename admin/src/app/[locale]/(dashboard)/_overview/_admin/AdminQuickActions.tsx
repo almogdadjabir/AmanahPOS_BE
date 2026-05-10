@@ -1,27 +1,29 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { UserPlus, CreditCard, ArrowRight } from 'lucide-react';
 import CreateOwnerButton from '../../owners/_components/CreateOwnerButton';
 
-export default function AdminQuickActions() {
+export default async function AdminQuickActions() {
+  const t = await getTranslations('dashboard');
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <ActionCard
         icon={<UserPlus />}
         iconClass="bg-primary/10 text-primary"
-        title="Create Owner Account"
-        description="Register a new business owner. They can log in immediately via OTP and set up their business."
+        title={t('quickActions.createOwnerTitle')}
+        description={t('quickActions.createOwnerDesc')}
         cta={<CreateOwnerButton />}
       />
       <ActionCard
         icon={<CreditCard />}
         iconClass="bg-info/10 text-info"
-        title="Manage Subscriptions"
-        description="View active plans, assign subscriptions to owners, or handle expired and lapsed accounts."
+        title={t('quickActions.manageSubsTitle')}
+        description={t('quickActions.manageSubsDesc')}
         cta={
           <Button variant="secondary" size="sm" asChild>
             <Link href="subscriptions" className="gap-1.5">
-              View Subscriptions <ArrowRight className="size-3.5" />
+              {t('quickActions.viewSubscriptions')} <ArrowRight className="size-3.5" />
             </Link>
           </Button>
         }

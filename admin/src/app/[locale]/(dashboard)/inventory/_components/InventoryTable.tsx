@@ -1,4 +1,5 @@
 import { Warehouse } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import { Badge } from '@/components/ui/badge';
 import EmptyState from '@/components/ds/EmptyState';
 import Pagination from '@/components/ds/Pagination';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default async function InventoryTable({ search, status, page = 1 }: Props) {
+  const t = await getTranslations('inventory');
   let result;
   try {
     result = await fetchStockLevelsAction({
@@ -25,7 +27,7 @@ export default async function InventoryTable({ search, status, page = 1 }: Props
       limit: 25,
     });
   } catch {
-    return <TableError message="Check your API connection and try again." />;
+    return <TableError message={t('error.failedToLoad')} />;
   }
 
   if (!result.ok) return <TableError message={result.error} />;
@@ -37,12 +39,8 @@ export default async function InventoryTable({ search, status, page = 1 }: Props
       <div className="rounded-xl border border-border bg-card shadow-card">
         <EmptyState
           icon={<Warehouse />}
-          title={search ? 'No items match your search' : 'No stock data'}
-          description={
-            search
-              ? 'Try different keywords or clear the search.'
-              : 'Stock levels will appear here once products are tracked.'
-          }
+          title={search ? t('empty.titleSearch') : t('empty.title')}
+          description={search ? t('empty.descSearch') : t('empty.desc')}
         />
       </div>
     );
@@ -62,12 +60,12 @@ export default async function InventoryTable({ search, status, page = 1 }: Props
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent border-b border-border/60">
-            <TableHead className="w-[35%]">Product</TableHead>
-            <TableHead className="hidden md:table-cell">Shop</TableHead>
-            <TableHead className="hidden sm:table-cell">SKU</TableHead>
-            <TableHead>Qty</TableHead>
-            <TableHead className="hidden sm:table-cell">Status</TableHead>
-            <TableHead className="hidden lg:table-cell">Updated</TableHead>
+            <TableHead className="w-[35%]">{t('columns.product')}</TableHead>
+            <TableHead className="hidden md:table-cell">{t('columns.shop')}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t('columns.sku')}</TableHead>
+            <TableHead>{t('columns.qty')}</TableHead>
+            <TableHead className="hidden sm:table-cell">{t('columns.status')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('columns.updated')}</TableHead>
             <TableHead className="w-[160px]" />
           </TableRow>
         </TableHeader>
@@ -81,12 +79,13 @@ export default async function InventoryTable({ search, status, page = 1 }: Props
   );
 }
 
-function InventoryRow({ item }: { item: StockLevel }) {
+async function InventoryRow({ item }: { item: StockLevel }) {
+  const t = await getTranslations('inventory');
   const qty     = Number(item.quantity);
-  const updated = new Date(item.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const updated = new Date(item.updated_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
   const statusVariant = item.is_out_of_stock ? 'danger' : item.is_low_stock ? 'warning' : 'success';
-  const statusLabel   = item.is_out_of_stock ? 'Out of stock' : item.is_low_stock ? 'Low stock' : 'In stock';
+  const statusLabel   = item.is_out_of_stock ? t('statusOutOfStock') : item.is_low_stock ? t('statusLowStock') : t('statusInStock');
 
   return (
     <TableRow className="group hover:bg-muted/40 transition-colors">
@@ -128,8 +127,7 @@ function InventoryRow({ item }: { item: StockLevel }) {
 function TableError({ message }: { message: string }) {
   return (
     <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-10 text-center">
-      <p className="text-sm font-semibold text-destructive">Failed to load inventory</p>
-      <p className="text-xs text-destructive/70 mt-1">{message}</p>
+      <p className="text-sm font-semibold text-destructive">{message}</p>
     </div>
   );
 }

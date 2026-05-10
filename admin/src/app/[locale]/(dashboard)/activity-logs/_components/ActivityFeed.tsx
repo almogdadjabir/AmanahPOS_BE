@@ -1,4 +1,5 @@
 import { Link } from '@/i18n/navigation';
+import { getTranslations } from 'next-intl/server';
 import type { ActivityLog, ActivityAction, ActivityEntityType } from '@/types/api';
 
 // ── Action config ─────────────────────────────────────────────────────────────
@@ -36,19 +37,20 @@ const ENTITY_HREF: Record<ActivityEntityType, (id: string) => string> = {
 
 // ── Feed item ─────────────────────────────────────────────────────────────────
 
-function FeedItem({ log }: { log: ActivityLog }) {
+async function FeedItem({ log }: { log: ActivityLog }) {
+  const t = await getTranslations('activityLog');
   const cfg  = ACTION_CONFIG[log.action] ?? { color: 'text-muted-foreground', dot: 'bg-border', verb: log.action };
   const href = log.entity_id ? ENTITY_HREF[log.entity_type]?.(log.entity_id) : null;
   const date = new Date(log.created_at);
   const now  = Date.now();
   const diff = now - date.getTime();
   const ago  = diff < 60_000
-    ? 'just now'
+    ? t('timeJustNow')
     : diff < 3_600_000
-    ? `${Math.floor(diff / 60_000)}m ago`
+    ? `${Math.floor(diff / 60_000)}${t('timeAgoMin')}`
     : diff < 86_400_000
-    ? `${Math.floor(diff / 3_600_000)}h ago`
-    : `${Math.floor(diff / 86_400_000)}d ago`;
+    ? `${Math.floor(diff / 3_600_000)}${t('timeAgoHour')}`
+    : `${Math.floor(diff / 86_400_000)}${t('timeAgoDay')}`;
   const full = date.toLocaleString();
 
   return (
@@ -106,11 +108,12 @@ interface Props {
   logs: ActivityLog[];
 }
 
-export default function ActivityFeed({ logs }: Props) {
+export default async function ActivityFeed({ logs }: Props) {
+  const t = await getTranslations('activityLog');
   if (logs.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground text-sm">
-        No activity found.
+        {t('empty')}
       </div>
     );
   }

@@ -2,6 +2,7 @@ import { getCurrentUser } from '@/services/auth';
 import { fetchBusiness } from '@/services/owner';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import type { BusinessType } from '@/types/api';
 import AppShell from '@/components/layout/AppShell';
 
@@ -30,7 +31,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return <AppShell profile={profile} businessType={businessType}>{children}</AppShell>;
 }
 
-function RateLimitedScreen() {
+async function RateLimitedScreen() {
+  const t = await getTranslations('common');
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div className="text-center max-w-sm">
@@ -39,15 +41,13 @@ function RateLimitedScreen() {
             <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
         </div>
-        <p className="text-[17px] font-bold text-gray-900 mb-2">Too many requests</p>
-        <p className="text-sm text-gray-500 leading-relaxed mb-6">
-          The server is temporarily rate-limiting requests. Wait a minute then refresh.
-        </p>
+        <p className="text-[17px] font-bold text-gray-900 mb-2">{t('rateLimitTitle')}</p>
+        <p className="text-sm text-gray-500 leading-relaxed mb-6">{t('rateLimitBody')}</p>
         <a
           href="/api/auth/clear-session"
           className="inline-block text-xs text-gray-400 hover:text-gray-600 underline"
         >
-          Sign out and try again
+          {t('rateLimitSignOut')}
         </a>
       </div>
     </div>

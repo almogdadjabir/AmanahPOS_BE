@@ -1,4 +1,5 @@
 import { fetchAdminDashboard } from "@/services/admin";
+import { getTranslations } from 'next-intl/server';
 import OwnersDrawerShell from "../owners/_components/OwnersDrawerShell";
 
 import AdminDashboardError from "./_admin/AdminDashboardError";
@@ -11,10 +12,13 @@ import AdminSubscriptionPlans from "./_admin/AdminSubscriptionPlans";
 
 export default async function AdminOverview() {
   try {
-    const { health, plans, stats } = await fetchAdminDashboard();
+    const [{ plans, stats }, t] = await Promise.all([
+      fetchAdminDashboard(),
+      getTranslations('dashboard'),
+    ]);
 
     const now = new Date();
-    const dateStr = now.toLocaleDateString("en-US", {
+    const dateStr = now.toLocaleDateString(undefined, {
       weekday: "long",
       month: "long",
       day: "numeric",
@@ -23,10 +27,10 @@ export default async function AdminOverview() {
     const hour = now.getHours();
     const greeting =
       hour < 12
-        ? "Good morning"
+        ? t('greetingMorning')
         : hour < 17
-          ? "Good afternoon"
-          : "Good evening";
+          ? t('greetingAfternoon')
+          : t('greetingEvening');
 
     return (
       <OwnersDrawerShell>
@@ -38,7 +42,7 @@ export default async function AdminOverview() {
                 {greeting} 👋
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Platform overview &mdash; {dateStr}
+                {t('platformOverview')} &mdash; {dateStr}
               </p>
             </div>
 
@@ -49,7 +53,7 @@ export default async function AdminOverview() {
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
               </span>
               <span className="text-[11px] font-semibold text-muted-foreground">
-                Live
+                {t('live')}
               </span>
             </div>
           </div>
@@ -58,11 +62,13 @@ export default async function AdminOverview() {
           <AdminKpiCards stats={stats} />
 
           {/* ── Main content row: chart + recent owners ────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-            <div className="lg:col-span-2">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="lg:col-span-2 lg:h-[360px]">
               <AdminOwnerGrowthCard stats={stats} />
             </div>
-            <AdminRecentOwners stats={stats} />
+            <div className="lg:h-[360px]">
+              <AdminRecentOwners stats={stats} />
+            </div>
           </div>
 
           {/* ── Secondary row: actions + plans ────────────────────────────── */}

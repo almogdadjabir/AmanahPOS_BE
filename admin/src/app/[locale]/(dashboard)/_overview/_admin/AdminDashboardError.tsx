@@ -1,11 +1,14 @@
-export default function AdminDashboardError() {
+import { getTranslations } from 'next-intl/server';
+
+export default async function AdminDashboardError() {
+  const t = await getTranslations('dashboard');
   return (
     <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-6 text-center">
       <p className="text-[14px] font-semibold text-destructive mb-1">
-        Failed to load dashboard
+        {t('error.title')}
       </p>
       <p className="text-xs text-destructive/70">
-        Check the API connection and try refreshing.
+        {t('error.desc')}
       </p>
     </div>
   );

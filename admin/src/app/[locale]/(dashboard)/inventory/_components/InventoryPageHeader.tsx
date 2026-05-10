@@ -1,10 +1,12 @@
+import { getTranslations } from 'next-intl/server';
 import PageTitle from '@/components/ds/PageTitle';
 
-export default function InventoryPageHeader() {
+export default async function InventoryPageHeader() {
+  const t = await getTranslations('inventory');
   return (
     <PageTitle
-      title="Inventory"
-      description="Monitor and adjust stock levels across all your shops."
+      title={t('title')}
+      description={t('description')}
     />
   );
 }

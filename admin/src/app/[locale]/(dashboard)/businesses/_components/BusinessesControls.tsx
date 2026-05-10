@@ -1,26 +1,12 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import SearchInput from '@/components/ds/SearchInput';
 import { cn } from '@/lib/utils';
 
-const STATUS_TABS = [
-  { label: 'All',      value: 'all'      },
-  { label: 'Active',   value: 'active'   },
-  { label: 'Inactive', value: 'inactive' },
-] as const;
-
-const SUB_TABS = [
-  { label: 'Any plan', value: 'all' },
-  { label: 'Has plan', value: 'yes' },
-  { label: 'No plan',  value: 'no'  },
-] as const;
-
 function TabGroup<T extends string>({
-  label,
-  tabs,
-  value,
-  onChange,
+  label, tabs, value, onChange,
 }: {
   label:    string;
   tabs:     readonly { label: string; value: T }[];
@@ -33,19 +19,19 @@ function TabGroup<T extends string>({
         {label}
       </span>
       <div className="flex items-center gap-0.5 bg-muted rounded-lg p-0.5">
-        {tabs.map(t => (
+        {tabs.map(tab => (
           <button
-            key={t.value}
+            key={tab.value}
             type="button"
-            onClick={() => onChange(t.value)}
+            onClick={() => onChange(tab.value)}
             className={cn(
               'px-3 py-1 rounded-md text-xs font-semibold transition-all duration-150',
-              t.value === value
+              tab.value === value
                 ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -54,6 +40,7 @@ function TabGroup<T extends string>({
 }
 
 export default function BusinessesControls() {
+  const t = useTranslations('businesses');
   const router       = useRouter();
   const pathname     = usePathname();
   const searchParams = useSearchParams();
@@ -63,32 +50,41 @@ export default function BusinessesControls() {
 
   function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value === 'all') {
-      params.delete(key);
-    } else {
-      params.set(key, value);
-    }
+    if (value === 'all') params.delete(key);
+    else                 params.set(key, value);
     params.delete('page');
     router.push(`${pathname}?${params.toString()}`);
   }
 
+  const statusTabs = [
+    { label: t('tabAll'),      value: 'all'      },
+    { label: t('tabActive'),   value: 'active'   },
+    { label: t('tabInactive'), value: 'inactive' },
+  ] as const;
+
+  const subTabs = [
+    { label: t('tabAnyPlan'), value: 'all' },
+    { label: t('tabHasPlan'), value: 'yes' },
+    { label: t('tabNoPlan'),  value: 'no'  },
+  ] as const;
+
   return (
     <div className="flex items-center gap-4 flex-wrap mb-5 p-3 bg-card rounded-xl border border-border shadow-card">
       <SearchInput
-        placeholder="Search by name or owner…"
+        placeholder={t('searchPlaceholder')}
         className="w-full sm:w-72"
       />
       <div className="h-4 w-px bg-border hidden sm:block" />
       <TabGroup
-        label="Status"
-        tabs={STATUS_TABS}
+        label={t('statusLabel')}
+        tabs={statusTabs}
         value={status}
         onChange={(v) => setParam('status', v)}
       />
       <div className="h-4 w-px bg-border hidden sm:block" />
       <TabGroup
-        label="Plan"
-        tabs={SUB_TABS}
+        label={t('planLabel')}
+        tabs={subTabs}
         value={sub}
         onChange={(v) => setParam('sub', v)}
       />

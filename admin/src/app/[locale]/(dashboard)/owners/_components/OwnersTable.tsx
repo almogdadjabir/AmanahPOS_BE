@@ -1,4 +1,5 @@
 import { fetchAdminOwners } from '@/services/admin';
+import { getTranslations } from 'next-intl/server';
 import type { AdminOwner } from '@/types/api';
 import { Badge } from '@/components/ui/badge';
 import Avatar from '@/components/ui/Avatar';
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export default async function OwnersTable({ search, status, sub, page = 1 }: Props) {
+  const t = await getTranslations('owners');
   let data;
   try {
     data = await fetchAdminOwners({
@@ -37,8 +39,8 @@ export default async function OwnersTable({ search, status, sub, page = 1 }: Pro
   } catch {
     return (
       <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-10 text-center">
-        <p className="text-sm font-semibold text-destructive">Failed to load owners</p>
-        <p className="text-xs text-destructive/70 mt-1">Check API connection and refresh.</p>
+        <p className="text-sm font-semibold text-destructive">{t('error.failedToLoad')}</p>
+        <p className="text-xs text-destructive/70 mt-1">{t('error.checkApi')}</p>
       </div>
     );
   }
@@ -48,12 +50,8 @@ export default async function OwnersTable({ search, status, sub, page = 1 }: Pro
       <div className="rounded-xl border border-border bg-card shadow-card">
         <EmptyState
           icon={<Users />}
-          title={search ? 'No owners match your search' : 'No owners yet'}
-          description={
-            search
-              ? 'Try different keywords or clear the search.'
-              : 'Create the first owner account to get started.'
-          }
+          title={search ? t('empty.titleSearch') : t('empty.title')}
+          description={search ? t('empty.descSearch') : t('empty.desc')}
         />
       </div>
     );
@@ -67,14 +65,14 @@ export default async function OwnersTable({ search, status, sub, page = 1 }: Pro
           <Users />
         </span>
         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
-          {data.count.toLocaleString()} owner{data.count !== 1 ? 's' : ''}
+          {data.count.toLocaleString()} {t('title').toLowerCase()}
         </p>
       </div>
 
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent border-b border-border/60">
-            {['Owner', 'Phone', 'Businesses', 'Subscription', 'Status', 'Joined', ''].map((h, i) => (
+            {[t('columns.owner'), t('columns.phone'), t('columns.businesses'), t('columns.subscription'), t('columns.status'), t('columns.joined'), ''].map((h, i) => (
               <TableHead key={i}>{h}</TableHead>
             ))}
           </TableRow>
@@ -91,12 +89,13 @@ export default async function OwnersTable({ search, status, sub, page = 1 }: Pro
   );
 }
 
-function OwnerRow({ owner }: { owner: AdminOwner }) {
-  const joined = new Date(owner.created_at).toLocaleDateString('en-US', {
+async function OwnerRow({ owner }: { owner: AdminOwner }) {
+  const t = await getTranslations('owners');
+  const joined = new Date(owner.created_at).toLocaleDateString(undefined, {
     month: 'short', day: 'numeric', year: 'numeric',
   });
   const lastSeen = owner.last_login_at
-    ? new Date(owner.last_login_at).toLocaleDateString('en-US', {
+    ? new Date(owner.last_login_at).toLocaleDateString(undefined, {
         month: 'short', day: 'numeric',
       })
     : null;
@@ -115,10 +114,10 @@ function OwnerRow({ owner }: { owner: AdminOwner }) {
           </div>
           <div className="min-w-0">
             <p className="text-[13px] font-semibold text-foreground leading-tight truncate">
-              {owner.full_name || <span className="text-muted-foreground italic font-normal">No name</span>}
+              {owner.full_name || <span className="text-muted-foreground italic font-normal">{t('noName')}</span>}
             </p>
             {lastSeen && (
-              <p className="text-[10px] text-muted-foreground mt-0.5">Seen {lastSeen}</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{t('seen')} {lastSeen}</p>
             )}
           </div>
         </div>
@@ -130,7 +129,7 @@ function OwnerRow({ owner }: { owner: AdminOwner }) {
           {owner.phone}
         </span>
         {!owner.is_verified && (
-          <p className="text-[10px] text-warning mt-0.5">Unverified</p>
+          <p className="text-[10px] text-warning mt-0.5">{t('unverified')}</p>
         )}
       </TableCell>
 
@@ -145,14 +144,14 @@ function OwnerRow({ owner }: { owner: AdminOwner }) {
       {/* Subscription */}
       <TableCell>
         <Badge dot variant={owner.has_active_subscription ? 'success' : 'warning'}>
-          {owner.has_active_subscription ? 'Active' : 'No plan'}
+          {owner.has_active_subscription ? t('activeSub') : t('noPlan')}
         </Badge>
       </TableCell>
 
       {/* Status */}
       <TableCell>
         <Badge dot variant={owner.is_active ? 'success' : 'danger'}>
-          {owner.is_active ? 'Active' : 'Inactive'}
+          {owner.is_active ? t('active') : t('inactive')}
         </Badge>
       </TableCell>
 

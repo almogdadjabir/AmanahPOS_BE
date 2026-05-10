@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { History, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Drawer from '@/components/ds/Drawer';
@@ -13,11 +14,12 @@ interface Props {
 }
 
 export default function StockHistoryDrawer({ item, onClose }: Props) {
+  const t = useTranslations('inventory');
   return (
     <Drawer
       open={!!item}
       onClose={onClose}
-      title="Stock History"
+      title={t('history.title')}
       subtitle={item ? `${item.product_name} · ${item.shop_name}` : undefined}
     >
       {item && <HistoryContent key={`${item.product}-${item.shop}`} item={item} />}
@@ -26,6 +28,7 @@ export default function StockHistoryDrawer({ item, onClose }: Props) {
 }
 
 function HistoryContent({ item }: { item: StockLevel }) {
+  const t = useTranslations('inventory');
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState<string | null>(null);
@@ -54,7 +57,7 @@ function HistoryContent({ item }: { item: StockLevel }) {
   if (error) {
     return (
       <div className="p-5 text-center">
-        <p className="text-sm font-semibold text-destructive">Failed to load history</p>
+        <p className="text-sm font-semibold text-destructive">{t('history.failedToLoad')}</p>
         <p className="text-xs text-destructive/70 mt-1">{error}</p>
       </div>
     );
@@ -67,8 +70,8 @@ function HistoryContent({ item }: { item: StockLevel }) {
           <History size={18} className="text-muted-foreground" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-foreground">No movement history</p>
-          <p className="text-xs text-muted-foreground mt-0.5">Stock changes will appear here.</p>
+          <p className="text-sm font-semibold text-foreground">{t('history.empty')}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{t('history.emptySub')}</p>
         </div>
       </div>
     );
@@ -82,6 +85,7 @@ function HistoryContent({ item }: { item: StockLevel }) {
 }
 
 function MovementRow({ movement }: { movement: StockMovement }) {
+  const t = useTranslations('inventory');
   const qty   = Number(movement.quantity);
   const isIn  = qty > 0;
   const date  = new Date(movement.created_at).toLocaleDateString('en-US', {
@@ -100,7 +104,7 @@ function MovementRow({ movement }: { movement: StockMovement }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <p className="text-[12px] font-bold text-foreground">
-            {movementLabel(movement.movement_type)}
+            {movementLabel(movement.movement_type, t)}
           </p>
           <span className={cn(
             'text-[13px] font-bold tabular-nums shrink-0',
@@ -128,17 +132,16 @@ function MovementRow({ movement }: { movement: StockMovement }) {
   );
 }
 
-const MOVEMENT_LABELS: Record<MovementType, string> = {
-  in:           'Stock In',
-  out:          'Stock Out',
-  adjustment:   'Manual Adjustment',
-  sale:         'Sale',
-  return:       'Return',
-  transfer_in:  'Transfer In',
-  transfer_out: 'Transfer Out',
-  opening:      'Opening Stock',
-};
-
-function movementLabel(type: MovementType): string {
-  return MOVEMENT_LABELS[type] ?? type;
+function movementLabel(type: MovementType, t: ReturnType<typeof useTranslations<'inventory'>>): string {
+  const labels: Record<MovementType, string> = {
+    in:           t('history.typeIn'),
+    out:          t('history.typeOut'),
+    adjustment:   t('history.typeAdjustment'),
+    sale:         t('history.typeSale'),
+    return:       t('history.typeReturn'),
+    transfer_in:  t('history.typeTransferIn'),
+    transfer_out: t('history.typeTransferOut'),
+    opening:      t('history.typeOpening'),
+  };
+  return labels[type] ?? type;
 }

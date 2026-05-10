@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
 import { CustomerDrawerContext } from './CustomerDrawerContext';
 import Drawer from '@/components/ds/Drawer';
@@ -25,6 +26,7 @@ function toLocalPhone(phone: string | null | undefined): string {
 }
 
 export default function CustomerDrawerShell({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('customers');
   const router = useRouter();
   const [addOpen,        setAddOpen]        = useState(false);
   const [editCustomer,   setEditCustomer]   = useState<Customer | null>(null);
@@ -61,8 +63,8 @@ export default function CustomerDrawerShell({ children }: { children: React.Reac
       <Drawer
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        title="Add Customer"
-        subtitle="Create a new customer profile."
+        title={t('form.addTitle')}
+        subtitle={t('form.addSubtitle')}
       >
         <AddCustomerForm onClose={() => setAddOpen(false)} onSuccess={handleSuccess} />
       </Drawer>
@@ -71,8 +73,8 @@ export default function CustomerDrawerShell({ children }: { children: React.Reac
       <Drawer
         open={!!editCustomer}
         onClose={() => setEditCustomer(null)}
-        title="Edit Customer"
-        subtitle="Update this customer's details."
+        title={t('form.editTitle')}
+        subtitle={t('form.editSubtitle')}
       >
         {editCustomer && (
           <EditCustomerForm
@@ -86,13 +88,13 @@ export default function CustomerDrawerShell({ children }: { children: React.Reac
       {/* Deactivate / Activate confirm */}
       <ConfirmDialog
         open={!!deactivateCust}
-        title={activating ? 'Activate Customer' : 'Deactivate Customer'}
+        title={activating ? t('confirm.activateTitle') : t('confirm.deactivateTitle')}
         description={
           activating
-            ? `Activate ${deactivateCust?.name}? They will be visible and accessible again.`
-            : `Deactivate ${deactivateCust?.name}? They will be hidden from active customer lists.`
+            ? `${deactivateCust?.name}? ${t('confirm.activateDesc')}`
+            : `${deactivateCust?.name}? ${t('confirm.deactivateDesc')}`
         }
-        confirmLabel={activating ? 'Activate' : 'Deactivate'}
+        confirmLabel={activating ? t('confirm.activate') : t('confirm.deactivate')}
         variant={activating ? 'primary' : 'danger'}
         loading={toggling}
         onConfirm={handleToggle}
@@ -105,6 +107,7 @@ export default function CustomerDrawerShell({ children }: { children: React.Reac
 // ── Add Customer Form ─────────────────────────────────────────────────────────
 
 function AddCustomerForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const t = useTranslations('customers');
   const [state, dispatch, isPending] = useActionState<CustomerActionState, FormData>(
     createCustomerAction,
     null,
@@ -121,26 +124,26 @@ function AddCustomerForm({ onClose, onSuccess }: { onClose: () => void; onSucces
       {error && <InlineError message={error} />}
 
       <Input
-        label="Full name"
+        label={t('form.fullName')}
         name="name"
         required
         placeholder="e.g. Fatima Hassan"
         autoFocus
       />
-      <PhoneInput label="Phone" />
+      <PhoneInput label={t('form.phone')} />
       <Input
-        label="Email"
+        label={t('form.email')}
         name="email"
         type="email"
         placeholder="customer@example.com"
       />
       <Input
-        label="Address"
+        label={t('form.address')}
         name="address"
         placeholder="Street, city…"
       />
       <div className="space-y-1.5">
-        <label className="text-[12.5px] font-semibold text-foreground">Notes</label>
+        <label className="text-[12.5px] font-semibold text-foreground">{t('form.notes')}</label>
         <textarea
           name="notes"
           rows={3}
@@ -151,10 +154,10 @@ function AddCustomerForm({ onClose, onSuccess }: { onClose: () => void; onSucces
 
       <div className="flex gap-2 pt-2">
         <Button size="sm" type="submit" disabled={isPending}>
-          {isPending ? 'Adding…' : 'Add customer'}
+          {isPending ? t('form.adding') : t('form.add')}
         </Button>
         <Button size="sm" variant="secondary" type="button" onClick={onClose}>
-          Cancel
+          {t('form.cancel')}
         </Button>
       </div>
     </form>
@@ -172,6 +175,7 @@ function EditCustomerForm({
   onClose:   () => void;
   onSuccess: () => void;
 }) {
+  const t = useTranslations('customers');
   const boundAction = updateCustomerAction.bind(null, customer.id);
   const [state, dispatch, isPending] = useActionState<CustomerActionState, FormData>(
     boundAction,
@@ -189,28 +193,28 @@ function EditCustomerForm({
       {error && <InlineError message={error} />}
 
       <Input
-        label="Full name"
+        label={t('form.fullName')}
         name="name"
         required
         defaultValue={customer.name}
         placeholder="e.g. Fatima Hassan"
       />
-      <PhoneInput label="Phone" defaultValue={toLocalPhone(customer.phone)} />
+      <PhoneInput label={t('form.phone')} defaultValue={toLocalPhone(customer.phone)} />
       <Input
-        label="Email"
+        label={t('form.email')}
         name="email"
         type="email"
         defaultValue={customer.email ?? ''}
         placeholder="customer@example.com"
       />
       <Input
-        label="Address"
+        label={t('form.address')}
         name="address"
         defaultValue={customer.address ?? ''}
         placeholder="Street, city…"
       />
       <div className="space-y-1.5">
-        <label className="text-[12.5px] font-semibold text-foreground">Notes</label>
+        <label className="text-[12.5px] font-semibold text-foreground">{t('form.notes')}</label>
         <textarea
           name="notes"
           rows={3}
@@ -222,10 +226,10 @@ function EditCustomerForm({
 
       <div className="flex gap-2 pt-2">
         <Button size="sm" type="submit" disabled={isPending}>
-          {isPending ? 'Saving…' : 'Save changes'}
+          {isPending ? t('form.saving') : t('form.save')}
         </Button>
         <Button size="sm" variant="secondary" type="button" onClick={onClose}>
-          Cancel
+          {t('form.cancel')}
         </Button>
       </div>
     </form>

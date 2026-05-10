@@ -1,5 +1,6 @@
 import { fetchOwnerDashboard } from '@/services/owner';
 import { formatCurrency } from '@/lib/formatters';
+import { getTranslations } from 'next-intl/server';
 import type { BusinessType, Sale, StockLevel, Subscription } from '@/types/api';
 import RevenueLineChart from './RevenueLineChart';
 import StatCard from '@/components/ds/StatCard';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default async function OwnerOverview({ businessType, selectedShop }: Props) {
+  const t = await getTranslations('dashboard');
   // Only show inventory features when we are CERTAIN the business type is 'shop'.
   // Unknown type defaults to hiding inventory (safer than accidentally showing stock data).
   const isRestaurant = businessType !== 'shop';
@@ -42,31 +44,31 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
       {/* ── KPI cards ─────────────────────────────────────────────────────── */}
       <div className={`grid gap-4 ${isRestaurant ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2 xl:grid-cols-4'}`}>
         <StatCard
-          label="Today's Revenue"
+          label={t('owner.todayRevenue')}
           value={formatCurrency(todayRevenue)}
-          sub={`${todaySales} sale${todaySales !== 1 ? 's' : ''} today`}
+          sub={`${todaySales} ${t('owner.completedSales')}`}
           icon={<CashIcon />}
           accent="text-primary bg-primary-soft"
         />
         <StatCard
-          label="Monthly Revenue"
+          label={t('owner.monthlyRevenue')}
           value={formatCurrency(monthRevenue)}
-          sub={`${monthSales} sales this month`}
+          sub={`${monthSales} ${t('owner.completedSales')}`}
           icon={<TrendIcon />}
           accent="text-info bg-info-light"
         />
         <StatCard
-          label="Avg. Sale Value"
+          label={t('owner.avgSale')}
           value={formatCurrency(avgSale)}
-          sub="completed sales"
+          sub={t('owner.completedSales')}
           icon={<AvgIcon />}
           accent="text-warning bg-warning-light"
         />
         {!isRestaurant && (
           <StatCard
-            label="Low Stock"
+            label={t('owner.lowStock')}
             value={String(lowStockCount)}
-            sub="products need restock"
+            sub={t('owner.needsRestock')}
             icon={<AlertIcon />}
             accent={lowStockCount > 0 ? 'text-danger bg-danger-light' : 'text-success bg-success-light'}
           />
@@ -80,11 +82,11 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
         <div className={`bg-white rounded-xl border border-border-soft shadow-card p-4 ${!isRestaurant ? 'lg:col-span-2' : ''}`}>
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-[13px] font-semibold text-text-primary">Daily Revenue</p>
+              <p className="text-[13px] font-semibold text-text-primary">{t('owner.dailyRevenue')}</p>
               <p className="text-xs text-text-hint mt-0.5">
-                Last 30 days · SDG
+                {t('owner.last30Days')}
                 {selectedShop && (
-                  <span className="ml-1.5 text-primary font-semibold">· filtered</span>
+                  <span className="ml-1.5 text-primary font-semibold">· {t('owner.filtered')}</span>
                 )}
               </p>
             </div>
@@ -97,8 +99,8 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
             ? (
               <EmptyState
                 icon={<TrendIcon />}
-                title="No sales data yet"
-                description="Revenue will appear here once you record your first sale."
+                title={t('owner.noSalesData')}
+                description={t('owner.noSalesDataDesc')}
               />
             ) : <RevenueLineChart data={chartData} />
           }
@@ -109,8 +111,8 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
           <div className="bg-white rounded-xl border border-border-soft shadow-card p-4 flex flex-col">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="text-[13px] font-semibold text-text-primary">Low Stock</p>
-                <p className="text-xs text-text-hint mt-0.5">Needs restocking</p>
+                <p className="text-[13px] font-semibold text-text-primary">{t('owner.lowStockTitle')}</p>
+                <p className="text-xs text-text-hint mt-0.5">{t('owner.lowStockSub')}</p>
               </div>
               {lowStockCount > 0 && <Badge dot variant="danger">{lowStockCount}</Badge>}
             </div>
@@ -120,8 +122,8 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
                 <div className="w-10 h-10 rounded-full bg-success-light text-success flex items-center justify-center mb-3">
                   <CheckIcon />
                 </div>
-                <p className="text-[13px] font-medium text-text-primary">All stocked up</p>
-                <p className="text-xs text-text-hint mt-1">No items below minimum level</p>
+                <p className="text-[13px] font-medium text-text-primary">{t('owner.allStocked')}</p>
+                <p className="text-xs text-text-hint mt-1">{t('owner.allStockedDesc')}</p>
               </div>
             ) : (
               <div className="flex-1 space-y-2 overflow-y-auto">
@@ -136,24 +138,24 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
       <div className="bg-white rounded-xl border border-border-soft shadow-card overflow-hidden">
         <div className="px-4 py-3 border-b border-border-soft flex items-center justify-between">
           <div>
-            <p className="text-[13px] font-semibold text-text-primary">Recent Sales</p>
-            <p className="text-xs text-text-hint mt-0.5">Latest completed transactions</p>
+            <p className="text-[13px] font-semibold text-text-primary">{t('owner.recentSales')}</p>
+            <p className="text-xs text-text-hint mt-0.5">{t('owner.latestTxns')}</p>
           </div>
-          <a href="sales" className="text-xs font-semibold text-primary hover:underline">View all →</a>
+          <a href="sales" className="text-xs font-semibold text-primary hover:underline">{t('owner.viewAll')}</a>
         </div>
 
         {recentSales.length === 0 ? (
           <EmptyState
             icon={<ReceiptIcon />}
-            title="No sales yet"
-            description="Your completed sales will appear here."
+            title={t('owner.noSalesYet')}
+            description={t('owner.noSalesDesc')}
           />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border-soft">
-                  {['Receipt', 'Cashier', 'Method', 'Items', 'Amount', 'Time'].map(h => (
+                  {[t('owner.receipt'), t('owner.cashier'), 'Method', t('owner.items'), 'Amount', 'Time'].map(h => (
                     <th key={h} className="text-start px-4 py-2.5 text-[11px] font-semibold text-text-hint uppercase tracking-wider last:text-end">
                       {h}
                     </th>
@@ -174,7 +176,8 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function SubscriptionBanner({ sub }: { sub: Subscription }) {
+async function SubscriptionBanner({ sub }: { sub: Subscription }) {
+  const t = await getTranslations('dashboard');
   const expired = sub.is_expired;
   const warning = !expired && sub.days_remaining <= 7;
 
@@ -190,15 +193,15 @@ function SubscriptionBanner({ sub }: { sub: Subscription }) {
       <div className="flex-1">
         <p className={`text-[13px] font-semibold ${expired ? 'text-danger' : 'text-warning'}`}>
           {expired
-            ? `Subscription expired · ${sub.plan.name}`
-            : `Subscription expires in ${sub.days_remaining} days`}
+            ? `${t('owner.subExpired')} · ${sub.plan.name}`
+            : `${t('owner.subExpiringSoon')} ${sub.days_remaining} ${t('owner.days')}`}
         </p>
         <p className="text-xs text-text-secondary mt-0.5">
-          {expired ? 'Renew to restore full access.' : `Plan: ${sub.plan.name} — consider renewing.`}
+          {expired ? t('owner.renewExpired') : `${t('owner.planLabel')}: ${sub.plan.name} — ${t('owner.considerRenewing')}`}
         </p>
       </div>
       <a href="subscription" className="text-xs font-semibold text-primary underline shrink-0">
-        Manage
+        {t('owner.manage')}
       </a>
     </div>
   );

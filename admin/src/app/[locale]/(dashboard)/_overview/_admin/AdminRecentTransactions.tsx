@@ -1,4 +1,5 @@
 import { Receipt } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import Avatar from '@/components/ui/Avatar';
 import type { AdminRecentTransaction } from '@/types/api';
 import type { AdminStats } from './types';
@@ -31,8 +32,13 @@ function fmtMoney(v: number) {
 
 type Props = { stats: AdminStats };
 
-export default function AdminRecentTransactions({ stats }: Props) {
+export default async function AdminRecentTransactions({ stats }: Props) {
+  const t = await getTranslations('dashboard');
   const txs = stats?.recent_transactions ?? [];
+  const headers = [
+    t('recentTxns.receipt'), t('recentTxns.business'), t('recentTxns.cashier'),
+    t('recentTxns.method'), t('recentTxns.amount'), t('recentTxns.time'),
+  ];
 
   return (
     <div className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] overflow-hidden">
@@ -43,13 +49,13 @@ export default function AdminRecentTransactions({ stats }: Props) {
             <Receipt />
           </span>
           <div>
-            <p className="text-sm font-bold text-foreground leading-tight">Recent Transactions</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Latest platform-wide sales</p>
+            <p className="text-sm font-bold text-foreground leading-tight">{t('recentTxns.title')}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{t('recentTxns.sub')}</p>
           </div>
         </div>
         {txs.length > 0 && (
           <span className="text-[11px] font-bold text-muted-foreground tabular-nums">
-            {txs.length} shown
+            {txs.length} {t('recentTxns.shown')}
           </span>
         )}
       </div>
@@ -59,15 +65,15 @@ export default function AdminRecentTransactions({ stats }: Props) {
           <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-3">
             <Receipt className="size-4 text-muted-foreground" />
           </div>
-          <p className="text-[13px] font-semibold text-foreground">No transactions yet</p>
-          <p className="text-xs text-muted-foreground mt-1">Completed sales will appear here.</p>
+          <p className="text-[13px] font-semibold text-foreground">{t('recentTxns.empty.title')}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t('recentTxns.empty.desc')}</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border/60">
-                {['Receipt', 'Business', 'Cashier', 'Method', 'Amount', 'Time'].map(h => (
+                {headers.map(h => (
                   <th
                     key={h}
                     className="text-start px-4 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground last:text-end whitespace-nowrap"

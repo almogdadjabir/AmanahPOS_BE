@@ -1,7 +1,9 @@
 import { Store } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import CreateBusinessButton from './CreateBusinessButton';
 
-export default function BusinessesPageHeader() {
+export default async function BusinessesPageHeader() {
+  const t = await getTranslations('businesses');
   return (
     <div className="flex items-start justify-between mb-6 gap-4">
       <div className="flex items-center gap-3">
@@ -10,10 +12,10 @@ export default function BusinessesPageHeader() {
         </span>
         <div>
           <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
-            Businesses
+            {t('title')}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            All businesses registered on the platform.
+            {t('description')}
           </p>
         </div>
       </div>

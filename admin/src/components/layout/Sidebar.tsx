@@ -76,7 +76,7 @@ export default function Sidebar({ profile, businessType, isOpen, onClose }: Prop
               {isAdmin ? 'AmanaPOS' : (profile.full_name || 'AmanaPOS')}
             </div>
             <div className="text-[10px] font-semibold leading-none mt-0.5 text-primary-light/50">
-              {isAdmin ? 'Platform Admin' : tNav('adminBadge')}
+              {isAdmin ? tNav('platformAdmin') : tNav('adminBadge')}
             </div>
           </div>
         </div>
@@ -84,7 +84,7 @@ export default function Sidebar({ profile, businessType, isOpen, onClose }: Prop
         {/* ── Section label ──────────────────────────────────────────────── */}
         <div className="px-4 pt-5 pb-1.5">
           <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/20">
-            {isAdmin ? 'Platform' : 'Business'}
+            {isAdmin ? tNav('platformLabel') : tNav('businessLabel')}
           </p>
         </div>
 

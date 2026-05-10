@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { AlertCircle, Plus, Minus, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -11,10 +12,11 @@ import type { StockLevel } from '@/types/api';
 
 type Mode = 'add' | 'remove' | 'set';
 
-const MODES: { value: Mode; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: 'add',    label: 'Add',    icon: <Plus size={14} />,   color: 'text-green-600' },
-  { value: 'remove', label: 'Remove', icon: <Minus size={14} />,  color: 'text-destructive' },
-  { value: 'set',    label: 'Set',    icon: <Target size={14} />, color: 'text-primary' },
+// Labels resolved in AdjustContent using useTranslations
+const MODES: { value: Mode; icon: React.ReactNode; color: string }[] = [
+  { value: 'add',    icon: <Plus size={14} />,   color: 'text-green-600' },
+  { value: 'remove', icon: <Minus size={14} />,  color: 'text-destructive' },
+  { value: 'set',    icon: <Target size={14} />, color: 'text-primary' },
 ];
 
 interface Props {
@@ -24,11 +26,12 @@ interface Props {
 }
 
 export default function StockAdjustDrawer({ item, onClose, onSuccess }: Props) {
+  const t = useTranslations('inventory');
   return (
     <Drawer
       open={!!item}
       onClose={onClose}
-      title="Adjust Stock"
+      title={t('adjust.title')}
       subtitle={item ? `${item.product_name} · ${item.shop_name}` : undefined}
     >
       {item && (
@@ -52,6 +55,7 @@ function AdjustContent({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const t = useTranslations('inventory');
   const [mode, setMode] = useState<Mode>('add');
   const [state, dispatch, isPending] = useActionState<AdjustStockState, FormData>(
     stockAdjustmentAction,
@@ -64,11 +68,16 @@ function AdjustContent({
 
   const error = state && 'error' in state ? state.error : null;
   const currentQty = Number(item.quantity);
+  const modeLabels: Record<Mode, string> = {
+    add:    t('adjust.modeAdd'),
+    remove: t('adjust.modeRemove'),
+    set:    t('adjust.modeSet'),
+  };
 
   const hint =
-    mode === 'add'    ? `Current: ${currentQty} → will increase` :
-    mode === 'remove' ? `Current: ${currentQty} → will decrease (min 0)` :
-                        `Current: ${currentQty} → will be replaced`;
+    mode === 'add'    ? `${t('adjust.current')}: ${currentQty} ${t('adjust.hintAdd')}` :
+    mode === 'remove' ? `${t('adjust.current')}: ${currentQty} ${t('adjust.hintRemove')}` :
+                        `${t('adjust.current')}: ${currentQty} ${t('adjust.hintSet')}`;
 
   return (
     <form action={dispatch} className="flex flex-col h-full">
@@ -86,7 +95,7 @@ function AdjustContent({
           <div className="rounded-xl bg-muted/40 border border-border px-4 py-3.5 flex items-center justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Current Stock
+                {t('adjust.currentStock')}
               </p>
               <p className="text-2xl font-bold text-foreground tabular-nums mt-0.5">{currentQty}</p>
             </div>
@@ -98,7 +107,7 @@ function AdjustContent({
 
           {/* Mode selector */}
           <div>
-            <p className="text-sm font-semibold text-foreground mb-2">Adjustment type</p>
+            <p className="text-sm font-semibold text-foreground mb-2">{t('adjust.adjustmentType')}</p>
             <div className="grid grid-cols-3 gap-2">
               {MODES.map(m => (
                 <button
@@ -113,7 +122,7 @@ function AdjustContent({
                   )}
                 >
                   <span className={cn(mode === m.value ? 'text-primary' : m.color)}>{m.icon}</span>
-                  {m.label}
+                  {modeLabels[m.value]}
                 </button>
               ))}
             </div>
@@ -121,7 +130,7 @@ function AdjustContent({
 
           {/* Quantity input */}
           <Input
-            label={mode === 'set' ? 'New quantity' : 'Quantity'}
+            label={mode === 'set' ? t('adjust.quantityNew') : t('adjust.quantity')}
             name="quantity"
             type="number"
             min="1"
@@ -134,11 +143,11 @@ function AdjustContent({
           {/* Notes */}
           <div>
             <label className="text-sm font-semibold text-foreground block mb-1.5">
-              Notes <span className="text-muted-foreground font-normal">(optional)</span>
+              {t('adjust.notes')} <span className="text-muted-foreground font-normal">{t('adjust.notesOptional')}</span>
             </label>
             <textarea
               name="notes"
-              placeholder="Reason for adjustment…"
+              placeholder={t('adjust.notesPlaceholder')}
               rows={3}
               className="flex w-full rounded-md border border-input bg-background px-3.5 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 transition-colors resize-none"
             />
@@ -148,10 +157,10 @@ function AdjustContent({
 
       <div className="shrink-0 flex items-center justify-end gap-2 px-5 py-4 border-t border-border">
         <Button variant="secondary" size="sm" type="button" onClick={onClose}>
-          Cancel
+          {t('adjust.cancel')}
         </Button>
         <Button size="sm" type="submit" disabled={isPending}>
-          {isPending ? 'Saving…' : 'Apply'}
+          {isPending ? t('adjust.saving') : t('adjust.apply')}
         </Button>
       </div>
     </form>

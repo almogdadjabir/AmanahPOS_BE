@@ -1,12 +1,14 @@
 import EmptyState from '@/components/ds/EmptyState';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { getTranslations } from 'next-intl/server';
 import type { AdminPlan } from './types';
 import { CreditCard, Users as UsersIcon, Store, Clock } from 'lucide-react';
 
 type Props = { plans: AdminPlan[] };
 
-export default function AdminSubscriptionPlans({ plans }: Props) {
+export default async function AdminSubscriptionPlans({ plans }: Props) {
+  const t = await getTranslations('dashboard');
   return (
     <div className="bg-card rounded-xl border border-border shadow-card overflow-hidden">
       {/* Header */}
@@ -16,20 +18,20 @@ export default function AdminSubscriptionPlans({ plans }: Props) {
             <CreditCard />
           </span>
           <div>
-            <p className="text-sm font-bold text-foreground">Subscription Plans</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">Plans available on the platform</p>
+            <p className="text-sm font-bold text-foreground">{t('plans.title')}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">{t('plans.sub')}</p>
           </div>
         </div>
         <Badge variant={plans.length > 0 ? 'success' : 'default'} dot>
-          {plans.length} {plans.length === 1 ? 'plan' : 'plans'}
+          {plans.length}
         </Badge>
       </div>
 
       {plans.length === 0 ? (
         <EmptyState
           icon={<CreditCard />}
-          title="No plans configured"
-          description="Add subscription plans from the Django admin panel."
+          title={t('plans.empty.title')}
+          description={t('plans.empty.desc')}
         />
       ) : (
         <div className="divide-y divide-border/60">
@@ -40,10 +42,11 @@ export default function AdminSubscriptionPlans({ plans }: Props) {
   );
 }
 
-function PlanRow({ plan }: { plan: AdminPlan }) {
+async function PlanRow({ plan }: { plan: AdminPlan }) {
+  const t = await getTranslations('dashboard');
   const price    = Number.parseFloat(plan.price);
   const isFree   = price === 0 || plan.is_free;
-  const priceStr = isFree ? 'Free' : `${price} ${plan.currency}`;
+  const priceStr = isFree ? t('plans.free') : `${price} ${plan.currency}`;
 
   return (
     <div className="px-5 py-3.5 flex items-center gap-4 hover:bg-muted/30 transition-colors">
@@ -51,8 +54,8 @@ function PlanRow({ plan }: { plan: AdminPlan }) {
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
           <p className="text-[13px] font-bold text-foreground">{plan.name}</p>
-          {isFree      && <Badge variant="info"    className="text-[10px]">Free</Badge>}
-          {!plan.is_active && <Badge variant="danger"  className="text-[10px]">Inactive</Badge>}
+          {isFree          && <Badge variant="info"   className="text-[10px]">{t('plans.free')}</Badge>}
+          {!plan.is_active && <Badge variant="danger" className="text-[10px]">{t('plans.inactive')}</Badge>}
         </div>
         {plan.description && (
           <p className="text-[11px] text-muted-foreground truncate max-w-xs">{plan.description}</p>

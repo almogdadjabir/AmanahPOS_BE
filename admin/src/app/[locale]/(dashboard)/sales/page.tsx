@@ -1,4 +1,5 @@
 import { Suspense, cache } from 'react';
+import { getTranslations } from 'next-intl/server';
 import { apiGet } from '@/lib/api';
 import { withUserCache } from '@/lib/serverCache';
 import { CACHE_TAGS } from '@/lib/cacheTags';
@@ -117,13 +118,16 @@ export default async function SalesPage({
 }: {
   searchParams: Promise<{ shop_id?: string }>;
 }) {
-  const params       = await searchParams;
+  const [t, params] = await Promise.all([
+    getTranslations('sales'),
+    searchParams,
+  ]);
   const selectedShop = params.shop_id;
 
   const bizRes = await fetchBusiness();
   const shops  = bizRes?.data?.[0]?.shops ?? [];
 
-  const todayDate = new Date().toLocaleDateString('en-US', {
+  const todayDate = new Date().toLocaleDateString(undefined, {
     weekday: 'long', month: 'long', day: 'numeric',
   });
 
@@ -134,7 +138,7 @@ export default async function SalesPage({
       <div>
         <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
           <div>
-            <h1 className="text-[22px] font-black text-text-primary tracking-tight leading-tight">Sales</h1>
+            <h1 className="text-[22px] font-black text-text-primary tracking-tight leading-tight">{t('title')}</h1>
             <p className="text-[13px] text-text-hint mt-0.5">{todayDate}</p>
           </div>
         </div>
@@ -178,6 +182,7 @@ export default async function SalesPage({
 // ── Section: KPI cards (today + month + bankak) ───────────────────────────────
 
 async function SalesSummarySection({ shopId }: { shopId?: string }) {
+  const t = await getTranslations('sales');
   const today   = toISO(new Date());
   const weekAgo = daysAgo(6);
   const month   = firstOfMonth();
@@ -201,7 +206,7 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
 
       {/* Today */}
       <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[10px] font-black tracking-[.18em] uppercase text-text-hint mb-3">Today</p>
+        <p className="text-[10px] font-black tracking-[.18em] uppercase text-text-hint mb-3">{t('today')}</p>
         <p className="text-[32px] font-black text-text-primary leading-none tabular-nums">
           {fmtMoney(parseFloat(todayData?.total_revenue ?? '0'))}
           <span className="text-[14px] font-semibold text-text-hint ml-1.5">SDG</span>
@@ -218,7 +223,7 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
 
       {/* This month */}
       <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[10px] font-black tracking-[.18em] uppercase text-text-hint mb-3">This Month</p>
+        <p className="text-[10px] font-black tracking-[.18em] uppercase text-text-hint mb-3">{t('thisMonth')}</p>
         <p className="text-[32px] font-black text-text-primary leading-none tabular-nums">
           {fmtMoney(parseFloat(monthData?.total_revenue ?? '0'))}
           <span className="text-[14px] font-semibold text-text-hint ml-1.5">SDG</span>
@@ -233,9 +238,9 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
       <div className="relative overflow-hidden bg-white rounded-2xl border border-success/20 shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
         <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-success/5 -translate-y-6 translate-x-6 pointer-events-none" />
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-black tracking-[.18em] uppercase text-success">Bankak Balance</p>
+          <p className="text-[10px] font-black tracking-[.18em] uppercase text-success">{t('bankakBalance')}</p>
           <span className="text-[9px] font-bold tracking-wide text-success/70 bg-success/8 border border-success/15 px-2 py-0.5 rounded-full">
-            This week
+            {t('thisWeek')}
           </span>
         </div>
         <p className="text-[32px] font-black text-text-primary leading-none tabular-nums">
@@ -256,6 +261,7 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
 // ── Section: 7-day bar chart + payment breakdown ──────────────────────────────
 
 async function SalesChartSection({ shopId }: { shopId?: string }) {
+  const t = await getTranslations('sales');
   const today   = toISO(new Date());
   const weekAgo = daysAgo(6);
   // Cache hit — SalesSummarySection already seeded this; no new HTTP request.
@@ -287,17 +293,17 @@ async function SalesChartSection({ shopId }: { shopId?: string }) {
 
       <div className="lg:col-span-3 bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[13px] font-bold text-text-primary">7-day Revenue</p>
+          <p className="text-[13px] font-bold text-text-primary">{t('revenueTitle')}</p>
           <p className="text-[11px] text-text-hint">SDG</p>
         </div>
         <SalesBarChart data={chartData} />
       </div>
 
       <div className="lg:col-span-2 bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[13px] font-bold text-text-primary mb-5">By Method</p>
+        <p className="text-[13px] font-bold text-text-primary mb-5">{t('byMethod')}</p>
 
         {pmGroups.length === 0 ? (
-          <p className="text-[12px] text-text-hint">No data yet</p>
+          <p className="text-[12px] text-text-hint">{t('noData')}</p>
         ) : (
           <>
             <div className="flex h-2 rounded-full overflow-hidden mb-5 gap-px">
@@ -337,26 +343,27 @@ async function SalesChartSection({ shopId }: { shopId?: string }) {
 // ── Section: recent transactions ──────────────────────────────────────────────
 
 async function SalesRecentSection({ shopId }: { shopId?: string }) {
+  const t = await getTranslations('sales');
   const recentRes = await _recentSales(shopId);
   const recent = recentRes?.results ?? [];
 
   return (
     <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] overflow-hidden">
       <div className="flex items-center justify-between px-5 py-4 border-b border-border-soft">
-        <p className="text-[13px] font-bold text-text-primary">Recent Transactions</p>
-        <span className="text-[11px] text-text-hint">{recent.length} shown</span>
+        <p className="text-[13px] font-bold text-text-primary">{t('recentTitle')}</p>
+        <span className="text-[11px] text-text-hint">{recent.length} {t('noData')}</span>
       </div>
 
       {recent.length === 0 ? (
         <div className="px-5 py-12 text-center">
-          <p className="text-[13px] text-text-hint">No transactions yet</p>
+          <p className="text-[13px] text-text-hint">{t('noTransactions')}</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border-soft">
-                {['Receipt', 'Cashier', 'Method', 'Status', 'Items', 'Amount', 'Date'].map(h => (
+                {[t('columns.receipt'), t('columns.cashier'), t('columns.method'), t('columns.status'), t('columns.items'), t('columns.amount'), t('columns.date')].map(h => (
                   <th key={h} className="text-start px-4 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-text-hint last:text-end whitespace-nowrap">
                     {h}
                   </th>
@@ -413,6 +420,7 @@ async function SalesRecentSection({ shopId }: { shopId?: string }) {
 // Hides automatically when a single shop is selected (breakdown.length <= 1).
 
 async function SalesByShopSection({ shopId }: { shopId?: string }) {
+  const t = await getTranslations('sales');
   const today = toISO(new Date());
   // Cache hit — SalesSummarySection already seeded this; no new HTTP request.
   const res = await _monthSummary(firstOfMonth(), today, shopId);
@@ -426,8 +434,8 @@ async function SalesByShopSection({ shopId }: { shopId?: string }) {
     <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="text-[13px] font-bold text-text-primary">Revenue by Shop</p>
-          <p className="text-[11px] text-text-hint mt-0.5">This month · SDG</p>
+          <p className="text-[13px] font-bold text-text-primary">{t('revenueByShop')}</p>
+          <p className="text-[11px] text-text-hint mt-0.5">{t('thisMonthSDG')}</p>
         </div>
         <span className="text-[10px] font-bold text-text-hint bg-surface-soft border border-border-soft px-2.5 py-1 rounded-full">
           {breakdown.length} shops

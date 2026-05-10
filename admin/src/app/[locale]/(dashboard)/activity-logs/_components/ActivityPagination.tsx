@@ -2,6 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function ActivityPagination({ count, currentPage, pageSize }: Props) {
+  const t = useTranslations('activityLog');
   const router       = useRouter();
   const pathname     = usePathname();
   const searchParams = useSearchParams();
@@ -32,7 +34,7 @@ export default function ActivityPagination({ count, currentPage, pageSize }: Pro
   return (
     <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-4">
       <p className="text-[12px] text-muted-foreground">
-        {start}–{end} of {count} events
+        {start}–{end} {t('eventsOf')} {count} {t('events')}
       </p>
 
       <div className="flex items-center gap-1">

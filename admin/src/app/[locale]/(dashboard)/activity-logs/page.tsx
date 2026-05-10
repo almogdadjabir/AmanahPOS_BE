@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { History } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import { fetchActivityLogs } from '@/services/admin';
 import type { ActivityAction, ActivityEntityType } from '@/types/api';
 import ActivityFeed       from './_components/ActivityFeed';
@@ -48,6 +49,7 @@ async function ActivityContent({ searchParams }: Props) {
 }
 
 export default async function ActivityLogsPage(props: Props) {
+  const t = await getTranslations('activityLog');
   return (
     <div>
       {/* Page header */}
@@ -57,10 +59,10 @@ export default async function ActivityLogsPage(props: Props) {
         </span>
         <div>
           <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
-            Activity Log
+            {t('title')}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            A record of every meaningful admin action on the platform.
+            {t('description')}
           </p>
         </div>
       </div>
