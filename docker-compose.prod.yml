@@ -8,6 +8,7 @@ x-app-common: &app-common
   volumes:
     - static_volume:/app/staticfiles
     - media_volume:/app/media
+    - ./amanapos-firebase-adminsdk-fbsvc-5ad506802f.json:/run/secrets/firebase_credentials.json:ro
   depends_on:
     redis:
       condition: service_healthy

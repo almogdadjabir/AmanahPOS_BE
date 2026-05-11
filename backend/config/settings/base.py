@@ -341,6 +341,16 @@ BUDGETSMS_USERID = env("BUDGETSMS_USERID", default="")
 BUDGETSMS_HANDLE = env("BUDGETSMS_HANDLE", default="")
 BUDGETSMS_SENDER_ID = env("BUDGETSMS_SENDER_ID", default="AmanaPOS")
 
+# ─── Firebase / Push Notifications ────────────────────────────────────────────
+# Set FIREBASE_ENABLED=True in production and supply exactly ONE of:
+#   FIREBASE_CREDENTIALS_PATH  — absolute path to service-account JSON file
+#   FIREBASE_SERVICE_ACCOUNT_JSON — the JSON content as a single-line string
+# Never commit the service-account file to git.
+FIREBASE_ENABLED                = env.bool("FIREBASE_ENABLED", default=False)
+FIREBASE_CREDENTIALS_PATH       = env("FIREBASE_CREDENTIALS_PATH", default="")
+FIREBASE_SERVICE_ACCOUNT_JSON   = env("FIREBASE_SERVICE_ACCOUNT_JSON", default="")
+FIREBASE_PROJECT_ID             = env("FIREBASE_PROJECT_ID", default="")
+
 # ─── Email ────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = env("EMAIL_HOST", default="smtp.gmail.com")

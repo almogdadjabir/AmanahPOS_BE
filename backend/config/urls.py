@@ -35,7 +35,8 @@ urlpatterns = [
         path("subscriptions/", include("apps.subscriptions.urls", namespace="subscriptions")),
         path("admin/",         include("apps.admin_panel.urls",   namespace="admin_panel")),
         path("admin/activity-logs/", include("apps.activity_logs.urls", namespace="activity_logs")),
-        path("offline/",       include("apps.offline.urls",        namespace="offline")),
+        path("offline/",        include("apps.offline.urls",         namespace="offline")),
+        path("notifications/",  include("apps.notifications.urls",   namespace="notifications")),
     ])),
 
     # ── API Docs ───────────────────────────────────────────────────────────────

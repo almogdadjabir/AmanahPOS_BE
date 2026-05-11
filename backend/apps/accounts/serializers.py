@@ -76,6 +76,37 @@ class LoginOTPSerializer(serializers.Serializer):
         return format_phone(value)
 
 
+class LoginOTPVerifySerializer(serializers.Serializer):
+    """
+    Serializer for OTP login verification.
+
+    Accepts optional fcm_token + platform so the mobile app can register
+    its push token in the same request instead of making a separate call.
+    """
+    phone    = serializers.CharField(max_length=20)
+    otp      = serializers.CharField(min_length=4, max_length=8)
+    fcm_token  = serializers.CharField(max_length=512, required=False, allow_blank=True, default="")
+    platform   = serializers.ChoiceField(
+        choices=["android", "ios", "web"],
+        required=False, allow_blank=True, default="",
+    )
+    device_id   = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")
+    app_version = serializers.CharField(max_length=50,  required=False, allow_blank=True, default="")
+
+    def validate_phone(self, value: str) -> str:
+        if not is_valid_phone(value):
+            raise serializers.ValidationError("Enter a valid phone number.")
+        return format_phone(value)
+
+    def validate(self, attrs):
+        # If a token is provided, platform is also required
+        if attrs.get("fcm_token") and not attrs.get("platform"):
+            raise serializers.ValidationError(
+                {"platform": "platform is required when fcm_token is provided."}
+            )
+        return attrs
+
+
 class LoginPasswordSerializer(serializers.Serializer):
     """Serializer for password-based login."""
     phone = serializers.CharField(max_length=20)

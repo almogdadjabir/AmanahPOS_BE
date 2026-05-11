@@ -17,6 +17,7 @@ from .serializers import (
     BankakAccountSerializer,
     BankakAccountWriteSerializer,
     LoginOTPSerializer,
+    LoginOTPVerifySerializer,
     LoginPasswordSerializer,
     OTPVerifySerializer,
     RegisterSerializer,
@@ -163,12 +164,31 @@ class LoginOTPVerifyView(APIView):
     throttle_classes = [OTPRateThrottle]
 
     def post(self, request):
-        serializer = OTPVerifySerializer(data=request.data)
+        serializer = LoginOTPVerifySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
         result = login_with_otp(phone=data["phone"], otp=data["otp"])
         user = result.pop("user")
+
+        # Opportunistically register FCM token if supplied — never blocks login
+        if data.get("fcm_token") and data.get("platform"):
+            try:
+                from django.utils import timezone
+                from apps.notifications.models import DeviceToken
+                DeviceToken.objects.update_or_create(
+                    token=data["fcm_token"],
+                    defaults={
+                        "user":        user,
+                        "platform":    data["platform"],
+                        "device_id":   data.get("device_id") or "",
+                        "app_version": data.get("app_version") or "",
+                        "is_active":   True,
+                        "last_seen_at": timezone.now(),
+                    },
+                )
+            except Exception:
+                logger.exception("Failed to register FCM token during login for user %s", user.id)
 
         return Response(
             {

@@ -180,10 +180,10 @@
                 ""
               ]
             },
-            "description": "Step 2: verify OTP → receive access + refresh tokens.",
+            "description": "Verify OTP to complete login. Optionally include fcm_token + platform to register the device push token in the same request.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"otp\": \"{{otp}}\"\n}",
+              "raw": "{\n  \"phone\": \"+249912776979\",\n  \"otp\": \"123456\",\n  \"_comment\": \"FCM fields below are optional \\u2014 include to register push token on login\",\n  \"fcm_token\": \"{{fcm_token}}\",\n  \"platform\": \"android\",\n  \"device_id\": \"optional-device-uuid\",\n  \"app_version\": \"1.0.0\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4061,6 +4061,286 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List In-App Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/notifications/?page=1&page_size=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                ""
+              ]
+            },
+            "description": "Returns the current user's notification history, newest first. Paginated."
+          },
+          "response": []
+        },
+        {
+          "name": "Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/notifications/unread-count/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "unread-count",
+                ""
+              ]
+            },
+            "description": "Returns the number of unread in-app notifications for the current user."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark One Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/notifications/{{notification_id}}/read/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "{{notification_id}}",
+                "read",
+                ""
+              ]
+            },
+            "description": "Marks a single notification as read. Returns 404 if it doesn't belong to the current user."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All Notifications Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/notifications/mark-all-read/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "mark-all-read",
+                ""
+              ]
+            },
+            "description": "Marks all unread notifications as read for the current user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register FCM Device Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/notifications/devices/register/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "devices",
+                "register",
+                ""
+              ]
+            },
+            "description": "Register or refresh an FCM token for the authenticated user. If the token already exists it is updated (no duplicate). platform: android | ios | web",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"fcm-token-from-firebase-sdk\",\n  \"platform\": \"android\",\n  \"device_id\": \"optional-device-uuid\",\n  \"app_version\": \"1.0.0\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unregister FCM Device Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/notifications/devices/unregister/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "devices",
+                "unregister",
+                ""
+              ]
+            },
+            "description": "Deactivate a push token on logout or explicit opt-out. Only deactivates tokens belonging to the current user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"fcm-token-to-deactivate\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List My Devices (debug)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/notifications/devices/",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "devices",
+                ""
+              ]
+            },
+            "description": "Lists the current user's registered device tokens. For debugging/admin purposes."
+          },
+          "response": []
+        }
+      ],
+      "description": "Push notification and in-app notification endpoints.\n\nFlow:\n1. Mobile app gets FCM token from Firebase SDK on startup.\n2. Register token via POST /devices/register/ (or pass fcm_token in login verify body).\n3. Backend queues push delivery through Celery — login/sale never block on FCM.\n4. App polls GET / on open to display missed notifications (offline-first)."
     }
   ]
 }
