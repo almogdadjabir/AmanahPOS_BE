@@ -1,9 +1,9 @@
-import { Users } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { Users } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import CreateOwnerButton from "./CreateOwnerButton";
 
 export default async function OwnersPageHeader() {
-  const t = await getTranslations('owners');
+  const t = await getTranslations("owners");
   return (
     <div className="flex items-start justify-between mb-6 gap-4">
       <div className="flex items-center gap-3">
@@ -12,10 +12,10 @@ export default async function OwnersPageHeader() {
         </span>
         <div>
           <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
-            {t('title')}
+            {t("title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {t('description')}
+            {t("description")}
           </p>
         </div>
       </div>

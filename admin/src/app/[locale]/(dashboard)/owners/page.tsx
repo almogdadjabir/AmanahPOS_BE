@@ -33,14 +33,25 @@ export default async function OwnersPage({ searchParams }: Props) {
       <div>
         <OwnersPageHeader />
 
-        <ErrorBoundary fallback={<SectionError message="Failed to load filters" />}>
-          <Suspense fallback={<div className="h-14 rounded-xl bg-muted animate-pulse mb-5" />}>
+        <ErrorBoundary
+          fallback={<SectionError message="Failed to load filters" />}
+        >
+          <Suspense
+            fallback={
+              <div className="h-14 rounded-xl bg-muted animate-pulse mb-5" />
+            }
+          >
             <OwnersControls />
           </Suspense>
         </ErrorBoundary>
 
-        <ErrorBoundary fallback={<SectionError message="Failed to load owners" />}>
-          <Suspense key={tableKey} fallback={<TableSkeleton rows={8} cols={7} />}>
+        <ErrorBoundary
+          fallback={<SectionError message="Failed to load owners" />}
+        >
+          <Suspense
+            key={tableKey}
+            fallback={<TableSkeleton rows={8} cols={7} />}
+          >
             <OwnersTable
               search={params.search}
               status={params.status}

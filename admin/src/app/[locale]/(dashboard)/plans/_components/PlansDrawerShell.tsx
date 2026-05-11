@@ -1,40 +1,72 @@
-'use client';
+"use client";
 
-import { useActionState, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { PlanDrawerContext } from './PlanDrawerContext';
-import Drawer from '@/components/ds/Drawer';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import ConfirmDialog from '@/components/ds/ConfirmDialog';
-import { Skeleton } from '@/components/ui/skeleton';
-import FeaturesEditor from './FeaturesEditor';
+import { useActionState, useEffect, useMemo, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import {
+  Calendar,
+  Clock,
+  DollarSign,
+  Edit2,
+  Hash,
+  Info,
+  Package,
+  ShoppingBag,
+  Sparkles,
+  Store,
+  ToggleLeft,
+  ToggleRight,
+  Users,
+} from "lucide-react";
+
+import { PlanDrawerContext } from "./PlanDrawerContext";
+import Drawer from "@/components/ds/Drawer";
+import ConfirmDialog from "@/components/ds/ConfirmDialog";
+import FeaturesEditor from "./FeaturesEditor";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
 import {
   createPlanAction,
   fetchPlanDetailAction,
-  updatePlanAction,
   togglePlanActiveAction,
+  updatePlanAction,
   type CreatePlanState,
-  type UpdatePlanState,
   type PlanDetailResult,
-} from '@/actions/plans';
-import type { AdminPlan } from '@/types/api';
-import { cn } from '@/lib/utils';
-import {
-  Package, Edit2, ToggleLeft, ToggleRight, Info,
-  Store, ShoppingBag, Users, Clock, Hash, Calendar,
-  DollarSign,
-} from 'lucide-react';
+  type UpdatePlanState,
+} from "@/actions/plans";
 
-export default function PlansDrawerShell({ children }: { children: React.ReactNode }) {
+import type { AdminPlan } from "@/types/api";
+import { cn } from "@/lib/utils";
+
+export default function PlansDrawerShell({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const t = useTranslations("plansDrawer");
   const router = useRouter();
-  const [viewId,     setViewId]     = useState<string | null>(null);
+
+  const [viewId, setViewId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
-  function openView(id: string)  { setViewId(id); }
-  function openCreate()          { setCreateOpen(true); }
-  function closeCreate()         { setCreateOpen(false); }
-  function closeView()           { setViewId(null); }
+  function openView(id: string) {
+    setViewId(id);
+  }
+
+  function openCreate() {
+    setCreateOpen(true);
+  }
+
+  function closeCreate() {
+    setCreateOpen(false);
+  }
+
+  function closeView() {
+    setViewId(null);
+  }
 
   function handleCreateSuccess(id: string) {
     setCreateOpen(false);
@@ -49,19 +81,27 @@ export default function PlansDrawerShell({ children }: { children: React.ReactNo
       <Drawer
         open={createOpen}
         onClose={closeCreate}
-        title="New Plan"
-        subtitle="Create a paid subscription plan"
-        width={480}
+        title={t("create.title")}
+        subtitle={t("create.subtitle")}
+        width={500}
       >
-        <CreatePlanContent onSuccess={handleCreateSuccess} onClose={closeCreate} />
+        <CreatePlanContent
+          onSuccess={handleCreateSuccess}
+          onClose={closeCreate}
+        />
       </Drawer>
 
-      <Drawer open={!!viewId} onClose={closeView} title="Plan Details" width={560}>
+      <Drawer
+        open={!!viewId}
+        onClose={closeView}
+        title={t("details.title")}
+        width={580}
+      >
         {viewId && (
           <PlanDetailContent
             planId={viewId}
             onClose={closeView}
-            onMutate={() => { router.refresh(); }}
+            onMutate={() => router.refresh()}
           />
         )}
       </Drawer>
@@ -76,109 +116,198 @@ function CreatePlanContent({
   onClose,
 }: {
   onSuccess: (id: string) => void;
-  onClose:   () => void;
+  onClose: () => void;
 }) {
-  const [state, dispatch, isPending] = useActionState<CreatePlanState, FormData>(
-    createPlanAction, null,
-  );
+  const t = useTranslations("plansDrawer");
+
+  const [state, dispatch, isPending] = useActionState<
+    CreatePlanState,
+    FormData
+  >(createPlanAction, null);
 
   useEffect(() => {
-    if (state && 'success' in state && state.success) onSuccess(state.plan_id);
+    if (state && "success" in state && state.success) {
+      onSuccess(state.plan_id);
+    }
   }, [state, onSuccess]);
 
-  const error = state && 'error' in state ? state.error : null;
+  const error = state && "error" in state ? state.error : null;
 
   return (
     <div className="p-5">
-      {error && (
-        <div className="mb-4 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3">
-          <p className="text-sm font-semibold text-destructive">{error}</p>
+      {error && <ErrorBox message={error} className="mb-4" />}
+
+      <form action={dispatch} className="space-y-5">
+        <div className="rounded-2xl border border-border bg-muted/20 p-4">
+          <div className="mb-4 flex items-start gap-3">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success">
+              <Package size={17} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-foreground">
+                {t("create.sections.basic")}
+              </p>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                {t("create.sections.basicHint")}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <FormField label={t("fields.name")} required>
+              <input
+                name="name"
+                type="text"
+                placeholder={t("placeholders.name")}
+                required
+                className={inputCls}
+              />
+            </FormField>
+
+            <FormField
+              label={t("fields.description")}
+              hint={t("hints.description")}
+            >
+              <textarea
+                name="description"
+                rows={3}
+                placeholder={t("placeholders.description")}
+                className={cn(inputCls, "resize-none leading-relaxed")}
+              />
+            </FormField>
+          </div>
         </div>
-      )}
 
-      <form action={dispatch} className="space-y-4">
-        <FormField label="Plan name" required>
-          <input
-            name="name"
-            type="text"
-            placeholder="e.g. Starter, Professional, Enterprise"
-            required
-            className={inputCls}
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <SectionTitle
+            icon={<DollarSign size={15} />}
+            title={t("create.sections.pricing")}
+            subtitle={t("create.sections.pricingHint")}
           />
-        </FormField>
 
-        <FormField label="Description" hint="Shown to owners when selecting a plan.">
-          <textarea
-            name="description"
-            rows={2}
-            placeholder="Brief description of what's included…"
-            className={cn(inputCls, 'resize-none')}
-          />
-        </FormField>
-
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label="Price" required hint="Amount in the selected currency.">
-            <input
-              name="price"
-              type="number"
-              min="0.01"
-              step="0.01"
-              placeholder="0.00"
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <FormField
+              label={t("fields.price")}
               required
-              className={inputCls}
-            />
-          </FormField>
+              hint={t("hints.price")}
+            >
+              <input
+                name="price"
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="0.00"
+                required
+                className={inputCls}
+              />
+            </FormField>
 
-          <FormField label="Currency">
-            <select name="currency" defaultValue="SDG" className={inputCls}>
-              <option value="SDG">SDG — Sudanese Pound</option>
-            </select>
-          </FormField>
+            <FormField label={t("fields.currency")}>
+              <select name="currency" defaultValue="SDG" className={inputCls}>
+                <option value="SDG">{t("currency.sdg")}</option>
+              </select>
+            </FormField>
+          </div>
+
+          <div className="mt-3">
+            <FormField
+              label={t("fields.durationDays")}
+              hint={t("hints.durationDays")}
+            >
+              <input
+                name="duration_days"
+                type="number"
+                min="1"
+                placeholder={t("placeholders.durationDays")}
+                className={inputCls}
+              />
+            </FormField>
+          </div>
         </div>
 
-        <FormField label="Duration (days)" hint="How many days the plan grants access for.">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <SectionTitle
+            icon={<Store size={15} />}
+            title={t("create.sections.limits")}
+            subtitle={t("create.sections.limitsHint")}
+          />
+
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <FormField label={t("fields.maxShops")}>
+              <input
+                name="max_shops"
+                type="number"
+                min="0"
+                placeholder="0"
+                className={inputCls}
+              />
+            </FormField>
+
+            <FormField label={t("fields.maxProducts")}>
+              <input
+                name="max_products"
+                type="number"
+                min="0"
+                placeholder="0"
+                className={inputCls}
+              />
+            </FormField>
+
+            <FormField label={t("fields.maxUsers")}>
+              <input
+                name="max_users"
+                type="number"
+                min="0"
+                placeholder="0"
+                className={inputCls}
+              />
+            </FormField>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <SectionTitle
+            icon={<Sparkles size={15} />}
+            title={t("fields.features")}
+            subtitle={t("hints.features")}
+          />
+
+          <div className="mt-4">
+            <FeaturesEditor name="features" />
+          </div>
+        </div>
+
+        <FormField label={t("fields.sortOrder")} hint={t("hints.sortOrder")}>
           <input
-            name="duration_days"
+            name="sort_order"
             type="number"
-            min="1"
-            placeholder="e.g. 30, 90, 365"
+            min="0"
+            placeholder="0"
             className={inputCls}
           />
         </FormField>
 
-        <div className="grid grid-cols-3 gap-3">
-          <FormField label="Max shops">
-            <input name="max_shops"    type="number" min="0" placeholder="0" className={inputCls} />
-          </FormField>
-          <FormField label="Max products">
-            <input name="max_products" type="number" min="0" placeholder="0" className={inputCls} />
-          </FormField>
-          <FormField label="Max users">
-            <input name="max_users"    type="number" min="0" placeholder="0" className={inputCls} />
-          </FormField>
-        </div>
-
-        <div className="space-y-1">
-          <label className="block text-xs font-semibold text-foreground">Features</label>
-          <FeaturesEditor name="features" />
-        </div>
-
-        <FormField label="Sort order" hint="Lower numbers appear first.">
-          <input name="sort_order" type="number" min="0" placeholder="0" className={inputCls} />
-        </FormField>
-
-        <div className="flex items-start gap-3 rounded-lg border border-success/20 bg-success/5 px-4 py-3">
-          <Info size={15} className="shrink-0 mt-0.5 text-success" />
-          <p className="text-xs text-success/80 leading-relaxed">
-            All plans created here are <strong>paid plans</strong>. Demo access is managed separately
-            and cannot be created from this interface.
+        <div className="flex items-start gap-3 rounded-xl border border-success/20 bg-success/5 px-4 py-3">
+          <Info size={16} className="mt-0.5 shrink-0 text-success" />
+          <p className="text-xs leading-relaxed text-success/80">
+            {t.rich("create.paidNotice", {
+              strong: (chunks) => <strong>{chunks}</strong>,
+            })}
           </p>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-border">
-          <Button variant="secondary" size="sm" type="button" onClick={onClose}>Cancel</Button>
-          <Button variant="default" size="sm" type="submit" disabled={isPending}>
-            {isPending ? 'Creating…' : 'Create Plan'}
+        <div className="sticky bottom-0 -mx-5 -mb-5 flex justify-end gap-2 border-t border-border bg-background/95 px-5 py-4 backdrop-blur">
+          <Button variant="secondary" size="sm" type="button" onClick={onClose}>
+            {t("actions.cancel")}
+          </Button>
+
+          <Button
+            variant="default"
+            size="sm"
+            type="submit"
+            disabled={isPending}
+          >
+            {isPending ? t("actions.creating") : t("actions.createPlan")}
           </Button>
         </div>
       </form>
@@ -193,133 +322,219 @@ function PlanDetailContent({
   onClose: _onClose,
   onMutate,
 }: {
-  planId:   string;
-  onClose:  () => void;
+  planId: string;
+  onClose: () => void;
   onMutate: () => void;
 }) {
-  const [plan,     setPlan]    = useState<AdminPlan | null>(null);
-  const [loading,  setLoading] = useState(true);
-  const [errorMsg, setError]   = useState<string | null>(null);
+  const t = useTranslations("plansDrawer");
+  const locale = useLocale();
+
+  const [plan, setPlan] = useState<AdminPlan | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
     setError(null);
+
     const result: PlanDetailResult = await fetchPlanDetailAction(planId);
-    if (result.ok) setPlan(result.data);
-    else           setError(result.error);
+
+    if (result.ok) {
+      setPlan(result.data);
+    } else {
+      setError(result.error);
+    }
+
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, [planId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planId]);
 
   if (loading) return <DetailSkeleton />;
 
   if (errorMsg || !plan) {
     return (
       <div className="p-5">
-        <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-8 text-center">
-          <p className="text-sm font-semibold text-destructive">Failed to load plan</p>
-          {errorMsg && <p className="text-xs font-mono text-destructive/80 mt-1 break-all">{errorMsg}</p>}
-          <button onClick={load} className="mt-3 text-xs font-semibold text-primary hover:underline">
-            Retry
+        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-8 text-center">
+          <p className="text-sm font-semibold text-destructive">
+            {t("details.loadFailed")}
+          </p>
+
+          {errorMsg && (
+            <p className="mt-2 break-all font-mono text-xs text-destructive/80">
+              {errorMsg}
+            </p>
+          )}
+
+          <button
+            type="button"
+            onClick={load}
+            className="mt-4 text-xs font-semibold text-primary hover:underline"
+          >
+            {t("actions.retry")}
           </button>
         </div>
       </div>
     );
   }
 
-  const created = new Date(plan.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  const updated = new Date(plan.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const created = formatDate(plan.created_at, locale);
+  const updated = formatDate(plan.updated_at, locale);
+  const price = formatMoney(plan.price, plan.currency, locale);
 
-  function handleMutate() { load(); onMutate(); }
+  function handleMutate() {
+    load();
+    onMutate();
+  }
 
   return (
     <div>
-      {/* ── Banner ──────────────────────────────────────────────────────────── */}
       <div className="relative">
-        <div className={cn(
-          'h-[72px] bg-gradient-to-br',
-          plan.is_active
-            ? 'from-success/20 via-success/5 to-transparent'
-            : 'from-muted/60 via-muted/20 to-transparent',
-        )} />
+        <div
+          className={cn(
+            "h-[88px] bg-gradient-to-br",
+            plan.is_active
+              ? "from-success/25 via-success/5 to-transparent"
+              : "from-muted/80 via-muted/20 to-transparent",
+          )}
+        />
 
-        <div className="px-5 -mt-9 flex items-end gap-4 pb-4 border-b border-border">
-          <div className="shrink-0">
-            <div className={cn(
-              'rounded-xl ring-4 ring-card overflow-hidden w-16 h-16 flex items-center justify-center',
-              plan.is_active ? 'bg-success/10' : 'bg-muted',
-            )}>
-              <Package size={28} className={plan.is_active ? 'text-success' : 'text-muted-foreground'} />
+        <div className="border-b border-border px-5 pb-4">
+          <div className="-mt-11 flex items-end gap-4">
+            <div
+              className={cn(
+                "flex size-20 shrink-0 items-center justify-center rounded-2xl ring-4 ring-card",
+                plan.is_active ? "bg-success/10" : "bg-muted",
+              )}
+            >
+              <Package
+                size={34}
+                className={
+                  plan.is_active ? "text-success" : "text-muted-foreground"
+                }
+              />
             </div>
-          </div>
 
-          <div className="min-w-0 flex-1 pb-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-[17px] font-bold text-foreground leading-tight truncate">
-                {plan.name}
+            <div className="min-w-0 flex-1 pb-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="truncate text-[19px] font-black leading-tight text-foreground">
+                  {plan.name}
+                </p>
+
+                <Badge dot variant={plan.is_active ? "success" : "warning"}>
+                  {plan.is_active ? t("status.active") : t("status.inactive")}
+                </Badge>
+
+                {plan.is_free && (
+                  <Badge variant="info">{t("status.demo")}</Badge>
+                )}
+              </div>
+
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("details.activeSubscriptions", {
+                  count: plan.subscription_count,
+                })}
               </p>
-              <Badge dot variant={plan.is_active ? 'success' : 'warning'}>
-                {plan.is_active ? 'Active' : 'Inactive'}
-              </Badge>
-              {plan.is_free && <Badge variant="info">Demo</Badge>}
             </div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              {plan.subscription_count} active subscription{plan.subscription_count !== 1 ? 's' : ''}
-            </p>
           </div>
         </div>
       </div>
 
-      {/* ── Meta ────────────────────────────────────────────────────────────── */}
-      <div className="px-5 py-3 border-b border-border/60 bg-muted/20 space-y-1">
-        <MetaRow icon={<DollarSign size={10} />} label="Price"    value={`${parseFloat(plan.price).toFixed(2)} ${plan.currency}`} />
-        <MetaRow icon={<Clock      size={10} />} label="Duration" value={`${plan.duration_days} days`} />
-        <MetaRow icon={<Hash       size={10} />} label="Order"    value={`${plan.sort_order}`} />
-        <MetaRow icon={<Calendar   size={10} />} label="Created"  value={created} />
-        <MetaRow icon={<Calendar   size={10} />} label="Updated"  value={updated} />
-        {plan.description && (
-          <MetaRow icon={<Info size={10} />} label="Notes" value={plan.description} />
-        )}
-      </div>
+      <div className="border-b border-border/60 bg-muted/20 px-5 py-4">
+        <div className="grid grid-cols-1 gap-2">
+          <MetaRow
+            icon={<DollarSign size={11} />}
+            label={t("fields.price")}
+            value={price}
+          />
+          <MetaRow
+            icon={<Clock size={11} />}
+            label={t("fields.duration")}
+            value={t("details.days", { count: plan.duration_days })}
+          />
+          <MetaRow
+            icon={<Hash size={11} />}
+            label={t("fields.sortOrderShort")}
+            value={`${plan.sort_order}`}
+          />
+          <MetaRow
+            icon={<Calendar size={11} />}
+            label={t("fields.created")}
+            value={created}
+          />
+          <MetaRow
+            icon={<Calendar size={11} />}
+            label={t("fields.updated")}
+            value={updated}
+          />
 
-      {/* ── Stats strip ─────────────────────────────────────────────────────── */}
-      <div className="px-5 py-4 border-b border-border">
-        <div className="grid grid-cols-3 gap-2">
-          <StatBox label="Subscriptions" value={`${plan.subscription_count}`} color="text-success"  bg="bg-success/10" />
-          <StatBox label="Max Shops"     value={`${plan.max_shops}`}          color="text-info"     bg="bg-info/10" />
-          <StatBox label="Max Users"     value={`${plan.max_users}`}          color="text-primary"  bg="bg-primary/10" />
+          {plan.description && (
+            <MetaRow
+              icon={<Info size={11} />}
+              label={t("fields.notes")}
+              value={plan.description}
+            />
+          )}
         </div>
       </div>
 
-      {/* ── Limits ──────────────────────────────────────────────────────────── */}
-      <div className="px-5 py-4 border-b border-border">
-        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.08em] mb-3">
-          Plan Limits
-        </p>
-        <div className="grid grid-cols-3 gap-3">
-          <LimitItem icon={<Store        size={13} />} label="Shops"    value={plan.max_shops} />
-          <LimitItem icon={<ShoppingBag  size={13} />} label="Products" value={plan.max_products} />
-          <LimitItem icon={<Users        size={13} />} label="Users"    value={plan.max_users} />
+      <div className="border-b border-border px-5 py-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <StatBox
+            label={t("stats.subscriptions")}
+            value={`${plan.subscription_count}`}
+            color="text-success"
+            bg="bg-success/10"
+          />
+          <StatBox
+            label={t("stats.maxShops")}
+            value={`${plan.max_shops}`}
+            color="text-info"
+            bg="bg-info/10"
+          />
+          <StatBox
+            label={t("stats.maxUsers")}
+            value={`${plan.max_users}`}
+            color="text-primary"
+            bg="bg-primary/10"
+          />
         </div>
-        {Object.keys(plan.features).length > 0 && (
-          <div className="mt-3 rounded-lg border border-border bg-muted/20 px-3 py-2">
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.07em] mb-1">Features</p>
-            <pre className="text-[11px] font-mono text-foreground overflow-x-auto">
-              {JSON.stringify(plan.features, null, 2)}
-            </pre>
-          </div>
-        )}
       </div>
 
-      {/* ── Actions ─────────────────────────────────────────────────────────── */}
-      <div className="px-5 py-4 space-y-2">
-        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.08em] mb-3">
-          Actions
-        </p>
+      <div className="border-b border-border px-5 py-4">
+        <SectionHeader>{t("details.planLimits")}</SectionHeader>
 
-        <EditPlanInline plan={plan} onSuccess={handleMutate} />
-        <TogglePlanInline plan={plan} onSuccess={handleMutate} />
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <LimitItem
+            icon={<Store size={14} />}
+            label={t("limits.shops")}
+            value={plan.max_shops}
+          />
+          <LimitItem
+            icon={<ShoppingBag size={14} />}
+            label={t("limits.products")}
+            value={plan.max_products}
+          />
+          <LimitItem
+            icon={<Users size={14} />}
+            label={t("limits.users")}
+            value={plan.max_users}
+          />
+        </div>
+
+        <FeaturePreview features={plan.features} />
+      </div>
+
+      <div className="px-5 py-4">
+        <SectionHeader>{t("details.actions")}</SectionHeader>
+
+        <div className="mt-3 space-y-2">
+          <EditPlanInline plan={plan} onSuccess={handleMutate} />
+          <TogglePlanInline plan={plan} onSuccess={handleMutate} />
+        </div>
       </div>
     </div>
   );
@@ -331,106 +546,165 @@ function EditPlanInline({
   plan,
   onSuccess,
 }: {
-  plan:      AdminPlan;
+  plan: AdminPlan;
   onSuccess: () => void;
 }) {
+  const t = useTranslations("plansDrawer");
+
   const [open, setOpen] = useState(false);
 
   const action = updatePlanAction.bind(null, plan.id);
-  const [state, dispatch, isPending] = useActionState<UpdatePlanState, FormData>(action, null);
+  const [state, dispatch, isPending] = useActionState<
+    UpdatePlanState,
+    FormData
+  >(action, null);
 
   useEffect(() => {
-    if (state && 'success' in state && state.success) {
+    if (state && "success" in state && state.success) {
       setOpen(false);
       onSuccess();
     }
   }, [state, onSuccess]);
 
-  const error = state && 'error' in state ? state.error : null;
+  const error = state && "error" in state ? state.error : null;
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 rounded-xl border border-border bg-card hover:bg-muted/40 px-4 py-3 transition-colors text-left"
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-start transition-colors hover:bg-muted/40"
       >
-        <span className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
-          <Edit2 size={13} className="text-success" />
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-success/10">
+          <Edit2 size={14} className="text-success" />
         </span>
-        <div>
-          <p className="text-[13px] font-semibold text-foreground">Edit Plan</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">Update name, price, limits, and features</p>
-        </div>
+
+        <span className="min-w-0 flex-1">
+          <span className="block text-[13px] font-bold text-foreground">
+            {t("edit.title")}
+          </span>
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            {t("edit.subtitle")}
+          </span>
+        </span>
       </button>
 
       {open && (
-        <div className="rounded-xl border border-border bg-muted/20 p-4 mt-1">
-          {error && (
-            <div className="mb-3 rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2">
-              <p className="text-xs font-semibold text-destructive">{error}</p>
-            </div>
-          )}
-          <form action={dispatch} className="space-y-3">
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">Plan name <span className="text-destructive">*</span></label>
-              <input name="name" type="text" defaultValue={plan.name} required className={inputCls} />
-            </div>
+        <div className="mt-2 rounded-2xl border border-border bg-muted/20 p-4">
+          {error && <ErrorBox message={error} className="mb-3" />}
 
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">Description</label>
-              <textarea name="description" rows={2} defaultValue={plan.description} className={cn(inputCls, 'resize-none')} />
-            </div>
+          <form action={dispatch} className="space-y-4">
+            <FormField label={t("fields.name")} required>
+              <input
+                name="name"
+                type="text"
+                defaultValue={plan.name}
+                required
+                className={inputCls}
+              />
+            </FormField>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">Price <span className="text-destructive">*</span></label>
-                <input name="price" type="number" min="0.01" step="0.01" defaultValue={plan.price} required className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">Currency</label>
-                <select name="currency" defaultValue={plan.currency} className={inputCls}>
-                  <option value="SDG">SDG — Sudanese Pound</option>
+            <FormField label={t("fields.description")}>
+              <textarea
+                name="description"
+                rows={3}
+                defaultValue={plan.description}
+                className={cn(inputCls, "resize-none leading-relaxed")}
+              />
+            </FormField>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <FormField label={t("fields.price")} required>
+                <input
+                  name="price"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  defaultValue={plan.price}
+                  required
+                  className={inputCls}
+                />
+              </FormField>
+
+              <FormField label={t("fields.currency")}>
+                <select
+                  name="currency"
+                  defaultValue={plan.currency}
+                  className={inputCls}
+                >
+                  <option value="SDG">{t("currency.sdg")}</option>
                 </select>
-              </div>
+              </FormField>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">Duration (days)</label>
-              <input name="duration_days" type="number" min="1" defaultValue={plan.duration_days} className={inputCls} />
+            <FormField label={t("fields.durationDays")}>
+              <input
+                name="duration_days"
+                type="number"
+                min="1"
+                defaultValue={plan.duration_days}
+                className={inputCls}
+              />
+            </FormField>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <FormField label={t("fields.maxShops")}>
+                <input
+                  name="max_shops"
+                  type="number"
+                  min="0"
+                  defaultValue={plan.max_shops}
+                  className={inputCls}
+                />
+              </FormField>
+
+              <FormField label={t("fields.maxProducts")}>
+                <input
+                  name="max_products"
+                  type="number"
+                  min="0"
+                  defaultValue={plan.max_products}
+                  className={inputCls}
+                />
+              </FormField>
+
+              <FormField label={t("fields.maxUsers")}>
+                <input
+                  name="max_users"
+                  type="number"
+                  min="0"
+                  defaultValue={plan.max_users}
+                  className={inputCls}
+                />
+              </FormField>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">Max shops</label>
-                <input name="max_shops"    type="number" min="0" defaultValue={plan.max_shops}    className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">Max products</label>
-                <input name="max_products" type="number" min="0" defaultValue={plan.max_products} className={inputCls} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-foreground mb-1">Max users</label>
-                <input name="max_users"    type="number" min="0" defaultValue={plan.max_users}    className={inputCls} />
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-foreground">Features</label>
+            <FormField label={t("fields.features")}>
               <FeaturesEditor name="features" defaultValue={plan.features} />
-            </div>
+            </FormField>
 
-            <div>
-              <label className="block text-xs font-semibold text-foreground mb-1">Sort order</label>
-              <input name="sort_order" type="number" min="0" defaultValue={plan.sort_order} className={inputCls} />
-            </div>
+            <FormField label={t("fields.sortOrder")}>
+              <input
+                name="sort_order"
+                type="number"
+                min="0"
+                defaultValue={plan.sort_order}
+                className={inputCls}
+              />
+            </FormField>
 
-            <div className="flex gap-2 justify-end">
-              <button type="button" onClick={() => setOpen(false)} className="text-xs text-muted-foreground hover:text-foreground px-3 py-1.5">
-                Cancel
-              </button>
+            <div className="flex justify-end gap-2 border-t border-border pt-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                type="button"
+                onClick={() => setOpen(false)}
+              >
+                {t("actions.cancel")}
+              </Button>
+
               <Button size="sm" type="submit" disabled={isPending}>
-                {isPending ? 'Saving…' : 'Save'}
+                {isPending ? t("actions.saving") : t("actions.save")}
               </Button>
             </div>
           </form>
@@ -446,120 +720,226 @@ function TogglePlanInline({
   plan,
   onSuccess,
 }: {
-  plan:      AdminPlan;
+  plan: AdminPlan;
   onSuccess: () => void;
 }) {
+  const t = useTranslations("plansDrawer");
+
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [isPending,   setIsPending]   = useState(false);
-  const [error,       setError]       = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isActivating = !plan.is_active;
 
   async function handleConfirm() {
     setIsPending(true);
+    setError(null);
+
     const result = await togglePlanActiveAction(plan.id);
+
     setIsPending(false);
-    if (!result || 'error' in result) { setError((result as { error: string } | null)?.error ?? 'Unknown error'); return; }
+
+    if (!result || "error" in result) {
+      setError(
+        (result as { error: string } | null)?.error ?? t("errors.unknown"),
+      );
+      return;
+    }
+
     setConfirmOpen(false);
     onSuccess();
   }
 
-  const isActivating = !plan.is_active;
-
   return (
     <>
-      {error && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2">
-          <p className="text-xs font-semibold text-destructive">{error}</p>
-        </div>
-      )}
+      {error && <ErrorBox message={error} />}
 
       <button
         type="button"
         onClick={() => setConfirmOpen(true)}
         className={cn(
-          'w-full flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors text-left',
+          "flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-start transition-colors",
           isActivating
-            ? 'border-success/20 bg-success/5 hover:bg-success/10'
-            : 'border-warning/20 bg-warning/5 hover:bg-warning/10',
+            ? "border-success/20 bg-success/5 hover:bg-success/10"
+            : "border-warning/20 bg-warning/5 hover:bg-warning/10",
         )}
       >
-        <span className={cn(
-          'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
-          isActivating ? 'bg-success/10' : 'bg-warning/10',
-        )}>
-          {isActivating
-            ? <ToggleRight size={15} className="text-success" />
-            : <ToggleLeft  size={15} className="text-warning" />
-          }
+        <span
+          className={cn(
+            "flex size-9 shrink-0 items-center justify-center rounded-xl",
+            isActivating ? "bg-success/10" : "bg-warning/10",
+          )}
+        >
+          {isActivating ? (
+            <ToggleRight size={17} className="text-success" />
+          ) : (
+            <ToggleLeft size={17} className="text-warning" />
+          )}
         </span>
-        <div>
-          <p className={cn('text-[13px] font-semibold', isActivating ? 'text-success' : 'text-warning')}>
-            {isActivating ? 'Activate Plan' : 'Deactivate Plan'}
-          </p>
-          <p className={cn('text-[11px] mt-0.5', isActivating ? 'text-success/60' : 'text-warning/60')}>
+
+        <span className="min-w-0 flex-1">
+          <span
+            className={cn(
+              "block text-[13px] font-bold",
+              isActivating ? "text-success" : "text-warning",
+            )}
+          >
             {isActivating
-              ? 'Make this plan available for new subscriptions'
-              : 'Hide this plan from new subscription assignments'
-            }
-          </p>
-        </div>
+              ? t("toggle.activateTitle")
+              : t("toggle.deactivateTitle")}
+          </span>
+
+          <span
+            className={cn(
+              "mt-0.5 block text-xs",
+              isActivating ? "text-success/70" : "text-warning/70",
+            )}
+          >
+            {isActivating
+              ? t("toggle.activateSubtitle")
+              : t("toggle.deactivateSubtitle")}
+          </span>
+        </span>
       </button>
 
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleConfirm}
-        title={isActivating ? 'Activate Plan' : 'Deactivate Plan'}
+        title={
+          isActivating ? t("toggle.activateTitle") : t("toggle.deactivateTitle")
+        }
         description={
           isActivating
-            ? 'This plan will become available when assigning new subscriptions.'
-            : `This plan will be hidden from new subscription assignments. Existing subscriptions using "${plan.name}" will not be affected.`
+            ? t("toggle.activateDescription")
+            : t("toggle.deactivateDescription", { name: plan.name })
         }
-        confirmLabel={isPending ? 'Saving…' : isActivating ? 'Activate' : 'Deactivate'}
-        variant={isActivating ? 'primary' : 'danger'}
+        confirmLabel={
+          isPending
+            ? t("actions.saving")
+            : isActivating
+              ? t("actions.activate")
+              : t("actions.deactivate")
+        }
+        variant={isActivating ? "primary" : "danger"}
       />
     </>
   );
 }
 
-// ── Shared micro-components ───────────────────────────────────────────────────
+// ── Shared components ─────────────────────────────────────────────────────────
 
 const inputCls =
-  'w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-success/30 focus:border-success transition-colors';
+  "w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-success/30 focus:border-success transition-colors";
 
 function FormField({
-  label, required, hint, children,
+  label,
+  required,
+  hint,
+  children,
 }: {
-  label:     string;
+  label: string;
   required?: boolean;
-  hint?:     string;
-  children:  React.ReactNode;
+  hint?: string;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1">
-      <label className="block text-xs font-semibold text-foreground">
-        {label}{required && <span className="text-destructive ml-0.5">*</span>}
+    <div className="space-y-1.5">
+      <label className="block text-xs font-bold text-foreground">
+        {label}
+        {required && <span className="ms-0.5 text-destructive">*</span>}
       </label>
+
       {children}
-      {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
+
+      {hint && (
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          {hint}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SectionTitle({
+  icon,
+  title,
+  subtitle,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        {icon}
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-sm font-bold text-foreground">{title}</p>
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+          {subtitle}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-black uppercase tracking-[0.08em] text-muted-foreground">
+      {children}
+    </p>
+  );
+}
+
+function ErrorBox({
+  message,
+  className,
+}: {
+  message: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3",
+        className,
+      )}
+    >
+      <p className="text-sm font-semibold text-destructive">{message}</p>
     </div>
   );
 }
 
 function MetaRow({
-  icon, label, value, mono,
+  icon,
+  label,
+  value,
+  mono,
 }: {
-  icon:  React.ReactNode;
+  icon: React.ReactNode;
   label: string;
   value: string;
   mono?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2 py-0.5">
-      <span className="w-4 h-4 flex items-center justify-center text-muted-foreground/60 shrink-0">
+    <div className="flex items-start gap-2 py-0.5">
+      <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center text-muted-foreground/70">
         {icon}
       </span>
-      <span className="text-[11px] font-semibold text-muted-foreground w-14 shrink-0">{label}</span>
-      <span className={cn('text-[12px] text-foreground truncate', mono && 'font-mono')}>
+
+      <span className="min-w-[88px] shrink-0 text-[11px] font-bold text-muted-foreground">
+        {label}
+      </span>
+
+      <span
+        className={cn(
+          "min-w-0 flex-1 truncate text-xs text-foreground",
+          mono && "font-mono",
+        )}
+      >
         {value}
       </span>
     </div>
@@ -567,31 +947,93 @@ function MetaRow({
 }
 
 function StatBox({
-  label, value, color, bg,
+  label,
+  value,
+  color,
+  bg,
 }: {
-  label: string; value: string; color: string; bg: string;
+  label: string;
+  value: string;
+  color: string;
+  bg: string;
 }) {
   return (
-    <div className={cn('rounded-xl p-3 flex flex-col items-center gap-1', bg)}>
-      <p className={cn('text-[22px] font-black leading-none tabular-nums', color)}>{value}</p>
-      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.07em] text-center">{label}</p>
+    <div className={cn("rounded-2xl p-3 text-center", bg)}>
+      <p
+        className={cn(
+          "text-[24px] font-black leading-none tabular-nums",
+          color,
+        )}
+      >
+        {value}
+      </p>
+      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.07em] text-muted-foreground">
+        {label}
+      </p>
     </div>
   );
 }
 
 function LimitItem({
-  icon, label, value,
+  icon,
+  label,
+  value,
 }: {
-  icon:  React.ReactNode;
+  icon: React.ReactNode;
   label: string;
   value: number;
 }) {
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/20 px-3 py-2">
-      <span className="text-muted-foreground">{icon}</span>
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/20 px-3 py-3">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background text-muted-foreground">
+        {icon}
+      </span>
+
       <div className="min-w-0">
         <p className="text-[11px] text-muted-foreground">{label}</p>
-        <p className="text-[13px] font-bold text-foreground">{value}</p>
+        <p className="text-sm font-black text-foreground tabular-nums">
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function FeaturePreview({ features }: { features: Record<string, unknown> }) {
+  const t = useTranslations("plansDrawer");
+
+  const entries = useMemo(() => Object.entries(features ?? {}), [features]);
+
+  if (entries.length === 0) {
+    return (
+      <div className="mt-3 rounded-xl border border-dashed border-border bg-muted/10 px-4 py-4 text-center">
+        <p className="text-xs font-semibold text-muted-foreground">
+          {t("features.empty")}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 rounded-2xl border border-border bg-muted/20 p-3">
+      <p className="mb-2 text-[10px] font-black uppercase tracking-[0.07em] text-muted-foreground">
+        {t("fields.features")}
+      </p>
+
+      <div className="flex flex-wrap gap-2">
+        {entries.map(([key, value]) => (
+          <span
+            key={key}
+            className="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[11px] text-foreground"
+            title={`${key}: ${String(value)}`}
+          >
+            <span className="font-bold">{humanizeKey(key)}</span>
+            <span className="text-muted-foreground">:</span>
+            <span className="truncate text-muted-foreground">
+              {formatFeatureValue(value)}
+            </span>
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -600,22 +1042,69 @@ function LimitItem({
 function DetailSkeleton() {
   return (
     <div>
-      <div className="h-[72px] bg-gradient-to-r from-muted/60 to-muted/20" />
-      <div className="px-5 -mt-9 flex items-end gap-4 pb-4 border-b border-border">
-        <Skeleton className="w-16 h-16 rounded-xl" />
-        <div className="flex-1 space-y-2 pb-1">
-          <Skeleton className="h-5 w-40" />
-          <Skeleton className="h-3 w-24" />
+      <div className="h-[88px] bg-gradient-to-r from-muted/60 to-muted/20" />
+
+      <div className="border-b border-border px-5 pb-4">
+        <div className="-mt-11 flex items-end gap-4">
+          <Skeleton className="size-20 rounded-2xl" />
+          <div className="flex-1 space-y-2 pb-2">
+            <Skeleton className="h-5 w-44" />
+            <Skeleton className="h-3 w-28" />
+          </div>
         </div>
       </div>
-      <div className="px-5 py-3 border-b border-border space-y-2">
-        {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-4 w-full" />)}
+
+      <div className="space-y-2 border-b border-border px-5 py-4">
+        {[1, 2, 3, 4, 5].map((item) => (
+          <Skeleton key={item} className="h-4 w-full" />
+        ))}
       </div>
-      <div className="px-5 py-4 border-b border-border">
-        <div className="grid grid-cols-3 gap-2">
-          {[1, 2, 3].map(i => <Skeleton key={i} className="h-20 rounded-xl" />)}
+
+      <div className="border-b border-border px-5 py-4">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {[1, 2, 3].map((item) => (
+            <Skeleton key={item} className="h-20 rounded-2xl" />
+          ))}
         </div>
       </div>
     </div>
   );
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function formatDate(value: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+function formatMoney(value: string | number, currency: string, locale: string) {
+  const amount = typeof value === "number" ? value : Number.parseFloat(value);
+
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(Number.isFinite(amount) ? amount : 0);
+  } catch {
+    return `${Number.isFinite(amount) ? amount.toFixed(2) : "0.00"} ${currency}`;
+  }
+}
+
+function humanizeKey(key: string) {
+  return key
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatFeatureValue(value: unknown) {
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (value === null || value === undefined) return "-";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
 }

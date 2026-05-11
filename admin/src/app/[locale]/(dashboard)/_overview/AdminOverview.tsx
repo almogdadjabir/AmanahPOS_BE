@@ -1,5 +1,5 @@
 import { fetchAdminDashboard } from "@/services/admin";
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from "next-intl/server";
 import OwnersDrawerShell from "../owners/_components/OwnersDrawerShell";
 
 import AdminDashboardError from "./_admin/AdminDashboardError";
@@ -12,13 +12,15 @@ import AdminSubscriptionPlans from "./_admin/AdminSubscriptionPlans";
 
 export default async function AdminOverview() {
   try {
-    const [{ plans, stats }, t] = await Promise.all([
+    const [{ plans, stats }, t, locale] = await Promise.all([
       fetchAdminDashboard(),
-      getTranslations('dashboard'),
+      getTranslations("dashboard"),
+      getLocale(),
     ]);
 
     const now = new Date();
-    const dateStr = now.toLocaleDateString(undefined, {
+
+    const dateStr = now.toLocaleDateString(locale === "ar" ? "ar" : "en", {
       weekday: "long",
       month: "long",
       day: "numeric",
@@ -27,22 +29,21 @@ export default async function AdminOverview() {
     const hour = now.getHours();
     const greeting =
       hour < 12
-        ? t('greetingMorning')
+        ? t("greetingMorning")
         : hour < 17
-          ? t('greetingAfternoon')
-          : t('greetingEvening');
+          ? t("greetingAfternoon")
+          : t("greetingEvening");
 
     return (
       <OwnersDrawerShell>
         <div className="space-y-5">
-          {/* ── Page header ──────────────────────────────────────────────── */}
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
                 {greeting} 👋
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                {t('platformOverview')} &mdash; {dateStr}
+                {t("platformOverview")} &mdash; {dateStr}
               </p>
             </div>
 
@@ -53,12 +54,11 @@ export default async function AdminOverview() {
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
               </span>
               <span className="text-[11px] font-semibold text-muted-foreground">
-                {t('live')}
+                {t("live")}
               </span>
             </div>
           </div>
 
-          {/* ── KPI cards ─────────────────────────────────────────────────── */}
           <AdminKpiCards stats={stats} />
 
           {/* ── Main content row: chart + recent owners ────────────────────── */}

@@ -28,9 +28,9 @@ const PAGE_TITLES: Record<string, string> = {
 };
 
 interface Props {
-  profile:       UserProfile;
+  profile: UserProfile;
   businessType?: BusinessType;
-  children:      React.ReactNode;
+  children: React.ReactNode;
 }
 
 export default function AppShell({ profile, businessType, children }: Props) {
@@ -43,8 +43,8 @@ export default function AppShell({ profile, businessType, children }: Props) {
   const [isPending, startTransition] = useTransition();
   const isAdmin = profile.is_staff === true;
 
-  const routeKey  = "/" + pathname.split("/").slice(2).join("/");
-  const pageKey   = PAGE_TITLES[routeKey] ?? "dashboard";
+  const routeKey = "/" + pathname.split("/").slice(2).join("/");
+  const pageKey = PAGE_TITLES[routeKey] ?? "dashboard";
 
   const adminTitles: Record<string, string> = {
     dashboard: "Dashboard",
@@ -64,7 +64,8 @@ export default function AppShell({ profile, businessType, children }: Props) {
     subscription: "My Subscription",
     settings: "Settings",
   };
-  const pageTitle = (isAdmin ? adminTitles : ownerTitles)[pageKey] ?? "Dashboard";
+  const pageTitle =
+    (isAdmin ? adminTitles : ownerTitles)[pageKey] ?? "Dashboard";
 
   function switchLocale() {
     const target = locale === "ar" ? "en" : "ar";
@@ -85,7 +86,6 @@ export default function AppShell({ profile, businessType, children }: Props) {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* ── Header ───────────────────────────────────────────────────────── */}
         <header className="sticky top-0 z-10 h-14 bg-card border-b border-border flex items-center gap-3 px-4 shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -103,19 +103,7 @@ export default function AppShell({ profile, businessType, children }: Props) {
             <Logo size={24} />
           </div>
 
-          {/* Page title */}
-          <h1 className="flex-1 text-sm font-semibold text-foreground hidden lg:block">
-            {pageTitle}
-          </h1>
-
           <div className="flex items-center gap-2 ms-auto">
-            {/* Admin badge */}
-            {isAdmin && (
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-semibold border border-primary/20">
-                Platform Admin
-              </span>
-            )}
-
             {/* Locale switcher */}
             <button
               onClick={switchLocale}

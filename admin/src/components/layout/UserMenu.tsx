@@ -1,52 +1,87 @@
-'use client';
+"use client";
 
 import {
-  useActionState, useEffect, useRef, useState, useTransition,
-} from 'react';
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import {
-  User, KeyRound, LogOut, ShieldCheck, Pencil, X,
-  Eye, EyeOff, AlertCircle, CheckCircle2, Phone,
-  Mail, Calendar, Clock, BadgeCheck, CreditCard, Smartphone,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+  User,
+  KeyRound,
+  LogOut,
+  ShieldCheck,
+  Pencil,
+  X,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle2,
+  Phone,
+  Mail,
+  Calendar,
+  Clock,
+  BadgeCheck,
+  CreditCard,
+  Smartphone,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
-} from '@/components/ui/dialog';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
-  Sheet, SheetContent, SheetHeader, SheetBody,
-} from '@/components/ui/sheet';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetBody,
+} from "@/components/ui/sheet";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import Avatar from '@/components/ui/Avatar';
-import { logoutAction } from '@/actions/auth';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Avatar from "@/components/ui/Avatar";
+import { logoutAction } from "@/actions/auth";
 import {
-  updateProfileAction, changePasswordAction, updateBankakAction,
-  type UpdateProfileState, type ChangePasswordState, type UpdateBankakState,
-} from '@/actions/profile';
-import type { UserProfile } from '@/types/api';
+  updateProfileAction,
+  changePasswordAction,
+  updateBankakAction,
+  type UpdateProfileState,
+  type ChangePasswordState,
+  type UpdateBankakState,
+} from "@/actions/profile";
+import type { UserProfile } from "@/types/api";
 
 interface Props {
   profile: UserProfile;
 }
 
 export default function UserMenu({ profile }: Props) {
-  const [profileOpen,   setProfileOpen]   = useState(false);
-  const [passwordOpen,  setPasswordOpen]  = useState(false);
-  const [isPending,     startLogout]      = useTransition();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [isPending, startLogout] = useTransition();
 
   function handleLogout() {
-    startLogout(async () => { await logoutAction(); });
+    startLogout(async () => {
+      await logoutAction();
+    });
   }
 
   return (
     <>
-      {/* ── Dropdown trigger ──────────────────────────────────────────── */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
@@ -67,7 +102,7 @@ export default function UserMenu({ profile }: Props) {
               <Avatar name={profile.full_name || profile.phone} size={38} />
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-bold text-foreground truncate">
-                  {profile.full_name || '—'}
+                  {profile.full_name || "—"}
                 </p>
                 <p className="text-[11px] text-muted-foreground truncate">
                   {profile.phone}
@@ -75,7 +110,9 @@ export default function UserMenu({ profile }: Props) {
                 {profile.is_staff && (
                   <div className="flex items-center gap-1 mt-1">
                     <ShieldCheck size={10} className="text-primary shrink-0" />
-                    <span className="text-[10px] font-semibold text-primary">Platform Admin</span>
+                    <span className="text-[10px] font-semibold text-primary">
+                      Platform Admin
+                    </span>
                   </div>
                 )}
               </div>
@@ -102,7 +139,7 @@ export default function UserMenu({ profile }: Props) {
             className="text-destructive focus:bg-destructive/5 focus:text-destructive"
           >
             <LogOut size={14} className="shrink-0" />
-            {isPending ? 'Signing out…' : 'Sign out'}
+            {isPending ? "Signing out…" : "Sign out"}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -132,57 +169,76 @@ function ProfileSheet({
   onClose,
 }: {
   profile: UserProfile;
-  open:    boolean;
+  open: boolean;
   onClose: () => void;
 }) {
-  const [editing,        setEditing]        = useState(false);
-  const [editingBankak,  setEditingBankak]  = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editingBankak, setEditingBankak] = useState(false);
   const router = useRouter();
 
-  const [state, dispatch, isPending] = useActionState<UpdateProfileState, FormData>(
-    updateProfileAction,
-    null,
-  );
+  const [state, dispatch, isPending] = useActionState<
+    UpdateProfileState,
+    FormData
+  >(updateProfileAction, null);
 
-  const [bankakState, bankakDispatch, bankakPending] = useActionState<UpdateBankakState, FormData>(
-    updateBankakAction,
-    null,
-  );
+  const [bankakState, bankakDispatch, bankakPending] = useActionState<
+    UpdateBankakState,
+    FormData
+  >(updateBankakAction, null);
 
   useEffect(() => {
-    if (state && 'success' in state) {
+    if (state && "success" in state) {
       setEditing(false);
       router.refresh();
     }
   }, [state, router]);
 
   useEffect(() => {
-    if (bankakState && 'success' in bankakState) {
+    if (bankakState && "success" in bankakState) {
       setEditingBankak(false);
       router.refresh();
     }
   }, [bankakState, router]);
 
   useEffect(() => {
-    if (!open) { setEditing(false); setEditingBankak(false); }
+    if (!open) {
+      setEditing(false);
+      setEditingBankak(false);
+    }
   }, [open]);
 
-  const error   = state && 'error'   in state ? state.error : null;
-  const success = state && 'success' in state;
+  const error = state && "error" in state ? state.error : null;
+  const success = state && "success" in state;
 
-  const bankakError   = bankakState && 'error'   in bankakState ? bankakState.error : null;
-  const bankakSuccess = bankakState && 'success' in bankakState;
+  const bankakError =
+    bankakState && "error" in bankakState ? bankakState.error : null;
+  const bankakSuccess = bankakState && "success" in bankakState;
 
   const joined = profile.created_at
-    ? new Date(profile.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? new Date(profile.created_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
     : null;
 
   const lastLogin = profile.last_login_at
-    ? new Date(profile.last_login_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    ? new Date(profile.last_login_at).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     : null;
 
   return (
-    <Sheet open={open} onOpenChange={v => { if (!v) onClose(); }}>
+    <Sheet
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) onClose();
+      }}
+    >
       <SheetContent side="right">
         <SheetHeader
           title="My Profile"
@@ -191,26 +247,31 @@ function ProfileSheet({
         />
         <SheetBody>
           <div className="p-5 space-y-6">
-
             {/* Avatar + name block */}
             <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/40 border border-border/60">
               <Avatar name={profile.full_name || profile.phone} size={52} />
               <div className="flex-1 min-w-0">
                 <p className="text-[15px] font-bold text-foreground truncate">
-                  {profile.full_name || '—'}
+                  {profile.full_name || "—"}
                 </p>
                 <p className="text-[12px] text-muted-foreground truncate mt-0.5">
                   {profile.phone}
                 </p>
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {profile.is_staff && (
-                    <Badge variant="primary" dot>Platform Admin</Badge>
+                    <Badge variant="primary" dot>
+                      Platform Admin
+                    </Badge>
                   )}
                   {profile.is_verified && (
-                    <Badge variant="success" dot>Verified</Badge>
+                    <Badge variant="success" dot>
+                      Verified
+                    </Badge>
                   )}
                   {!profile.is_verified && (
-                    <Badge variant="warning" dot>Unverified</Badge>
+                    <Badge variant="warning" dot>
+                      Unverified
+                    </Badge>
                   )}
                 </div>
               </div>
@@ -220,7 +281,9 @@ function ProfileSheet({
             {success && !editing && (
               <div className="flex items-center gap-2.5 rounded-lg border border-green-200 bg-green-50 px-3.5 py-2.5">
                 <CheckCircle2 size={14} className="text-green-600 shrink-0" />
-                <p className="text-[12.5px] font-semibold text-green-700">Profile updated successfully.</p>
+                <p className="text-[12.5px] font-semibold text-green-700">
+                  Profile updated successfully.
+                </p>
               </div>
             )}
 
@@ -231,7 +294,7 @@ function ProfileSheet({
                 <Input
                   label="Full name"
                   name="full_name"
-                  defaultValue={profile.full_name ?? ''}
+                  defaultValue={profile.full_name ?? ""}
                   required
                   placeholder="Your name"
                 />
@@ -239,20 +302,24 @@ function ProfileSheet({
                   label="Email"
                   name="email"
                   type="email"
-                  defaultValue={profile.email ?? ''}
+                  defaultValue={profile.email ?? ""}
                   placeholder="you@example.com"
                   hint="Optional — used for notifications."
                 />
                 <div className="flex gap-2 pt-1">
                   <Button size="sm" type="submit" disabled={isPending}>
-                    {isPending ? 'Saving…' : 'Save changes'}
+                    {isPending ? "Saving…" : "Save changes"}
                   </Button>
-                  <Button size="sm" variant="secondary" type="button" onClick={() => setEditing(false)}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    type="button"
+                    onClick={() => setEditing(false)}
+                  >
                     Cancel
                   </Button>
                 </div>
               </form>
-
             ) : editingBankak ? (
               <BankakForm
                 profile={profile}
@@ -262,33 +329,57 @@ function ProfileSheet({
                 success={!!bankakSuccess}
                 onCancel={() => setEditingBankak(false)}
               />
-
             ) : (
               <>
                 {/* Account info section */}
-                <InfoSection title="Account" action={
-                  <button
-                    onClick={() => setEditing(true)}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors"
-                  >
-                    <Pencil size={11} />
-                    Edit
-                  </button>
-                }>
-                  <InfoRow icon={<User size={13} />} label="Name"  value={profile.full_name || '—'} />
-                  <InfoRow icon={<Mail size={13} />} label="Email" value={profile.email || '—'} />
+                <InfoSection
+                  title="Account"
+                  action={
+                    <button
+                      onClick={() => setEditing(true)}
+                      className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors"
+                    >
+                      <Pencil size={11} />
+                      Edit
+                    </button>
+                  }
+                >
+                  <InfoRow
+                    icon={<User size={13} />}
+                    label="Name"
+                    value={profile.full_name || "—"}
+                  />
+                  <InfoRow
+                    icon={<Mail size={13} />}
+                    label="Email"
+                    value={profile.email || "—"}
+                  />
                 </InfoSection>
 
                 {/* Identity section */}
                 <InfoSection title="Identity">
-                  <InfoRow icon={<Phone size={13} />}       label="Phone"  value={profile.phone} />
-                  <InfoRow icon={<BadgeCheck size={13} />}  label="Role"   value={profile.role.charAt(0).toUpperCase() + profile.role.slice(1)} />
+                  <InfoRow
+                    icon={<Phone size={13} />}
+                    label="Phone"
+                    value={profile.phone}
+                  />
+                  <InfoRow
+                    icon={<BadgeCheck size={13} />}
+                    label="Role"
+                    value={
+                      profile.role.charAt(0).toUpperCase() +
+                      profile.role.slice(1)
+                    }
+                  />
                   <InfoRow
                     icon={<ShieldCheck size={13} />}
                     label="Status"
                     value={
-                      <Badge variant={profile.is_verified ? 'success' : 'warning'} dot>
-                        {profile.is_verified ? 'Verified' : 'Unverified'}
+                      <Badge
+                        variant={profile.is_verified ? "success" : "warning"}
+                        dot
+                      >
+                        {profile.is_verified ? "Verified" : "Unverified"}
                       </Badge>
                     }
                   />
@@ -296,8 +387,20 @@ function ProfileSheet({
 
                 {/* Activity section */}
                 <InfoSection title="Activity">
-                  {joined    && <InfoRow icon={<Calendar size={13} />} label="Joined"     value={joined} />}
-                  {lastLogin && <InfoRow icon={<Clock size={13} />}    label="Last login" value={lastLogin} />}
+                  {joined && (
+                    <InfoRow
+                      icon={<Calendar size={13} />}
+                      label="Joined"
+                      value={joined}
+                    />
+                  )}
+                  {lastLogin && (
+                    <InfoRow
+                      icon={<Clock size={13} />}
+                      label="Last login"
+                      value={lastLogin}
+                    />
+                  )}
                 </InfoSection>
 
                 {/* Bankak section — owners only */}
@@ -310,18 +413,30 @@ function ProfileSheet({
                         className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary/80 transition-colors"
                       >
                         <Pencil size={11} />
-                        {profile.bankak_phone ? 'Edit' : 'Set up'}
+                        {profile.bankak_phone ? "Edit" : "Set up"}
                       </button>
                     }
                   >
                     {profile.bankak_phone ? (
                       <>
-                        <InfoRow icon={<Smartphone size={13} />}   label="Account" value={profile.bankak_phone} />
-                        <InfoRow icon={<CreditCard size={13} />}   label="Name"   value={profile.bankak_name || '—'} />
+                        <InfoRow
+                          icon={<Smartphone size={13} />}
+                          label="Account"
+                          value={profile.bankak_phone}
+                        />
+                        <InfoRow
+                          icon={<CreditCard size={13} />}
+                          label="Name"
+                          value={profile.bankak_name || "—"}
+                        />
                         <InfoRow
                           icon={<CheckCircle2 size={13} />}
                           label="Status"
-                          value={<Badge variant="success" dot>Connected</Badge>}
+                          value={
+                            <Badge variant="success" dot>
+                              Connected
+                            </Badge>
+                          }
                         />
                       </>
                     ) : (
@@ -353,21 +468,21 @@ function ChangePasswordDialog({
   onClose,
 }: {
   hasPassword: boolean;
-  open:        boolean;
-  onClose:     () => void;
+  open: boolean;
+  onClose: () => void;
 }) {
-  const [state, dispatch, isPending] = useActionState<ChangePasswordState, FormData>(
-    changePasswordAction,
-    null,
-  );
+  const [state, dispatch, isPending] = useActionState<
+    ChangePasswordState,
+    FormData
+  >(changePasswordAction, null);
 
   const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew,     setShowNew]     = useState(false);
+  const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
-  const success = state && 'success' in state;
-  const error   = state && 'error'   in state ? state.error : null;
+  const success = state && "success" in state;
+  const error = state && "error" in state ? state.error : null;
 
   useEffect(() => {
     if (success) {
@@ -388,7 +503,12 @@ function ChangePasswordDialog({
   }, [open]);
 
   return (
-    <Dialog open={open} onOpenChange={v => { if (!v) onClose(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) onClose();
+      }}
+    >
       <DialogContent className="max-w-[420px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -399,8 +519,8 @@ function ChangePasswordDialog({
           </DialogTitle>
           <DialogDescription>
             {hasPassword
-              ? 'Enter your current password then choose a new one.'
-              : 'Set a password for your account.'}
+              ? "Enter your current password then choose a new one."
+              : "Set a password for your account."}
           </DialogDescription>
         </DialogHeader>
 
@@ -409,7 +529,9 @@ function ChangePasswordDialog({
           {success && (
             <div className="flex items-center gap-2.5 rounded-lg border border-green-200 bg-green-50 px-3.5 py-2.5">
               <CheckCircle2 size={14} className="text-green-600 shrink-0" />
-              <p className="text-[12.5px] font-semibold text-green-700">Password changed successfully.</p>
+              <p className="text-[12.5px] font-semibold text-green-700">
+                Password changed successfully.
+              </p>
             </div>
           )}
 
@@ -421,7 +543,7 @@ function ChangePasswordDialog({
             <Input
               label="Current password"
               name="current_password"
-              type={showCurrent ? 'text' : 'password'}
+              type={showCurrent ? "text" : "password"}
               required
               placeholder="••••••••"
               autoComplete="current-password"
@@ -429,9 +551,9 @@ function ChangePasswordDialog({
                 <button
                   type="button"
                   className="pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => setShowCurrent(v => !v)}
+                  onClick={() => setShowCurrent((v) => !v)}
                   tabIndex={-1}
-                  aria-label={showCurrent ? 'Hide password' : 'Show password'}
+                  aria-label={showCurrent ? "Hide password" : "Show password"}
                 >
                   {showCurrent ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
@@ -443,7 +565,7 @@ function ChangePasswordDialog({
           <Input
             label="New password"
             name="password"
-            type={showNew ? 'text' : 'password'}
+            type={showNew ? "text" : "password"}
             required
             placeholder="Min. 8 characters"
             autoComplete="new-password"
@@ -452,9 +574,9 @@ function ChangePasswordDialog({
               <button
                 type="button"
                 className="pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setShowNew(v => !v)}
+                onClick={() => setShowNew((v) => !v)}
                 tabIndex={-1}
-                aria-label={showNew ? 'Hide password' : 'Show password'}
+                aria-label={showNew ? "Hide password" : "Show password"}
               >
                 {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
@@ -465,7 +587,7 @@ function ChangePasswordDialog({
           <Input
             label="Confirm new password"
             name="password_confirm"
-            type={showConfirm ? 'text' : 'password'}
+            type={showConfirm ? "text" : "password"}
             required
             placeholder="••••••••"
             autoComplete="new-password"
@@ -473,9 +595,9 @@ function ChangePasswordDialog({
               <button
                 type="button"
                 className="pointer-events-auto text-muted-foreground hover:text-foreground transition-colors"
-                onClick={() => setShowConfirm(v => !v)}
+                onClick={() => setShowConfirm((v) => !v)}
                 tabIndex={-1}
-                aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                aria-label={showConfirm ? "Hide password" : "Show password"}
               >
                 {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
@@ -483,11 +605,16 @@ function ChangePasswordDialog({
           />
 
           <DialogFooter className="mt-5">
-            <Button variant="secondary" size="sm" type="button" onClick={onClose}>
+            <Button
+              variant="secondary"
+              size="sm"
+              type="button"
+              onClick={onClose}
+            >
               Cancel
             </Button>
             <Button size="sm" type="submit" disabled={isPending || !!success}>
-              {isPending ? 'Saving…' : success ? 'Done' : 'Change password'}
+              {isPending ? "Saving…" : success ? "Done" : "Change password"}
             </Button>
           </DialogFooter>
         </form>
@@ -506,12 +633,12 @@ function BankakForm({
   success,
   onCancel,
 }: {
-  profile:   UserProfile;
-  dispatch:  (formData: FormData) => void;
+  profile: UserProfile;
+  dispatch: (formData: FormData) => void;
   isPending: boolean;
-  error:     string | null;
-  success:   boolean;
-  onCancel:  () => void;
+  error: string | null;
+  success: boolean;
+  onCancel: () => void;
 }) {
   return (
     <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
@@ -521,8 +648,12 @@ function BankakForm({
           <CreditCard size={12} className="text-primary" />
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-[12.5px] font-bold text-foreground">Bankak Details</p>
-          <p className="text-[11px] text-muted-foreground">Used for receiving payments from customers.</p>
+          <p className="text-[12.5px] font-bold text-foreground">
+            Bankak Details
+          </p>
+          <p className="text-[11px] text-muted-foreground">
+            Used for receiving payments from customers.
+          </p>
         </div>
       </div>
 
@@ -532,14 +663,16 @@ function BankakForm({
         {success && (
           <div className="flex items-center gap-2.5 rounded-lg border border-green-200 bg-green-50 px-3.5 py-2.5">
             <CheckCircle2 size={14} className="text-green-600 shrink-0" />
-            <p className="text-[12.5px] font-semibold text-green-700">Bankak details saved.</p>
+            <p className="text-[12.5px] font-semibold text-green-700">
+              Bankak details saved.
+            </p>
           </div>
         )}
 
         <Input
           label="Bankak account number"
           name="bankak_phone"
-          defaultValue={profile.bankak_phone ?? ''}
+          defaultValue={profile.bankak_phone ?? ""}
           placeholder="e.g. 0912345678"
           hint="Your Bankak account number."
           icon={<Smartphone size={13} />}
@@ -548,15 +681,18 @@ function BankakForm({
         <Input
           label="Display name"
           name="bankak_name"
-          defaultValue={profile.bankak_name ?? ''}
-          placeholder={profile.full_name || 'Business name'}
+          defaultValue={profile.bankak_name ?? ""}
+          placeholder={profile.full_name || "Business name"}
           hint="Name shown to customers on the Bankak payment screen."
           icon={<CreditCard size={13} />}
         />
 
         {/* Info note */}
         <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-muted/50 border border-border/50">
-          <AlertCircle size={12} className="text-muted-foreground shrink-0 mt-0.5" />
+          <AlertCircle
+            size={12}
+            className="text-muted-foreground shrink-0 mt-0.5"
+          />
           <p className="text-[11.5px] text-muted-foreground leading-relaxed">
             Leave both fields empty to remove your Bankak account.
           </p>
@@ -564,9 +700,14 @@ function BankakForm({
 
         <div className="flex gap-2 pt-0.5">
           <Button size="sm" type="submit" disabled={isPending}>
-            {isPending ? 'Saving…' : 'Save'}
+            {isPending ? "Saving…" : "Save"}
           </Button>
-          <Button size="sm" variant="secondary" type="button" onClick={onCancel}>
+          <Button
+            size="sm"
+            variant="secondary"
+            type="button"
+            onClick={onCancel}
+          >
             Cancel
           </Button>
         </div>
@@ -582,8 +723,8 @@ function InfoSection({
   action,
   children,
 }: {
-  title:    string;
-  action?:  React.ReactNode;
+  title: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -606,14 +747,16 @@ function InfoRow({
   label,
   value,
 }: {
-  icon:   React.ReactNode;
-  label:  string;
-  value:  React.ReactNode;
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
 }) {
   return (
     <div className="flex items-center gap-3 px-3.5 py-2.5">
       <span className="text-muted-foreground/60 shrink-0">{icon}</span>
-      <span className="text-[12px] text-muted-foreground w-[72px] shrink-0">{label}</span>
+      <span className="text-[12px] text-muted-foreground w-[72px] shrink-0">
+        {label}
+      </span>
       <span className="text-[12.5px] font-semibold text-foreground flex-1 min-w-0 truncate">
         {value}
       </span>
@@ -625,7 +768,9 @@ function InlineError({ message }: { message: string }) {
   return (
     <div className="flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/5 px-3.5 py-3">
       <AlertCircle size={13} className="text-destructive shrink-0 mt-0.5" />
-      <p className="text-[12px] font-semibold text-destructive leading-relaxed">{message}</p>
+      <p className="text-[12px] font-semibold text-destructive leading-relaxed">
+        {message}
+      </p>
     </div>
   );
 }

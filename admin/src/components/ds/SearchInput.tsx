@@ -1,64 +1,108 @@
-'use client';
+"use client";
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useTransition } from 'react';
-import { Search, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { Search, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SearchInputProps {
   placeholder?: string;
-  className?:   string;
-  debounce?:    number;
+  className?: string;
+  debounce?: number;
 }
 
-export default function SearchInput({ placeholder = 'Search…', className, debounce = 300 }: SearchInputProps) {
-  const router       = useRouter();
-  const pathname     = usePathname();
+export default function SearchInput({
+  placeholder = "Search…",
+  className,
+  debounce = 300,
+}: SearchInputProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
 
-  const value = searchParams.get('search') ?? '';
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const update = useCallback((val: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (val) {
-      params.set('search', val);
-    } else {
-      params.delete('search');
-    }
-    params.delete('page');
-    startTransition(() => router.push(`${pathname}?${params.toString()}`));
-  }, [router, pathname, searchParams]);
+  const queryValue = searchParams.get("search") ?? "";
+  const [value, setValue] = useState(queryValue);
 
-  let timer: ReturnType<typeof setTimeout>;
+  useEffect(() => {
+    setValue(queryValue);
+  }, [queryValue]);
+
+  const update = useCallback(
+    (val: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      const cleanValue = val.trim();
+
+      if (cleanValue) {
+        params.set("search", cleanValue);
+      } else {
+        params.delete("search");
+      }
+
+      params.delete("page");
+
+      const query = params.toString();
+      startTransition(() => {
+        router.push(query ? `${pathname}?${query}` : pathname);
+      });
+    },
+    [router, pathname, searchParams],
+  );
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    clearTimeout(timer);
-    timer = setTimeout(() => update(e.target.value), debounce);
+    const nextValue = e.target.value;
+    setValue(nextValue);
+
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = setTimeout(() => {
+      update(nextValue);
+    }, debounce);
+  }
+
+  function handleClear() {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    setValue("");
+    update("");
   }
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn("relative", className)}>
       <Search
-        size={14}
+        size={15}
         className="absolute inset-y-0 start-3 my-auto text-muted-foreground pointer-events-none"
       />
+
       <input
-        type="search"
-        defaultValue={value}
+        type="text"
+        value={value}
         onChange={handleChange}
         placeholder={placeholder}
         className={cn(
-          'flex h-9 w-full rounded-md border border-input bg-background ps-9 pe-9 py-2 text-sm',
-          'text-foreground placeholder:text-muted-foreground',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
-          'transition-colors',
+          "flex h-9 w-full rounded-lg border border-input bg-background ps-9 pe-9 py-2 text-sm",
+          "text-foreground placeholder:text-muted-foreground",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:border-ring",
+          "transition-colors",
         )}
       />
-      {value && (
+
+      {value.length > 0 && (
         <button
           type="button"
-          onClick={() => update('')}
-          className="absolute inset-y-0 end-2.5 my-auto flex items-center justify-center w-5 h-5 rounded-sm text-muted-foreground hover:text-foreground transition-colors"
+          onClick={handleClear}
+          aria-label="Clear search"
+          className={cn(
+            "absolute inset-y-0 end-2.5 my-auto flex h-5 w-5 items-center justify-center rounded-full",
+            "text-muted-foreground hover:text-foreground hover:bg-muted",
+            "transition-colors",
+          )}
         >
           <X size={12} />
         </button>

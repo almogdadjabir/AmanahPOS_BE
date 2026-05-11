@@ -2,10 +2,10 @@
   "auth": {
     "headline": "مرحبًا بعودتك",
     "subheadline": "سجّل دخولك للوحة الإدارة",
-    "usePhone": "تسجيل برقم الهاتف",
-    "useEmail": "تسجيل بالبريد الإلكتروني",
     "phone": "رقم الهاتف",
     "phonePlaceholder": "912345678",
+    "usePhone": "تسجيل برقم الهاتف",
+    "useEmail": "تسجيل بالبريد الإلكتروني",
     "email": "البريد الإلكتروني",
     "emailPlaceholder": "admin@amanapos.com",
     "password": "كلمة المرور",
@@ -154,7 +154,7 @@
     "growth": {
       "title": "نمو اصحاب المتاجر",
       "sub": "التسجيلات الجديدة · آخر 6 أشهر",
-      "totalOwners": "إجمالي اصحاب المتاجر",
+      "totalOwners": "إجمالي اصحاب",
       "last6Months": "مالك جديد خلال آخر 6 أشهر",
       "peak": "الذروة",
       "noRegistrations": "لا توجد تسجيلات بعد",
@@ -169,7 +169,7 @@
       "viewSubscriptions": "عرض الاشتراكات"
     },
     "recentOwners": {
-      "title": "أحدث اصحاب المتاجر",
+      "title": "أحدث المالكين",
       "sub": "آخر التسجيلات",
       "total": "إجمالي",
       "business": "متجر",
@@ -282,7 +282,7 @@
       "descSearch": "جرّب كلمات بحث مختلفة أو أمسح عبارة البحث."
     },
     "error": {
-      "failedToLoad": "فشل تحميل اصحاب المتاجر",
+      "failedToLoad": "فشل تحميل المالكين",
       "checkApi": "تحقق من الاتصال بالشبكة وأعد المحاولة."
     },
     "createForm": {
@@ -339,7 +339,9 @@
       "statusActive": "نشط",
       "statusInactive": "موقوف",
       "noNameSet": "لم يُضَف اسم بعد"
-    }
+    },
+    "view": "عرض",
+    "createOwner": "إنشاء مالك"
   },
   "businesses": {
     "title": "الأعمال التجارية",
@@ -357,14 +359,6 @@
     "tabAnyPlan": "أي باقة",
     "tabHasPlan": "لديه باقة",
     "tabNoPlan": "بدون باقة",
-    "columns": {
-      "business": "العمل التجاري",
-      "owner": "المالك",
-      "shops": "الفروع",
-      "subscription": "الاشتراك",
-      "status": "الحالة",
-      "created": "تاريخ الإنشاء"
-    },
     "activeSub": "نشط",
     "noPlan": "بدون باقة",
     "active": "نشط",
@@ -373,16 +367,6 @@
     "noOwnerName": "بدون اسم",
     "shopType": "متجر",
     "restaurantType": "مطعم",
-    "empty": {
-      "title": "لا توجد أعمال بعد",
-      "titleSearch": "لا توجد نتائج تطابق البحث",
-      "desc": "أنشئ أول عمل تجاري للبدء.",
-      "descSearch": "جرّب كلمات بحث مختلفة أو أمسح عبارة البحث."
-    },
-    "error": {
-      "failedToLoad": "فشل تحميل الأعمال التجارية",
-      "networkError": "خطأ في الشبكة"
-    },
     "createForm": {
       "searchOwnerDesc": "ابحث عن المالك بالاسم أو رقم الهاتف، ثم اختر حسابه.",
       "searchPlaceholder": "بحث باسم المالك أو رقم هاتفه…",
@@ -442,6 +426,117 @@
       "days": "يوم",
       "shopRetail": "متجر",
       "restaurant": "مطعم"
+    },
+    "countLabel": "أعمال",
+    "columns": {
+      "business": "العمل التجاري",
+      "owner": "المالك",
+      "shops": "الفروع",
+      "subscription": "الاشتراك",
+      "status": "الحالة",
+      "created": "تاريخ الإنشاء"
+    },
+    "error": {
+      "failedToLoad": "فشل تحميل الأعمال التجارية",
+      "network": "خطأ في الشبكة",
+      "checkLogs": "تحقق من سجلات الخادم للتفاصيل."
+    },
+    "empty": {
+      "title": "لا توجد أعمال بعد",
+      "titleSearch": "لا توجد نتائج تطابق البحث",
+      "desc": "أنشئ أول عمل تجاري للبدء.",
+      "descSearch": "جرّب كلمات بحث مختلفة أو أمسح عبارة البحث."
+    },
+    "subscription": {
+      "active": "نشط",
+      "noPlan": "بدون باقة",
+      "expires": "ينتهي في {date}"
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "موقوف"
+    },
+    "businessType": {
+      "restaurantShort": "مطعم"
+    },
+    "noName": "بدون اسم",
+    "view": "عرض",
+    "createBusiness": "إنشاء عمل تجاري",
+    "drawer": {
+      "common": {
+        "cancel": "إلغاء",
+        "retry": "إعادة المحاولة",
+        "noName": "بدون اسم"
+      },
+      "create": {
+        "title": "إنشاء عمل تجاري",
+        "subtitle": "تسجيل عمل تجاري جديد تحت مالك",
+        "searchHint": "ابحث عن المالك بالاسم أو رقم الهاتف، ثم اختر حسابه.",
+        "searchPlaceholder": "بحث باسم المالك أو رقم هاتفه…",
+        "ownerHasSub": "لديه اشتراك",
+        "ownerNoSub": "بدون اشتراك",
+        "businessCount": "{count, plural, one {# عمل تجاري} other {# أعمال تجارية}}",
+        "noOwnersFound": "لم يُعثر على مالك بعبارة “{query}”",
+        "typeToSearch": "اكتب للبحث عن مالك",
+        "changeOwner": "تغيير",
+        "businessType": "نوع العمل",
+        "businessTypeHint": "يحدد كيفية إدارة المخزون والمبيعات لهذا العمل.",
+        "businessName": "اسم العمل التجاري",
+        "businessNamePlaceholder": "مثال: الحسن للتجارة",
+        "address": "العنوان",
+        "addressPlaceholder": "مثال: مربع 5، بحري",
+        "businessPhone": "هاتف العمل",
+        "phonePlaceholder": "رقم تواصل اختياري",
+        "email": "البريد الإلكتروني",
+        "creating": "جارٍ الإنشاء…",
+        "submit": "إنشاء العمل التجاري"
+      },
+      "businessType": {
+        "shopLabel": "متجر / تجزئة",
+        "shopDesc": "منتجات مع تتبع المخزون ومستوياته.",
+        "restaurantLabel": "مطعم / كافيه",
+        "restaurantDesc": "عناصر قائمة تُباع بدون تتبع مخزون.",
+        "shopShort": "متجر",
+        "restaurantShort": "مطعم"
+      },
+      "details": {
+        "title": "تفاصيل العمل التجاري",
+        "failedToLoad": "فشل تحميل بيانات العمل التجاري",
+        "created": "تم الإنشاء في {date}",
+        "updated": "آخر تحديث {date}",
+        "shops": "الفروع",
+        "subscription": "الاشتراك",
+        "planExpiry": "انتهاء الباقة"
+      },
+      "subscription": {
+        "active": "نشط",
+        "noPlan": "بدون باقة",
+        "daysLeft": "{count} يوم متبقٍ",
+        "expires": "ينتهي في {date}"
+      },
+      "status": {
+        "active": "نشط",
+        "inactive": "موقوف",
+        "activate": "تفعيل",
+        "deactivate": "إيقاف",
+        "activateTitle": "تفعيل العمل التجاري؟",
+        "deactivateTitle": "إيقاف العمل التجاري؟",
+        "activateDescription": "سيتم استعادة {name} ويصبح متاحاً مرة أخرى.",
+        "deactivateDescription": "سيصبح {name} وجميع فروعه غير متاحين للمالك."
+      },
+      "shop": {
+        "main": "رئيسي",
+        "open": "مفتوح",
+        "closed": "مغلق",
+        "empty": "لم تُنشأ فروع بعد."
+      },
+      "edit": {
+        "button": "تعديل",
+        "title": "تعديل العمل التجاري",
+        "addressPlaceholder": "العنوان الفعلي",
+        "saving": "جارٍ الحفظ…",
+        "save": "حفظ التعديلات"
+      }
     }
   },
   "customers": {
@@ -678,6 +773,130 @@
       "statusActive": "نشط",
       "statusInactive": "موقوف",
       "statusExpired": "منتهٍ"
+    },
+    "countLabel": "اشتراكات",
+    "noName": "بدون اسم",
+    "columns": {
+      "business": "العمل التجاري",
+      "owner": "المالك",
+      "plan": "الباقة",
+      "period": "الفترة",
+      "status": "الحالة",
+      "daysLeft": "الأيام المتبقية"
+    },
+    "error": {
+      "failedToLoad": "فشل تحميل الاشتراكات",
+      "network": "خطأ في الشبكة",
+      "checkLogs": "تحقق من سجلات الخادم للتفاصيل."
+    },
+    "empty": {
+      "title": "لا توجد اشتراكات بعد",
+      "titleSearch": "لا توجد اشتراكات تطابق البحث",
+      "desc": "أنشئ أول اشتراك للبدء.",
+      "descSearch": "جرّب كلمات بحث مختلفة أو امسح البحث."
+    },
+    "status": {
+      "active": "نشط",
+      "inactive": "موقوف",
+      "expired": "منتهٍ"
+    },
+    "plan": {
+      "demo": "تجريبي",
+      "freeAccess": "وصول مجاني"
+    },
+    "days": {
+      "expired": "0 يوم",
+      "leftShort": "{count} يوم"
+    },
+    "view": "عرض",
+    "description": "جميع الاشتراكات المدفوعة والوصول التجريبي على المنصة.",
+    "createSubscription": "اشتراك جديد",
+    "drawer": {
+      "common": {
+        "cancel": "إلغاء",
+        "retry": "إعادة المحاولة",
+        "noName": "بدون اسم",
+        "unknownError": "خطأ غير معروف"
+      },
+      "create": {
+        "title": "اشتراك جديد",
+        "subtitle": "تعيين باقة لعمل تجاري",
+        "searchHint": "ابحث عن المالك بالاسم أو رقم الهاتف، ثم اختر حسابه.",
+        "searchPlaceholder": "بحث باسم المالك أو رقم هاتفه…",
+        "ownerHasSub": "لديه اشتراك",
+        "ownerNoSub": "بدون اشتراك",
+        "businessCount": "{count, plural, one {# عمل تجاري} other {# أعمال تجارية}}",
+        "noOwnersFound": "لم يُعثر على مالك بعبارة “{query}”",
+        "typeToSearch": "اكتب للبحث عن مالك",
+        "noBusinessForOwner": "لا يملك {name} أي عمل تجاري مسجّل بعد.",
+        "changeOwner": "تغيير",
+        "plan": "الباقة",
+        "failedToLoadPlans": "فشل تحميل الباقات. أعد التحميل وحاول مرة أخرى.",
+        "selectPlan": "اختر باقة…",
+        "paidPlans": "— الباقات المدفوعة",
+        "demoAccess": "— الوصول التجريبي",
+        "daysShort": "{count} يوم",
+        "startDate": "تاريخ البدء",
+        "paymentReference": "مرجع الدفع",
+        "paymentReferenceHint": "رقم الفاتورة أو معرّف المعاملة أو أي مرجع آخر.",
+        "notes": "ملاحظات",
+        "notesHint": "ملاحظات داخلية لهذا الاشتراك.",
+        "notesPlaceholder": "ملاحظات إدارية اختيارية…",
+        "paymentNote": "يُحسب تاريخ الانتهاء تلقائياً بناءً على مدة الباقة المختارة. تعيين باقة مدفوعة لا يخصم من المالك — يجب تحصيل الدفع بصورة منفصلة.",
+        "creating": "جارٍ الإنشاء…",
+        "submit": "إنشاء الاشتراك"
+      },
+      "plan": {
+        "demo": "تجريبي"
+      },
+      "details": {
+        "title": "تفاصيل الاشتراك",
+        "failedToLoad": "فشل تحميل بيانات الاشتراك"
+      },
+      "status": {
+        "active": "نشط",
+        "inactive": "موقوف",
+        "expired": "منتهٍ"
+      },
+      "meta": {
+        "business": "العمل التجاري",
+        "owner": "المالك",
+        "phone": "الهاتف",
+        "period": "الفترة",
+        "created": "تاريخ الإنشاء",
+        "updated": "آخر تحديث",
+        "ref": "المرجع"
+      },
+      "stats": {
+        "daysLeft": "الأيام المتبقية",
+        "maxShops": "الحد الأقصى للفروع",
+        "maxUsers": "الحد الأقصى للمستخدمين"
+      },
+      "limits": {
+        "title": "حدود الباقة",
+        "shops": "الفروع",
+        "products": "المنتجات",
+        "users": "المستخدمون",
+        "duration": "المدة:",
+        "price": "السعر:"
+      },
+      "actions": {
+        "title": "الإجراءات",
+        "deactivatedInfo": "تم إيقاف هذا الاشتراك ولا يمكن إعادة تفعيله من هنا."
+      },
+      "edit": {
+        "title": "تعديل الملاحظات والمرجع",
+        "description": "تحديث مرجع الدفع أو الملاحظات الداخلية",
+        "saving": "جارٍ الحفظ…",
+        "save": "حفظ"
+      },
+      "deactivate": {
+        "title": "إيقاف الاشتراك",
+        "description": "يوقف الوصول فوراً لهذا العمل التجاري",
+        "confirmDescription": "سيتم إيقاف الاشتراك فوراً وسيفقد العمل التجاري الوصول إلى مزايا الباقة. لا يمكن التراجع عن هذا الإجراء من لوحة التحكم.",
+        "confirm": "إيقاف",
+        "deactivating": "جارٍ الإيقاف…"
+      }
     }
   },
   "activityLog": {
@@ -717,12 +936,6 @@
     "timeAgoHour": "س",
     "timeAgoDay": "ي"
   },
-  "system": {
-    "diagnostics": "بيانات التشخيص",
-    "diagnosticsSub": "استجابة فحص الصحة الخام للتشخيص التقني",
-    "copy": "نسخ",
-    "copied": "✓ تم النسخ"
-  },
   "staff": {
     "searchPlaceholder": "بحث بالاسم أو رقم الهاتف…",
     "tabAll": "الكل",
@@ -731,5 +944,189 @@
     "tabAllRoles": "جميع الأدوار",
     "tabManager": "مدير",
     "tabCashier": "كاشير"
+  },
+  "plans": {
+    "title": "الباقات",
+    "description": "إدارة باقات الاشتراك المدفوعة المتاحة للأعمال.",
+    "createPlan": "باقة جديدة",
+    "error": {
+      "failedToLoad": "فشل تحميل الباقات",
+      "network": "خطأ في الشبكة",
+      "checkLogs": "تحقق من سجلات الخادم للتفاصيل."
+    },
+    "empty": {
+      "title": "لا توجد باقات بعد",
+      "desc": "أنشئ أول باقة اشتراك للبدء."
+    },
+    "sections": {
+      "paidPlans": "الباقات المدفوعة",
+      "demoAccess": "الوصول التجريبي"
+    },
+    "status": {
+      "active": "نشط",
+      "off": "موقوف"
+    },
+    "plan": {
+      "demo": "تجريبي",
+      "freeDemo": "مجاني / تجريبي"
+    },
+    "limits": {
+      "shops": "الفروع",
+      "products": "المنتجات",
+      "users": "المستخدمون"
+    },
+    "duration": {
+      "short": "{count} يوم"
+    },
+    "subscriptionCount": "{count, plural, one {# اشتراك} other {# اشتراكات}}",
+    "view": "عرض",
+    "newPlan": "خطة جديدة"
+  },
+  "plansDrawer": {
+    "create": {
+      "title": "خطة جديدة",
+      "subtitle": "إنشاء خطة اشتراك مدفوعة",
+      "sections": {
+        "basic": "بيانات الخطة",
+        "basicHint": "أضف اسماً واضحاً ووصفاً مختصراً يظهر لصاحب النشاط.",
+        "pricing": "السعر والمدة",
+        "pricingHint": "حدد تكلفة الخطة ومدة صلاحية الاشتراك.",
+        "limits": "حدود الاستخدام",
+        "limitsHint": "حدد عدد الفروع والمنتجات والمستخدمين المسموح بهم."
+      },
+      "paidNotice": "كل الخطط التي يتم إنشاؤها هنا هي <strong>خطط مدفوعة</strong>. الوصول التجريبي تتم إدارته بشكل منفصل ولا يمكن إنشاؤه من هذه الواجهة."
+    },
+    "details": {
+      "title": "تفاصيل الخطة",
+      "loadFailed": "فشل تحميل بيانات الخطة",
+      "activeSubscriptions": "{count} اشتراك نشط",
+      "days": "{count} يوم",
+      "planLimits": "حدود الخطة",
+      "actions": "الإجراءات"
+    },
+    "edit": {
+      "title": "تعديل الخطة",
+      "subtitle": "تحديث الاسم والسعر والحدود والمميزات"
+    },
+    "toggle": {
+      "activateTitle": "تفعيل الخطة",
+      "deactivateTitle": "إيقاف الخطة",
+      "activateSubtitle": "إتاحة هذه الخطة للاشتراكات الجديدة",
+      "deactivateSubtitle": "إخفاء هذه الخطة من الاشتراكات الجديدة",
+      "activateDescription": "ستصبح هذه الخطة متاحة عند إنشاء أو تعيين اشتراكات جديدة.",
+      "deactivateDescription": "سيتم إخفاء هذه الخطة من الاشتراكات الجديدة. الاشتراكات الحالية التي تستخدم \"{name}\" لن تتأثر."
+    },
+    "fields": {
+      "name": "اسم الخطة",
+      "description": "الوصف",
+      "price": "السعر",
+      "currency": "العملة",
+      "duration": "المدة",
+      "durationDays": "المدة بالأيام",
+      "maxShops": "أقصى عدد فروع",
+      "maxProducts": "أقصى عدد منتجات",
+      "maxUsers": "أقصى عدد مستخدمين",
+      "features": "المميزات",
+      "sortOrder": "ترتيب العرض",
+      "sortOrderShort": "الترتيب",
+      "created": "تاريخ الإنشاء",
+      "updated": "آخر تحديث",
+      "notes": "ملاحظات"
+    },
+    "hints": {
+      "description": "يظهر لصاحب النشاط عند اختيار الخطة.",
+      "price": "المبلغ حسب العملة المحددة.",
+      "durationDays": "عدد الأيام التي تمنحها الخطة للاستخدام.",
+      "features": "أضف المميزات المتوفرة داخل هذه الخطة.",
+      "sortOrder": "الأرقام الأقل تظهر أولاً."
+    },
+    "placeholders": {
+      "name": "مثال: البداية، الاحترافية، المؤسسات",
+      "description": "وصف مختصر للمميزات الموجودة في الخطة…",
+      "durationDays": "مثال: 30، 90، 365"
+    },
+    "currency": {
+      "sdg": "جنيه سوداني — SDG"
+    },
+    "status": {
+      "active": "نشطة",
+      "inactive": "غير نشطة",
+      "demo": "تجريبية"
+    },
+    "stats": {
+      "subscriptions": "الاشتراكات",
+      "maxShops": "أقصى فروع",
+      "maxUsers": "أقصى مستخدمين"
+    },
+    "limits": {
+      "shops": "الفروع",
+      "products": "المنتجات",
+      "users": "المستخدمون"
+    },
+    "features": {
+      "empty": "لا توجد مميزات مضافة لهذه الخطة بعد."
+    },
+    "actions": {
+      "cancel": "إلغاء",
+      "retry": "إعادة المحاولة",
+      "save": "حفظ",
+      "saving": "جاري الحفظ…",
+      "createPlan": "إنشاء الخطة",
+      "creating": "جاري الإنشاء…",
+      "activate": "تفعيل",
+      "deactivate": "إيقاف"
+    },
+    "errors": {
+      "unknown": "خطأ غير معروف"
+    }
+  },
+  "system": {
+    "title": "النظام",
+    "subtitle": "حالة المنصة والبنية التحتية والتشخيصات الفنية.",
+    "diagnostics": "بيانات التشخيص",
+    "diagnosticsSub": "استجابة فحص الصحة القادمة من الخادم. مفاتيح وقيم JSON تبقى باللغة الإنجليزية عمداً.",
+    "copy": "نسخ",
+    "copied": "تم النسخ",
+    "status": {
+      "ok": "سليم",
+      "fail": "فشل"
+    },
+    "hero": {
+      "live": "مباشر",
+      "alert": "تنبيه",
+      "operationalTitle": "كل الأنظمة تعمل بشكل طبيعي",
+      "degradedTitle": "يوجد تراجع في حالة النظام",
+      "operationalDescription": "الخدمات الأساسية تستجيب بشكل طبيعي والمنصة متاحة بالكامل.",
+      "degradedDescription": "واحدة أو أكثر من الخدمات لا تستجيب. راجع بيانات التشخيص بالأسفل.",
+      "serverTime": "وقت الخادم"
+    },
+    "services": {
+      "apiGateway": "بوابة API",
+      "database": "قاعدة البيانات",
+      "cache": "الذاكرة المؤقتة"
+    },
+    "cards": {
+      "api": {
+        "label": "بوابة API",
+        "okValue": "تعمل",
+        "failValue": "متأثرة",
+        "okDescription": "بوابة المنصة تستجيب بشكل طبيعي.",
+        "failDescription": "بوابة المنصة تحتاج إلى مراجعة."
+      },
+      "database": {
+        "label": "قاعدة البيانات",
+        "okValue": "متصلة",
+        "failValue": "خطأ",
+        "okDescription": "الاتصال بقاعدة البيانات الرئيسية سليم.",
+        "failDescription": "فشل فحص صحة قاعدة البيانات."
+      },
+      "cache": {
+        "label": "الذاكرة المؤقتة",
+        "okValue": "متصلة",
+        "failValue": "غير متصلة",
+        "okDescription": "طبقة الذاكرة المؤقتة متاحة وتستجيب.",
+        "failDescription": "خدمة الذاكرة المؤقتة غير متاحة حالياً."
+      }
+    }
   }
 }
