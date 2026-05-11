@@ -23,6 +23,7 @@ from .serializers import (
     BootstrapProductSerializer,
     BootstrapShopSerializer,
     BootstrapStockSerializer,
+    BootstrapSubscriptionSerializer,
 )
 
 logger = logging.getLogger(__name__)
@@ -44,11 +45,20 @@ class BootstrapView(APIView):
             raise BusinessLogicError("No active business found.")
 
         from django.db.models import Q
+        from apps.subscriptions.models import Subscription
 
         ctx = {"request": request}
         user = request.user
 
         shops = Shop.objects.filter(business=tenant, is_active=True).order_by("-is_main", "name")
+
+        active_subscription = (
+            Subscription.objects
+            .filter(business=tenant, is_active=True, end_date__gte=timezone.now().date())
+            .select_related("plan")
+            .order_by("-start_date")
+            .first()
+        )
 
         categories = Category.objects.filter(
             tenant=tenant, is_active=True
@@ -94,6 +104,10 @@ class BootstrapView(APIView):
             "products": BootstrapProductSerializer(products, many=True, context=ctx).data,
             "customers": BootstrapCustomerSerializer(customers, many=True, context=ctx).data,
             "stock": stock_data,
+            "active_subscription": (
+                BootstrapSubscriptionSerializer(active_subscription, context=ctx).data
+                if active_subscription else None
+            ),
         }
 
         logger.info(

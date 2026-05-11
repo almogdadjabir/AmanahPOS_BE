@@ -8,6 +8,7 @@ from apps.accounts.models import CustomUser
 from apps.customers.models import Customer
 from apps.inventory.models import StockLevel
 from apps.products.models import Category, Product
+from apps.subscriptions.models import Plan, Subscription
 from apps.tenants.models import Business, Shop
 
 
@@ -100,6 +101,32 @@ class BootstrapStockSerializer(serializers.ModelSerializer):
     class Meta:
         model = StockLevel
         fields = ["product_id", "shop_id", "quantity", "updated_at"]
+
+
+# ── Active Subscription ───────────────────────────────────────────────────────
+
+class BootstrapPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plan
+        fields = [
+            "id", "name", "price", "currency",
+            "max_shops", "max_products", "max_users",
+            "duration_days", "features", "is_free",
+        ]
+
+
+class BootstrapSubscriptionSerializer(serializers.ModelSerializer):
+    plan         = BootstrapPlanSerializer(read_only=True)
+    is_expired   = serializers.BooleanField(read_only=True)
+    days_remaining = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Subscription
+        fields = [
+            "id", "plan",
+            "start_date", "end_date",
+            "is_active", "is_expired", "days_remaining",
+        ]
 
 
 # ── Asset Manifest ────────────────────────────────────────────────────────────
