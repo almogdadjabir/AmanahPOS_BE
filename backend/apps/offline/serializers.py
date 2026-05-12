@@ -136,3 +136,18 @@ class AssetManifestItemSerializer(serializers.Serializer):
     type = serializers.CharField()
     url = serializers.CharField(allow_null=True)
     updated_at = serializers.DateTimeField()
+
+from apps.inventory.models import ProductBatch
+
+
+class BootstrapBatchSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    shop_name    = serializers.CharField(source="shop.name",    read_only=True)
+    is_expired   = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model  = ProductBatch
+        fields = [
+            "id", "product", "product_name", "shop", "shop_name",
+            "quantity", "expiry_date", "batch_number", "is_expired", "updated_at",
+        ]

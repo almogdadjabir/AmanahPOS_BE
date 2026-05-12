@@ -346,3 +346,37 @@ class BatchAPITest(TestCase):
         self.assertEqual(res.status_code, 200)
         for item in res.data["results"]:
             self.assertNotEqual(item["shop"], str(other_shop.id))
+
+
+class BootstrapExpiryTest(TestCase):
+    def setUp(self):
+        self.owner = make_owner("+249912111006")
+        self.shop_biz = make_shop_business(self.owner, "Bootstrap Shop")
+        self.shop = make_shop(self.shop_biz, "BS Shop")
+        self.product = make_product(self.shop_biz, "Cream")
+        self.rest_owner = make_owner("+249912111007")
+        self.rest_biz = make_restaurant(self.rest_owner, "Bootstrap Rest")
+
+    def test_bootstrap_includes_expiry_batches_for_shop(self):
+        from apps.inventory.models import ProductBatch
+        ProductBatch.objects.create(
+            product=self.product, shop=self.shop, quantity=10,
+            expiry_date=date.today() + timedelta(days=15),
+        )
+        c = api_client(self.owner)
+        res = c.get(
+            "/api/v1/offline/bootstrap/",
+            HTTP_X_TENANT_ID=str(self.shop_biz.id),
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("expiry_batches", res.data)
+        self.assertEqual(len(res.data["expiry_batches"]), 1)
+
+    def test_bootstrap_expiry_batches_empty_for_restaurant(self):
+        c = api_client(self.rest_owner)
+        res = c.get(
+            "/api/v1/offline/bootstrap/",
+            HTTP_X_TENANT_ID=str(self.rest_biz.id),
+        )
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data["expiry_batches"], [])

@@ -10,13 +10,14 @@ from rest_framework.views import APIView
 
 from apps.core.exceptions import BusinessLogicError
 from apps.customers.models import Customer
-from apps.inventory.models import StockLevel
+from apps.inventory.models import ProductBatch, StockLevel
 from apps.products.models import Category, Product
 from apps.products.services import get_tenant_from_request
 from apps.tenants.models import BusinessType, Shop
 
 from .serializers import (
     AssetManifestItemSerializer,
+    BootstrapBatchSerializer,
     BootstrapBusinessSerializer,
     BootstrapCategorySerializer,
     BootstrapCustomerSerializer,
@@ -95,6 +96,20 @@ class BootstrapView(APIView):
             ).select_related("product", "shop")
             stock_data = BootstrapStockSerializer(stock_qs, many=True, context=ctx).data
 
+        # Expiry batches — shop businesses only
+        if tenant.business_type == BusinessType.RESTAURANT:
+            expiry_batches_data = []
+        elif user.role == "cashier" and user.default_shop_id:
+            batch_qs = ProductBatch.objects.filter(
+                product__tenant=tenant, shop_id=user.default_shop_id
+            ).select_related("product", "shop")
+            expiry_batches_data = BootstrapBatchSerializer(batch_qs, many=True, context=ctx).data
+        else:
+            batch_qs = ProductBatch.objects.filter(
+                product__tenant=tenant
+            ).select_related("product", "shop")
+            expiry_batches_data = BootstrapBatchSerializer(batch_qs, many=True, context=ctx).data
+
         data = {
             "success": True,
             "server_time": timezone.now().isoformat(),
@@ -104,6 +119,7 @@ class BootstrapView(APIView):
             "products": BootstrapProductSerializer(products, many=True, context=ctx).data,
             "customers": BootstrapCustomerSerializer(customers, many=True, context=ctx).data,
             "stock": stock_data,
+            "expiry_batches": expiry_batches_data,
             "active_subscription": (
                 BootstrapSubscriptionSerializer(active_subscription, context=ctx).data
                 if active_subscription else None
