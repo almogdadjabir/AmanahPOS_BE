@@ -73,3 +73,53 @@ class StockTransferSerializer(serializers.Serializer):
         if attrs["from_shop"] == attrs["to_shop"]:
             raise serializers.ValidationError("Source and destination shops cannot be the same.")
         return attrs
+
+from .models import ProductBatch
+
+
+class ProductBatchSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product.name", read_only=True)
+    shop_name    = serializers.CharField(source="shop.name",    read_only=True)
+    is_expired   = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model  = ProductBatch
+        fields = [
+            "id", "product", "product_name", "shop", "shop_name",
+            "quantity", "expiry_date", "batch_number", "notes",
+            "is_expired", "last_notified_date",
+            "created_at", "updated_at",
+        ]
+        read_only_fields = ["id", "last_notified_date", "created_at", "updated_at"]
+
+
+class ProductBatchWriteSerializer(serializers.Serializer):
+    product      = serializers.UUIDField()
+    shop         = serializers.UUIDField()
+    quantity     = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=0)
+    expiry_date  = serializers.DateField()
+    batch_number = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
+    notes        = serializers.CharField(required=False, allow_blank=True, default="")
+
+    def validate_expiry_date(self, value):
+        from datetime import date
+        if value < date.today():
+            raise serializers.ValidationError("Expiry date must be today or in the future.")
+        return value
+
+
+class ExpiryAlertSerializer(serializers.ModelSerializer):
+    product_name  = serializers.CharField(source="product.name",       read_only=True)
+    product_sku   = serializers.CharField(source="product.sku",        read_only=True)
+    shop_name     = serializers.CharField(source="shop.name",          read_only=True)
+    business_name = serializers.CharField(source="shop.business.name", read_only=True)
+    is_expired    = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model  = ProductBatch
+        fields = [
+            "id", "product", "product_name", "product_sku",
+            "shop", "shop_name", "business_name",
+            "quantity", "expiry_date", "batch_number",
+            "is_expired", "created_at",
+        ]

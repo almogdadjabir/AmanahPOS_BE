@@ -205,3 +205,45 @@ class ExpiryAlertTaskTest(TestCase):
         from apps.inventory.tasks import check_expiry_alerts
         check_expiry_alerts()
         mock_notify.assert_not_called()
+
+
+class ProductBatchSerializerTest(TestCase):
+    def setUp(self):
+        self.owner = make_owner("+249912111003")
+        self.business = make_shop_business(self.owner, "Biz Ser")
+        self.shop = make_shop(self.business, "Ser Shop")
+        self.product = make_product(self.business, "Cheese")
+
+    def test_write_serializer_valid(self):
+        from apps.inventory.serializers import ProductBatchWriteSerializer
+        data = {
+            "product": str(self.product.id),
+            "shop": str(self.shop.id),
+            "quantity": "25.000",
+            "expiry_date": str(date.today() + timedelta(days=20)),
+            "batch_number": "BATCH-001",
+        }
+        s = ProductBatchWriteSerializer(data=data)
+        self.assertTrue(s.is_valid(), s.errors)
+
+    def test_write_serializer_rejects_past_expiry(self):
+        from apps.inventory.serializers import ProductBatchWriteSerializer
+        data = {
+            "product": str(self.product.id),
+            "shop": str(self.shop.id),
+            "quantity": "10.000",
+            "expiry_date": str(date.today() - timedelta(days=1)),
+        }
+        s = ProductBatchWriteSerializer(data=data)
+        self.assertFalse(s.is_valid())
+        self.assertIn("expiry_date", s.errors)
+
+    def test_read_serializer_includes_is_expired(self):
+        from apps.inventory.models import ProductBatch
+        from apps.inventory.serializers import ProductBatchSerializer
+        batch = ProductBatch.objects.create(
+            product=self.product, shop=self.shop, quantity=5,
+            expiry_date=date.today() - timedelta(days=1),
+        )
+        data = ProductBatchSerializer(batch).data
+        self.assertTrue(data["is_expired"])
