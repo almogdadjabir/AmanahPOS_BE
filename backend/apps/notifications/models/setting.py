@@ -30,10 +30,13 @@ class NotificationSetting(models.Model):
     def ensure_defaults(cls) -> None:
         """Seed default settings if they don't exist."""
         defaults = [
-            ("push_enabled",    "true",  "Enable/disable all push notifications globally"),
-            ("sms_enabled",     "true",  "Enable/disable all SMS notifications globally"),
-            ("push_daily_limit","1000",  "Max push notifications sent per day"),
-            ("sms_daily_limit", "500",   "Max SMS messages sent per day"),
+            ("push_enabled",          "true",  "Enable/disable all push notifications globally"),
+            ("sms_enabled",           "true",  "Enable/disable all SMS notifications globally"),
+            ("push_daily_limit",      "1000",  "Max push notifications sent per day"),
+            ("sms_daily_limit",       "500",   "Max SMS messages sent per day"),
+            ("expiry_alert_enabled",  "true",  "Send push when a product batch is expiring soon (shop businesses only)"),
+            ("expiry_warning_days",   "7",     "Number of days before expiry to trigger the expiring-soon alert"),
+            ("expired_alert_enabled", "true",  "Send push when a product batch has already expired (shop businesses only)"),
         ]
         for key, value, description in defaults:
             cls.objects.get_or_create(key=key, defaults={"value": value, "description": description})

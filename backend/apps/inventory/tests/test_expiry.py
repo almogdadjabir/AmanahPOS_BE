@@ -62,3 +62,34 @@ class ProductBatchModelTest(TestCase):
         from apps.inventory.models import ProductBatch
         batch = ProductBatch(expiry_date=date.today() + timedelta(days=30))
         self.assertFalse(batch.is_expiring_soon(warning_days=7))
+
+
+class ExpiryTemplatesTest(TestCase):
+    def test_product_expiring_soon_template(self):
+        from apps.notifications.notification_templates import render_notification
+        payload = render_notification(
+            "product_expiring_soon",
+            product_name="Milk 1L",
+            shop_name="Main Branch",
+            expiry_date="2026-05-20",
+        )
+        self.assertIn("Milk 1L", payload["body"])
+        self.assertEqual(payload["notification_type"], "warning")
+
+    def test_product_expired_template(self):
+        from apps.notifications.notification_templates import render_notification
+        payload = render_notification(
+            "product_expired",
+            product_name="Yogurt",
+            shop_name="Branch 2",
+            expiry_date="2026-05-10",
+        )
+        self.assertIn("Yogurt", payload["body"])
+        self.assertEqual(payload["notification_type"], "error")
+
+    def test_expiry_settings_defaults(self):
+        from apps.notifications.models import NotificationSetting
+        NotificationSetting.ensure_defaults()
+        self.assertEqual(NotificationSetting.get("expiry_alert_enabled"), "true")
+        self.assertEqual(NotificationSetting.get("expiry_warning_days"), "7")
+        self.assertEqual(NotificationSetting.get("expired_alert_enabled"), "true")
