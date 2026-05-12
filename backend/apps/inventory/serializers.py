@@ -23,12 +23,14 @@ class StockMovementSerializer(serializers.ModelSerializer):
 
 class StockMovementCreateSerializer(serializers.Serializer):
     """Used for manual stock additions and adjustments."""
-    product = serializers.UUIDField()
-    shop = serializers.UUIDField()
+    product       = serializers.UUIDField()
+    shop          = serializers.UUIDField()
     movement_type = serializers.ChoiceField(choices=MovementType.choices)
-    quantity = serializers.DecimalField(max_digits=12, decimal_places=3)
-    reference = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    notes = serializers.CharField(required=False, allow_blank=True)
+    quantity      = serializers.DecimalField(max_digits=12, decimal_places=3)
+    reference     = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    notes         = serializers.CharField(required=False, allow_blank=True)
+    expiry_date   = serializers.DateField(required=False, allow_null=True, default=None)
+    batch_number  = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
 
     def validate_quantity(self, value):
         if value == 0:

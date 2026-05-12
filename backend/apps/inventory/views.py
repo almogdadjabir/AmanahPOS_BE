@@ -140,6 +140,19 @@ class StockAddView(APIView):
             created_by=request.user,
             movement_type=data["movement_type"],
         )
+
+        # If expiry_date is provided, also create a ProductBatch for expiry tracking.
+        expiry_date = data.get("expiry_date")
+        if expiry_date and tenant.business_type != BusinessType.RESTAURANT:
+            ProductBatch.objects.create(
+                product=product,
+                shop=shop,
+                quantity=data["quantity"],
+                expiry_date=expiry_date,
+                batch_number=data.get("batch_number", ""),
+                notes=data.get("notes", ""),
+            )
+
         return Response(
             {
                 "success": True,
