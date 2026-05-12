@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
-import { fetchAdminDeliveryLogs } from '@/services/notifications';
+import { fetchAdminDeliveryLogs } from '../../actions';
 import type { DeliveryLog } from '@/types/api';
 
 const STATUS_STYLES: Record<string, string> = {

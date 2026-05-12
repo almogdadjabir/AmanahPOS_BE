@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import UserSearchSelector from './UserSearchSelector';
-import { adminSendPush, adminSendSMS, fetchAdminTemplates } from '@/services/notifications';
+import { adminSendPush, adminSendSMS, fetchAdminTemplates } from '../../actions';
 import type { NotificationTemplate } from '@/types/api';
 import { cn } from '@/lib/utils';
 

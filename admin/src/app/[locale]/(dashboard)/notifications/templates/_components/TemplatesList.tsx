@@ -9,7 +9,7 @@ import {
   deleteAdminTemplate,
   fetchAdminTemplates,
   toggleAdminTemplate,
-} from '@/services/notifications';
+} from '../../actions';
 import type { NotificationTemplate } from '@/types/api';
 
 const CHANNEL_COLORS: Record<string, string> = {

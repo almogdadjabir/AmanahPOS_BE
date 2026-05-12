@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
-import { apiGet } from '@/lib/api';
+import { searchOwnersAction } from '../../actions';
 
 interface UserOption {
   id:        string;
@@ -30,11 +30,8 @@ export default function UserSearchSelector({ value, onChange, placeholder }: Pro
     timer.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await apiGet<{ success: boolean; data: { results: UserOption[] } }>(
-          '/api/v1/admin/owners/',
-          { search: query, page_size: '10' },
-        );
-        setResults(res.data?.results ?? []);
+        const results = await searchOwnersAction(query);
+        setResults(results);
         setOpen(true);
       } catch {
         setResults([]);
