@@ -18,6 +18,7 @@ export const CACHE_TAGS = {
   stats:         'stats',
   profile:       'profile',
   activityLogs:  'activity-logs',
+  notifications: 'notifications',
 } as const;
 
 export type CacheTag = (typeof CACHE_TAGS)[keyof typeof CACHE_TAGS];

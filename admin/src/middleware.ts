@@ -38,7 +38,9 @@ export default function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL(`/${locale}/login`, req.url));
   }
 
-  return handleI18n(req);
+  const response = handleI18n(req);
+  response.headers.set('x-pathname', pathname);
+  return response;
 }
 
 export const config = {

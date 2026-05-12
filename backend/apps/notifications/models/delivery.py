@@ -38,6 +38,14 @@ class NotificationDelivery(models.Model):
         related_name="notification_deliveries",
         db_index=True,
     )
+    sent_by_admin = models.ForeignKey(
+        "accounts.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="manually_sent_deliveries",
+        db_index=True,
+    )
     channel       = models.CharField(max_length=10, choices=DeliveryChannel.choices, default=DeliveryChannel.PUSH, db_index=True)
     status        = models.CharField(max_length=20, choices=DeliveryStatus.choices, default=DeliveryStatus.PENDING, db_index=True)
     retry_count   = models.PositiveSmallIntegerField(default=0)

@@ -183,7 +183,7 @@
             "description": "Verify OTP to complete login. Optionally include fcm_token + platform to register the device push token in the same request.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"phone\": \"+249912776979\",\n  \"otp\": \"123456\",\n  \"_comment\": \"FCM fields below are optional \\u2014 include to register push token on login\",\n  \"fcm_token\": \"{{fcm_token}}\",\n  \"platform\": \"android\",\n  \"device_id\": \"optional-device-uuid\",\n  \"app_version\": \"1.0.0\"\n}",
+              "raw": "{\n  \"phone\": \"+249912776979\",\n  \"otp\": \"123456\",\n  \"_comment\": \"FCM fields below are optional \\u2014 include to register push token on login\",\n  \"fcm_token\": \"{{fcm_token}}\",\n  \"platform\": \"android\",\n  \"device_id\": \"optional-device-uuid\",\n  \"app_version\": \"1.0.0\",\n  \"device_name\": \"iPhone 15 Pro Max\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4341,6 +4341,163 @@
         }
       ],
       "description": "Push notification and in-app notification endpoints.\n\nFlow:\n1. Mobile app gets FCM token from Firebase SDK on startup.\n2. Register token via POST /devices/register/ (or pass fcm_token in login verify body).\n3. Backend queues push delivery through Celery — login/sale never block on FCM.\n4. App polls GET / on open to display missed notifications (offline-first)."
+    },
+    {
+      "name": "Admin — Notifications",
+      "item": [
+        {
+          "name": "List Templates",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notifications/templates/"
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Create Template",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notifications/templates/"
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"welcome_promo\",\n  \"name\": \"Welcome Promo\",\n  \"category\": \"marketing\",\n  \"channel\": \"push\",\n  \"title_en\": \"Hello!\",\n  \"body_en\": \"Welcome back!\",\n  \"title_ar\": \"\\u0645\\u0631\\u062d\\u0628\\u0627!\",\n  \"body_ar\": \"\\u0623\\u0647\\u0644\\u0627\\u064b \\u0628\\u0639\\u0648\\u062f\\u062a\\u0643!\",\n  \"variables\": [],\n  \"is_enabled\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Toggle Template",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notifications/templates/{{template_id}}/toggle/"
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Settings",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notifications/settings/"
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ]
+          }
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notifications/settings/"
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"updates\": [\n    {\n      \"key\": \"push_enabled\",\n      \"value\": \"false\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Send Push",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notifications/send/push/"
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"title\": \"Test\",\n  \"body\": \"Hello from admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Send SMS",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notifications/send/sms/"
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"message\": \"Hello from admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delivery Logs",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/notifications/logs/?channel=push&status=sent"
+            },
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ]
+          }
+        }
+      ]
     }
   ]
 }

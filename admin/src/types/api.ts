@@ -489,3 +489,47 @@ export interface Subscription {
   created_at: string;
   updated_at: string;
 }
+
+// ── Notifications (admin) ────────────────────────────────────────────────────
+export type NotifChannel = 'push' | 'sms' | 'both';
+export type DeliveryStatus = 'pending' | 'processing' | 'sent' | 'failed' | 'cancelled';
+export type DeliveryChannel = 'push' | 'sms' | 'email';
+
+export interface NotificationTemplate {
+  id:         string;
+  key:        string;
+  name:       string;
+  category:   string;
+  channel:    NotifChannel;
+  title_en:   string;
+  body_en:    string;
+  title_ar:   string;
+  body_ar:    string;
+  variables:  string[];
+  is_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationSetting {
+  key:         string;
+  value:       string;
+  description: string;
+  updated_at:  string;
+}
+
+export interface DeliveryLog {
+  id:                  string;
+  channel:             DeliveryChannel;
+  status:              DeliveryStatus;
+  recipient_name:      string;
+  recipient_phone:     string;
+  notification_title:  string;
+  sent_by_admin_name:  string | null;
+  retry_count:         number;
+  provider_message_id: string;
+  error_message:       string;
+  sent_at:             string | null;
+  failed_at:           string | null;
+  created_at:          string;
+}

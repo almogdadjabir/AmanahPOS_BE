@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 app_name = "admin_panel"
@@ -20,4 +20,5 @@ urlpatterns = [
     path("plans/create/",                   views.AdminPlanCreateView.as_view(),        name="plan-create"),
     path("plans/<uuid:pk>/",                views.AdminPlanDetailView.as_view(),        name="plan-detail"),
     path("plans/<uuid:pk>/toggle-active/",  views.AdminPlanToggleActiveView.as_view(),  name="plan-toggle-active"),
+    path("notifications/",                  include("apps.notifications.admin_urls")),
 ]

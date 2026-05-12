@@ -90,3 +90,18 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   if (!res.ok) throw new ApiError(res.status, data);
   return data as T;
 }
+
+export async function apiDelete<T>(path: string): Promise<T> {
+  const res = await devFetch(`${BASE}${path}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(await authHeader()),
+    },
+    cache: 'no-store',
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new ApiError(res.status, data);
+  return data as T;
+}

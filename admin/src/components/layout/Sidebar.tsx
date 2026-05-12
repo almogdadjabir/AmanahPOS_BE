@@ -10,17 +10,18 @@ import type { UserProfile, BusinessType } from '@/types/api';
 import {
   LayoutGrid, Users, Store, CreditCard, Server,
   Receipt, Package, BarChart2, UserCheck, CreditCard as SubIcon,
-  LogOut, History,
+  LogOut, History, Bell,
 } from 'lucide-react';
 
 const ADMIN_NAV = [
-  { key: 'dashboard',     href: '/',             Icon: LayoutGrid },
-  { key: 'owners',        href: '/owners',        Icon: Users },
-  { key: 'businesses',    href: '/businesses',    Icon: Store },
-  { key: 'subscriptions', href: '/subscriptions', Icon: CreditCard },
-  { key: 'plans',         href: '/plans',         Icon: Package },
-  { key: 'activityLogs', href: '/activity-logs', Icon: History },
-  { key: 'system',       href: '/system',        Icon: Server },
+  { key: 'dashboard',     href: '/',               Icon: LayoutGrid },
+  { key: 'owners',        href: '/owners',          Icon: Users },
+  { key: 'businesses',    href: '/businesses',      Icon: Store },
+  { key: 'subscriptions', href: '/subscriptions',   Icon: CreditCard },
+  { key: 'plans',         href: '/plans',           Icon: Package },
+  { key: 'notifications', href: '/notifications',   Icon: Bell },
+  { key: 'activityLogs',  href: '/activity-logs',   Icon: History },
+  { key: 'system',        href: '/system',          Icon: Server },
 ] as const;
 
 const OWNER_NAV = [

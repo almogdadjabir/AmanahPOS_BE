@@ -25,6 +25,11 @@ const PAGE_TITLES: Record<string, string> = {
   "/users": "staff",
   "/subscription": "subscription",
   "/settings": "settings",
+  "/notifications":          "notifications",
+  "/notifications/templates":"notifications",
+  "/notifications/sender":   "notifications",
+  "/notifications/logs":     "notifications",
+  "/notifications/settings": "notifications",
 };
 
 interface Props {
@@ -53,6 +58,7 @@ export default function AppShell({ profile, businessType, children }: Props) {
     subscriptions: "Subscriptions",
     system: "System Health",
     settings: "Settings",
+    notifications: "Notifications",
   };
   const ownerTitles: Record<string, string> = {
     dashboard: "Dashboard",
