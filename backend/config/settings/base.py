@@ -202,6 +202,14 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.subscriptions.tasks.check_subscription_expiry",
         "schedule": 86400.0,  # daily
     },
+    "requeue-stuck-deliveries": {
+        "task": "apps.notifications.tasks.requeue_stuck_deliveries",
+        "schedule": 300.0,   # every 5 minutes
+    },
+    "check-expiry-alerts": {
+        "task": "apps.inventory.tasks.check_expiry_alerts",
+        "schedule": 86400.0,  # daily
+    },
 }
 
 # ─── Django REST Framework ────────────────────────────────────────────────────

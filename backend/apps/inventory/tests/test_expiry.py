@@ -93,3 +93,115 @@ class ExpiryTemplatesTest(TestCase):
         self.assertEqual(NotificationSetting.get("expiry_alert_enabled"), "true")
         self.assertEqual(NotificationSetting.get("expiry_warning_days"), "7")
         self.assertEqual(NotificationSetting.get("expired_alert_enabled"), "true")
+
+
+from unittest.mock import patch
+
+
+class ExpiryAlertTaskTest(TestCase):
+    def setUp(self):
+        self.owner = make_owner("+249912111002")
+        self.shop_biz = make_shop_business(self.owner, "Shop Biz")
+        self.restaurant = make_restaurant(self.owner, "Restaurant")
+        self.shop = make_shop(self.shop_biz)
+        self.rest_shop = make_shop(self.restaurant, "Rest Shop")
+        self.product = make_product(self.shop_biz)
+        self.rest_product = make_product(self.restaurant, "Burger")
+
+    @patch("apps.notifications.services.notify_user")
+    def test_expiring_soon_sends_warning_notification(self, mock_notify):
+        from apps.inventory.models import ProductBatch
+        from apps.notifications.models import NotificationSetting
+        NotificationSetting.ensure_defaults()
+
+        batch = ProductBatch.objects.create(
+            product=self.product,
+            shop=self.shop,
+            quantity=10,
+            expiry_date=date.today() + timedelta(days=3),
+        )
+
+        from apps.inventory.tasks import check_expiry_alerts
+        check_expiry_alerts()
+
+        mock_notify.assert_called_once()
+        call_kwargs = mock_notify.call_args
+        self.assertEqual(call_kwargs[1]["notification_type"], "warning")
+        batch.refresh_from_db()
+        from django.utils import timezone
+        self.assertEqual(batch.last_notified_date, timezone.now().date())
+
+    @patch("apps.notifications.services.notify_user")
+    def test_expired_sends_error_notification(self, mock_notify):
+        from apps.inventory.models import ProductBatch
+        from apps.notifications.models import NotificationSetting
+        NotificationSetting.ensure_defaults()
+
+        ProductBatch.objects.create(
+            product=self.product,
+            shop=self.shop,
+            quantity=10,
+            expiry_date=date.today() - timedelta(days=2),
+        )
+
+        from apps.inventory.tasks import check_expiry_alerts
+        check_expiry_alerts()
+
+        mock_notify.assert_called_once()
+        call_kwargs = mock_notify.call_args
+        self.assertEqual(call_kwargs[1]["notification_type"], "error")
+
+    @patch("apps.notifications.services.notify_user")
+    def test_no_duplicate_notification_same_day(self, mock_notify):
+        from django.utils import timezone
+        from apps.inventory.models import ProductBatch
+        from apps.notifications.models import NotificationSetting
+        NotificationSetting.ensure_defaults()
+
+        ProductBatch.objects.create(
+            product=self.product,
+            shop=self.shop,
+            quantity=10,
+            expiry_date=date.today() + timedelta(days=3),
+            last_notified_date=timezone.now().date(),
+        )
+
+        from apps.inventory.tasks import check_expiry_alerts
+        check_expiry_alerts()
+        mock_notify.assert_not_called()
+
+    @patch("apps.notifications.services.notify_user")
+    def test_restaurant_business_skipped(self, mock_notify):
+        from apps.inventory.models import ProductBatch
+        from apps.notifications.models import NotificationSetting
+        NotificationSetting.ensure_defaults()
+
+        ProductBatch.objects.create(
+            product=self.rest_product,
+            shop=self.rest_shop,
+            quantity=5,
+            expiry_date=date.today() + timedelta(days=2),
+        )
+
+        from apps.inventory.tasks import check_expiry_alerts
+        check_expiry_alerts()
+        mock_notify.assert_not_called()
+
+    @patch("apps.notifications.services.notify_user")
+    def test_disabled_setting_prevents_notification(self, mock_notify):
+        from apps.inventory.models import ProductBatch
+        from apps.notifications.models import NotificationSetting
+        NotificationSetting.ensure_defaults()
+        NotificationSetting.objects.filter(key="expiry_alert_enabled").update(value="false")
+        NotificationSetting.objects.filter(key="expired_alert_enabled").update(value="false")
+
+        ProductBatch.objects.create(
+            product=self.product,
+            shop=self.shop,
+            quantity=10,
+            expiry_date=date.today() + timedelta(days=2),
+        )
+
+        from apps.inventory.tasks import check_expiry_alerts
+        check_expiry_alerts()
+        mock_notify.assert_not_called()
