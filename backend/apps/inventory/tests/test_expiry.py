@@ -247,3 +247,102 @@ class ProductBatchSerializerTest(TestCase):
         )
         data = ProductBatchSerializer(batch).data
         self.assertTrue(data["is_expired"])
+
+
+from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+def api_client(user):
+    c = APIClient()
+    c.credentials(HTTP_AUTHORIZATION=f"Bearer {str(RefreshToken.for_user(user).access_token)}")
+    return c
+
+
+class BatchAPITest(TestCase):
+    def setUp(self):
+        self.owner = make_owner("+249912111004")
+        self.business = make_shop_business(self.owner, "API Biz")
+        self.shop = make_shop(self.business, "API Shop")
+        self.product = make_product(self.business, "Oil")
+        self.client = api_client(self.owner)
+
+    def _auth_headers(self):
+        return {"HTTP_X_TENANT_ID": str(self.business.id)}
+
+    def test_create_batch(self):
+        res = self.client.post(
+            "/api/v1/inventory/batches/",
+            {
+                "product": str(self.product.id),
+                "shop": str(self.shop.id),
+                "quantity": "20.000",
+                "expiry_date": str(date.today() + timedelta(days=30)),
+                "batch_number": "B001",
+            },
+            format="json",
+            **self._auth_headers(),
+        )
+        self.assertEqual(res.status_code, 201, res.data)
+        self.assertEqual(res.data["data"]["batch_number"], "B001")
+
+    def test_list_batches(self):
+        from apps.inventory.models import ProductBatch
+        ProductBatch.objects.create(
+            product=self.product, shop=self.shop, quantity=5,
+            expiry_date=date.today() + timedelta(days=5),
+        )
+        res = self.client.get("/api/v1/inventory/batches/", **self._auth_headers())
+        self.assertEqual(res.status_code, 200)
+        self.assertGreaterEqual(res.data["count"], 1)
+
+    def test_expiry_alerts_returns_expiring_and_expired(self):
+        from apps.inventory.models import ProductBatch
+        ProductBatch.objects.create(
+            product=self.product, shop=self.shop, quantity=5,
+            expiry_date=date.today() + timedelta(days=3),
+        )
+        ProductBatch.objects.create(
+            product=self.product, shop=self.shop, quantity=2,
+            expiry_date=date.today() - timedelta(days=1),
+        )
+        res = self.client.get("/api/v1/inventory/expiry-alerts/", **self._auth_headers())
+        self.assertEqual(res.status_code, 200)
+        self.assertIn("expiring_soon", res.data["data"])
+        self.assertIn("expired", res.data["data"])
+        self.assertEqual(len(res.data["data"]["expiring_soon"]), 1)
+        self.assertEqual(len(res.data["data"]["expired"]), 1)
+
+    def test_restaurant_cannot_create_batch(self):
+        rest_owner = make_owner("+249912111009")
+        rest_biz = make_restaurant(rest_owner, "Rest Biz")
+        rest_shop = make_shop(rest_biz, "Rest Shop")
+        rest_product = make_product(rest_biz, "Pasta")
+        c = api_client(rest_owner)
+        res = c.post(
+            "/api/v1/inventory/batches/",
+            {
+                "product": str(rest_product.id),
+                "shop": str(rest_shop.id),
+                "quantity": "10.000",
+                "expiry_date": str(date.today() + timedelta(days=10)),
+            },
+            format="json",
+            **{"HTTP_X_TENANT_ID": str(rest_biz.id)},
+        )
+        self.assertEqual(res.status_code, 403, res.data)
+
+    def test_tenant_isolation_other_business_batch_invisible(self):
+        from apps.inventory.models import ProductBatch
+        other_owner = make_owner("+249912111005")
+        other_biz   = make_shop_business(other_owner, "Other Biz")
+        other_shop  = make_shop(other_biz, "Other Shop")
+        other_prod  = make_product(other_biz, "Widget")
+        ProductBatch.objects.create(
+            product=other_prod, shop=other_shop, quantity=5,
+            expiry_date=date.today() + timedelta(days=5),
+        )
+        res = self.client.get("/api/v1/inventory/batches/", **self._auth_headers())
+        self.assertEqual(res.status_code, 200)
+        for item in res.data["results"]:
+            self.assertNotEqual(item["shop"], str(other_shop.id))
