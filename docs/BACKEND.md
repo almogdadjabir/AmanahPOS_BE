@@ -207,6 +207,7 @@ Product catalog with image upload.
 |---|---|
 | `StockLevel` | `product` FK, `shop` FK, `quantity` (Decimal), `updated_at` — unique together (product, shop) |
 | `StockMovement` | `product` FK, `shop` FK, `quantity_change`, `movement_type` (sale/restock/adjustment/return), `reference_id`, `note`, `created_at` |
+| `ProductBatch` | `product` FK, `shop` FK, `quantity`, `expiry_date`, `batch_number`, `notes`, `last_notified_date` — shop businesses only |
 
 **Endpoints** (`/api/v1/inventory/`):
 
@@ -216,6 +217,9 @@ Product catalog with image upload.
 | `GET` | `stock/<product_id>/` | Stock for a specific product across all shops |
 | `POST` | `movements/` | Record a manual stock adjustment |
 | `GET` | `movements/` | List stock movements (filterable by product, shop, type) |
+| `GET/POST` | `batches/` | List/create product batches with expiry dates (shop only — returns 403 for restaurant) |
+| `GET/PATCH/DELETE` | `batches/<id>/` | Batch detail, update, or delete |
+| `GET` | `expiry-alerts/` | Returns `expiring_soon` and `expired` batch lists (shop only; respects `expiry_warning_days` setting) |
 
 **Stock deduction:** Handled inside `create_sale()` in `apps/sales/services.py`. Each `SaleItem` calls `StockLevel.objects.select_for_update().get(product=product, shop=shop)` and deducts quantity atomically. Raises `InsufficientStockError` if stock would go negative.
 
@@ -475,6 +479,8 @@ Business logic lives in `services.py` files, not in views or serializers.
 |---|---|---|
 | `accounts.tasks.cleanup_expired_otps` | Every hour | Delete expired OTP keys from Redis |
 | `subscriptions.tasks.check_subscription_expiry` | Daily | Mark expired subscriptions |
+| `inventory.tasks.check_expiry_alerts` | Daily | Send expiry push alerts for shop businesses (skips restaurants) |
+| `notifications.tasks.requeue_stuck_deliveries` | Every 5 min | Rescue stuck PROCESSING / orphaned PENDING push deliveries |
 
 **Worker concurrency:** 4 (configurable). Prefetch multiplier: 1 (fair dispatch). `acks_late=True` (tasks only acknowledged after completion, safe for retries).
 
