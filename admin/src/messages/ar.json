@@ -1208,6 +1208,12 @@
     "statusCancelled": "ملغى",
     "noTemplates": "لا توجد قوالب بعد",
     "noLogs": "لا توجد سجلات تسليم بعد",
-    "createFirst": "أنشئ قالبك الأول للبدء"
+    "createFirst": "أنشئ قالبك الأول للبدء",
+    "sendNotification": "إرسال إشعار",
+    "sendDescription": "إرسال إشعار أو رسالة نصية لمستخدم محدد",
+    "templatesTitle": "القوالب",
+    "templatesDescription": "إدارة قوالب الإشعارات",
+    "searchPlaceholder": "بحث بالاسم أو المحتوى…",
+    "tabAll": "الكل"
   }
 }

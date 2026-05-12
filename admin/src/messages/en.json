@@ -1208,6 +1208,12 @@
     "statusCancelled": "Cancelled",
     "noTemplates": "No templates yet",
     "noLogs": "No delivery logs yet",
-    "createFirst": "Create your first template to get started"
+    "createFirst": "Create your first template to get started",
+    "sendNotification": "Send Notification",
+    "sendDescription": "Send push or SMS to a specific user",
+    "templatesTitle": "Templates",
+    "templatesDescription": "Manage reusable notification templates",
+    "searchPlaceholder": "Search by recipient or message…",
+    "tabAll": "All"
   }
 }
