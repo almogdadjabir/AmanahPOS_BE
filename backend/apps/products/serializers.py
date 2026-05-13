@@ -74,7 +74,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "id", "tenant", "shop", "shop_name", "category", "category_name",
             "name", "description", "sku", "barcode", "price", "cost_price",
             "image", "thumbnail_url", "unit", "is_active", "track_inventory",
-            "min_stock_level", "stock_level", "created_at", "updated_at",
+            "min_stock_level", "expiry_alert_days", "stock_level", "created_at", "updated_at",
         ]
         read_only_fields = ["id", "tenant", "created_at", "updated_at"]
 
@@ -109,7 +109,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         fields = [
             "shop", "category", "name", "description", "sku", "barcode",
             "price", "cost_price", "image_upload", "unit", "is_active",
-            "track_inventory", "min_stock_level",
+            "track_inventory", "min_stock_level", "expiry_alert_days",
         ]
 
     def validate_shop(self, value):

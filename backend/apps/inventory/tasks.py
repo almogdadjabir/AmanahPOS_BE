@@ -47,12 +47,19 @@ def check_expiry_alerts() -> None:
     except ValueError:
         warning_days = 7
 
-    warning_cutoff = today + timedelta(days=warning_days)
+    # Use the largest possible cutoff so per-product overrides don't miss anything.
+    from django.db.models import Max
+    max_product_days = (
+        ProductBatch.objects
+        .filter(shop__business__business_type=BusinessType.SHOP)
+        .aggregate(m=Max("product__expiry_alert_days"))["m"] or 0
+    )
+    query_cutoff = today + timedelta(days=max(warning_days, max_product_days))
 
     batches = (
         ProductBatch.objects
         .filter(
-            expiry_date__lte=warning_cutoff,
+            expiry_date__lte=query_cutoff,
             shop__business__business_type=BusinessType.SHOP,
         )
         .exclude(last_notified_date=today)
@@ -62,6 +69,11 @@ def check_expiry_alerts() -> None:
 
     notified = 0
     for batch in batches:
+        effective_days = batch.product.expiry_alert_days if batch.product.expiry_alert_days is not None else warning_days
+        # Skip if expiry is beyond this product's alert window (and not expired)
+        if batch.expiry_date > today + timedelta(days=effective_days):
+            continue
+
         owner = batch.shop.business.owner
         expiry_str = batch.expiry_date.strftime("%Y-%m-%d")
 

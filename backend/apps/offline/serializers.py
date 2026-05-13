@@ -68,7 +68,7 @@ class BootstrapProductSerializer(serializers.ModelSerializer):
             "name", "description", "sku", "barcode",
             "price", "cost_price",
             "image", "thumbnail_url",
-            "unit", "is_active", "track_inventory", "min_stock_level",
+            "unit", "is_active", "track_inventory", "min_stock_level", "expiry_alert_days",
             "updated_at",
         ]
 

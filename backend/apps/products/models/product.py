@@ -52,9 +52,10 @@ class Product(models.Model):
     thumbnail = models.CharField(max_length=500, blank=True, null=True, default=None)
     unit = models.CharField(max_length=20, choices=UnitChoices.choices, default=UnitChoices.PIECE)
     is_active = models.BooleanField(default=True, db_index=True)
-    track_inventory = models.BooleanField(default=True)
-    min_stock_level = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
+    track_inventory   = models.BooleanField(default=True)
+    min_stock_level   = models.PositiveIntegerField(default=0)
+    expiry_alert_days = models.PositiveIntegerField(null=True, blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
