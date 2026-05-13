@@ -50,6 +50,7 @@ class NotificationDelivery(models.Model):
     status        = models.CharField(max_length=20, choices=DeliveryStatus.choices, default=DeliveryStatus.PENDING, db_index=True)
     retry_count   = models.PositiveSmallIntegerField(default=0)
     max_retries   = models.PositiveSmallIntegerField(default=3)
+    next_retry_at = models.DateTimeField(null=True, blank=True, db_index=True)
     scheduled_at  = models.DateTimeField(null=True, blank=True)
     sent_at       = models.DateTimeField(null=True, blank=True)
     failed_at     = models.DateTimeField(null=True, blank=True)
@@ -68,6 +69,8 @@ class NotificationDelivery(models.Model):
             models.Index(fields=["recipient", "status"]),
             models.Index(fields=["channel", "status"]),
             models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["status", "updated_at"],    name="notif_del_status_updated_idx"),
+            models.Index(fields=["status", "next_retry_at"], name="notif_del_status_retry_idx"),
         ]
 
     def __str__(self):

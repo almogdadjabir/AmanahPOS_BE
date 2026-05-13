@@ -11,6 +11,7 @@ class NotificationType(models.TextChoices):
     SALE = "sale", "Sale"
     STOCK = "stock", "Stock Alert"
     SUBSCRIPTION = "subscription", "Subscription"
+    SECURITY = "security", "Security"
     SYSTEM = "system", "System"
 
 

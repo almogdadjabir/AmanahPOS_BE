@@ -85,12 +85,13 @@ class LoginOTPVerifySerializer(serializers.Serializer):
     """
     phone    = serializers.CharField(max_length=20)
     otp      = serializers.CharField(min_length=4, max_length=8)
-    fcm_token  = serializers.CharField(max_length=512, required=False, allow_blank=True, default="")
-    platform   = serializers.ChoiceField(
+    fcm_token   = serializers.CharField(max_length=512, required=False, allow_blank=True, default="")
+    platform    = serializers.ChoiceField(
         choices=["android", "ios", "web"],
         required=False, allow_blank=True, default="",
     )
     device_id   = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")
+    device_name = serializers.CharField(max_length=255, required=False, allow_blank=True, default="")
     app_version = serializers.CharField(max_length=50,  required=False, allow_blank=True, default="")
 
     def validate_phone(self, value: str) -> str:

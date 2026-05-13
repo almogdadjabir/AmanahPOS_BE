@@ -50,6 +50,7 @@ class ManualPushSerializer(serializers.Serializer):
     title       = serializers.CharField(max_length=255, required=False, allow_blank=True)
     body        = serializers.CharField(required=False, allow_blank=True)
     template_id = serializers.UUIDField(required=False, allow_null=True)
+    variables   = serializers.DictField(child=serializers.CharField(allow_blank=True), required=False, default=dict)
 
     def validate(self, attrs):
         has_custom   = attrs.get("title") and attrs.get("body")
@@ -65,6 +66,7 @@ class ManualSMSSerializer(serializers.Serializer):
     user_id     = serializers.UUIDField()
     message     = serializers.CharField(required=False, allow_blank=True)
     template_id = serializers.UUIDField(required=False, allow_null=True)
+    variables   = serializers.DictField(child=serializers.CharField(allow_blank=True), required=False, default=dict)
 
     def validate(self, attrs):
         if not attrs.get("message") and not attrs.get("template_id"):

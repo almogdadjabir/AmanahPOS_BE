@@ -84,13 +84,22 @@ export default function SendDrawer({ onClose }: { onClose?: () => void }) {
   const [title,       setTitle]       = useState('');
   const [body,        setBody]        = useState('');
   const [message,     setMessage]     = useState('');
+  const [variables,   setVariables]   = useState<Record<string, string>>({});
   const [sending,     setSending]     = useState(false);
   const [result,      setResult]      = useState<{ ok: boolean; text: string } | null>(null);
+
+  const selectedTemplate = templates.find((t) => t.id === templateId) ?? null;
 
   useEffect(() => {
     fetchAdminTemplates({ channel: mode === 'push' ? 'push' : 'sms', enabled: 'true', page_size: 50 })
       .then((r) => setTemplates(r.results));
+    setTemplateId('');
+    setVariables({});
   }, [mode]);
+
+  useEffect(() => {
+    setVariables({});
+  }, [templateId]);
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -100,12 +109,16 @@ export default function SendDrawer({ onClose }: { onClose?: () => void }) {
     try {
       if (mode === 'push') {
         const res = await adminSendPush(
-          useTemplate && templateId ? { user_id: user.id, template_id: templateId } : { user_id: user.id, title, body },
+          useTemplate && templateId
+            ? { user_id: user.id, template_id: templateId, variables }
+            : { user_id: user.id, title, body },
         );
         setResult({ ok: true, text: t('sentDevices', { count: res.device_count }) });
       } else {
         await adminSendSMS(
-          useTemplate && templateId ? { user_id: user.id, template_id: templateId } : { user_id: user.id, message },
+          useTemplate && templateId
+            ? { user_id: user.id, template_id: templateId, variables }
+            : { user_id: user.id, message },
         );
         setResult({ ok: true, text: t('smsSent') });
       }
@@ -153,12 +166,32 @@ export default function SendDrawer({ onClose }: { onClose?: () => void }) {
       </div>
 
       {useTemplate ? (
-        <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} required
-          className="w-full px-3 py-2.5 text-sm border border-border rounded-xl bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-        >
-          <option value="">— {t('chooseTemplate')} —</option>
-          {templates.map((tmpl) => <option key={tmpl.id} value={tmpl.id}>{tmpl.name}</option>)}
-        </select>
+        <div className="space-y-3">
+          <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} required
+            className="w-full px-3 py-2.5 text-sm border border-border rounded-xl bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+          >
+            <option value="">— {t('chooseTemplate')} —</option>
+            {templates.map((tmpl) => <option key={tmpl.id} value={tmpl.id}>{tmpl.name}</option>)}
+          </select>
+
+          {selectedTemplate && selectedTemplate.variables.length > 0 && (
+            <div className="space-y-2 p-3 rounded-xl bg-muted/40 border border-border">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Template Variables</p>
+              {selectedTemplate.variables.map((varName) => (
+                <div key={varName}>
+                  <label className="text-xs text-muted-foreground mb-1 block font-mono">{`{${varName}}`}</label>
+                  <input
+                    required
+                    value={variables[varName] ?? ''}
+                    onChange={(e) => setVariables((prev) => ({ ...prev, [varName]: e.target.value }))}
+                    placeholder={varName}
+                    className="w-full px-3 py-2 text-sm border border-border rounded-xl bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       ) : mode === 'push' ? (
         <div className="space-y-3">
           <input required value={title} onChange={(e) => setTitle(e.target.value)}

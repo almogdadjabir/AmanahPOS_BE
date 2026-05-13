@@ -165,12 +165,17 @@ class AdminSendPushView(APIView):
         if vd.get("template_id"):
             try:
                 tmpl = NotificationTemplate.objects.get(pk=vd["template_id"], is_enabled=True)
-                rendered = tmpl.render(locale="en")
+                rendered = tmpl.render(locale="en", **vd.get("variables", {}))
                 title      = rendered["title"]
                 body       = rendered["body"]
                 notif_type = rendered["notification_type"]
             except NotificationTemplate.DoesNotExist:
                 raise NotFound("Template not found or disabled.")
+            except KeyError as e:
+                return Response(
+                    {"success": False, "message": f"Missing template variable: {e}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         else:
             title      = vd["title"]
             body       = vd["body"]
@@ -225,10 +230,15 @@ class AdminSendSMSView(APIView):
         if vd.get("template_id"):
             try:
                 tmpl = NotificationTemplate.objects.get(pk=vd["template_id"], is_enabled=True)
-                rendered = tmpl.render(locale="en")
+                rendered = tmpl.render(locale="en", **vd.get("variables", {}))
                 message = rendered["body"]
             except NotificationTemplate.DoesNotExist:
                 raise NotFound("Template not found or disabled.")
+            except KeyError as e:
+                return Response(
+                    {"success": False, "message": f"Missing template variable: {e}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         else:
             message = vd["message"]
 

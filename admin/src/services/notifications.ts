@@ -142,6 +142,7 @@ export interface SendPushInput {
   title?:       string;
   body?:        string;
   template_id?: string;
+  variables?:   Record<string, string>;
 }
 
 export interface SendPushResult {
@@ -161,6 +162,7 @@ export interface SendSMSInput {
   user_id:      string;
   message?:     string;
   template_id?: string;
+  variables?:   Record<string, string>;
 }
 
 export async function adminSendSMS(input: SendSMSInput): Promise<{ message: string }> {

@@ -123,6 +123,7 @@ def _handle_delivery_failure(delivery, error_msg: str) -> None:
     """Mark delivery for retry or permanently failed."""
     from django.db import transaction
     from django.utils import timezone
+    from datetime import timedelta
     from apps.notifications.models import DeliveryStatus
 
     with transaction.atomic():
@@ -132,8 +133,9 @@ def _handle_delivery_failure(delivery, error_msg: str) -> None:
             delay = _RETRY_DELAYS[min(delivery.retry_count, len(_RETRY_DELAYS) - 1)]
             delivery.retry_count   += 1
             delivery.status         = DeliveryStatus.PENDING
+            delivery.next_retry_at  = timezone.now() + timedelta(seconds=delay)
             delivery.error_message  = error_msg
-            delivery.save(update_fields=["retry_count", "status", "error_message", "updated_at"])
+            delivery.save(update_fields=["retry_count", "status", "next_retry_at", "error_message", "updated_at"])
             logger.warning(
                 "Delivery %s failed (attempt %d/%d) — retrying in %ds.",
                 delivery.id, delivery.retry_count, delivery.max_retries, delay,
@@ -144,8 +146,9 @@ def _handle_delivery_failure(delivery, error_msg: str) -> None:
         else:
             delivery.status        = DeliveryStatus.FAILED
             delivery.failed_at     = timezone.now()
+            delivery.next_retry_at = None
             delivery.error_message = error_msg
-            delivery.save(update_fields=["status", "failed_at", "error_message", "updated_at"])
+            delivery.save(update_fields=["status", "failed_at", "next_retry_at", "error_message", "updated_at"])
             logger.error(
                 "Delivery %s permanently failed after %d retries: %s",
                 delivery.id, delivery.retry_count, error_msg,
@@ -251,20 +254,26 @@ def send_low_stock_notification(
     from apps.products.models import Product
     from apps.tenants.models import Shop
 
+    from apps.notifications.notification_templates import render_notification
+
     try:
         product = Product.objects.select_related("tenant__owner").get(pk=product_id)
         shop    = Shop.objects.get(pk=shop_id)
         owner   = product.tenant.owner
 
+        tmpl = render_notification(
+            "low_stock",
+            product_name=product.name,
+            shop_name=shop.name,
+            current_qty=current_qty,
+            min_qty=min_qty,
+        )
         send_push_notification.delay(
             user_id=str(owner.id),
-            title="Low Stock Alert",
-            body=(
-                f"'{product.name}' at {shop.name} is running low. "
-                f"Stock: {current_qty} (min: {min_qty})"
-            ),
+            title=tmpl["title"],
+            body=tmpl["body"],
             data={
-                "type":        "stock",
+                "type":        tmpl["notification_type"],
                 "product_id":  product_id,
                 "shop_id":     shop_id,
                 "current_qty": str(current_qty),
@@ -283,17 +292,24 @@ def send_subscription_expiry_warning(business_id: str, days_remaining: int) -> N
     """Warn the business owner that their subscription is expiring soon."""
     from apps.tenants.models import Business
 
+    from apps.notifications.notification_templates import render_notification
+
     try:
         business = Business.objects.select_related("owner").get(pk=business_id)
         owner    = business.owner
 
+        tmpl = render_notification(
+            "subscription_expiry",
+            business_name=business.name,
+            days_remaining=days_remaining,
+        )
         send_push_notification.delay(
             user_id=str(owner.id),
-            title="Subscription Expiring Soon",
-            body=f"Your {business.name} subscription expires in {days_remaining} day(s). Renew now to avoid interruption.",
+            title=tmpl["title"],
+            body=tmpl["body"],
             data={
-                "type":        "subscription",
-                "business_id": business_id,
+                "type":           tmpl["notification_type"],
+                "business_id":    business_id,
                 "days_remaining": str(days_remaining),
             },
         )
@@ -326,3 +342,98 @@ def mark_notifications_read(user_id: str, notification_ids: list[str] | None = N
 def cleanup_expired_otps() -> None:
     """OTPs are TTL-managed in Redis. This task exists for monitoring only."""
     logger.info("OTP cleanup: OTPs are TTL-managed in Redis — nothing to do.")
+
+
+# ── Reaper task ───────────────────────────────────────────────────────────────
+
+_STUCK_PROCESSING_MINUTES = 10   # delivery stuck in PROCESSING this long → reset
+_ORPHAN_PENDING_MINUTES   = 5    # delivery PENDING with no next_retry_at this long → re-queue
+_REAPER_BATCH_SIZE        = 50   # max deliveries fixed per run to cap DB load
+
+@shared_task(
+    name="apps.notifications.tasks.requeue_stuck_deliveries",
+    queue="notifications",
+)
+def requeue_stuck_deliveries() -> None:
+    """
+    Fixes two failure modes without impacting normal-path performance:
+
+    1. PROCESSING stuck — worker died after acquiring the lock but before
+       updating status.  acks_late + reject_on_worker_lost re-queue the
+       Celery message, but deliver_push_notification filters on status=PENDING
+       so it silently skips.  We detect these by updated_at age and reset them.
+
+    2. PENDING orphaned — Celery message lost from Redis (broker restart /
+       eviction).  We detect deliveries whose next_retry_at has passed (or
+       whose initial queue message is overdue) and re-queue them.
+
+    Double-queuing is safe: deliver_push_notification uses
+    select_for_update(nowait=True) so concurrent workers skip duplicates.
+    """
+    from datetime import timedelta
+
+    from django.db import transaction
+    from django.db.models import F, Q
+    from django.utils import timezone
+
+    from apps.notifications.models import DeliveryStatus, NotificationDelivery
+
+    now = timezone.now()
+    total_requeued = 0
+
+    # ── 1. Stuck PROCESSING ───────────────────────────────────────────────────
+    with transaction.atomic():
+        stuck = list(
+            NotificationDelivery.objects
+            .select_for_update(skip_locked=True)
+            .filter(
+                status=DeliveryStatus.PROCESSING,
+                updated_at__lt=now - timedelta(minutes=_STUCK_PROCESSING_MINUTES),
+            )[:_REAPER_BATCH_SIZE]
+        )
+        for d in stuck:
+            d.status        = DeliveryStatus.PENDING
+            d.next_retry_at = None
+            d.save(update_fields=["status", "next_retry_at", "updated_at"])
+
+    for d in stuck:
+        deliver_push_notification.delay(str(d.id))
+        total_requeued += 1
+
+    if stuck:
+        logger.warning(
+            "requeue_stuck_deliveries: reset %d stuck PROCESSING → PENDING.",
+            len(stuck),
+        )
+
+    # ── 2. Orphaned PENDING ───────────────────────────────────────────────────
+    orphan_q = (
+        Q(next_retry_at__lte=now) |
+        Q(next_retry_at__isnull=True, created_at__lt=now - timedelta(minutes=_ORPHAN_PENDING_MINUTES))
+    )
+
+    with transaction.atomic():
+        orphans = list(
+            NotificationDelivery.objects
+            .select_for_update(skip_locked=True)
+            .filter(
+                orphan_q,
+                status=DeliveryStatus.PENDING,
+                retry_count__lt=F("max_retries"),
+            )[:_REAPER_BATCH_SIZE]
+        )
+
+    for d in orphans:
+        deliver_push_notification.delay(str(d.id))
+        total_requeued += 1
+
+    if orphans:
+        logger.warning(
+            "requeue_stuck_deliveries: re-queued %d orphaned PENDING deliveries.",
+            len(orphans),
+        )
+
+    if total_requeued:
+        logger.info("requeue_stuck_deliveries: total re-queued = %d.", total_requeued)
+    else:
+        logger.debug("requeue_stuck_deliveries: nothing to fix.")

@@ -168,14 +168,26 @@ class LoginOTPVerifyView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        # Capture first-login state BEFORE the service stamps last_login_at.
+        is_first_login = not CustomUser.objects.filter(
+            phone=data["phone"],
+            last_login_at__isnull=False,
+        ).exists()
+
         result = login_with_otp(phone=data["phone"], otp=data["otp"])
         user = result.pop("user")
 
-        # Opportunistically register FCM token if supplied — never blocks login
+        # ── FCM token registration ────────────────────────────────────────────
+        device_is_new = False
         if data.get("fcm_token") and data.get("platform"):
             try:
                 from django.utils import timezone
                 from apps.notifications.models import DeviceToken
+
+                token_existed = DeviceToken.objects.filter(
+                    token=data["fcm_token"]
+                ).exists()
+
                 DeviceToken.objects.update_or_create(
                     token=data["fcm_token"],
                     defaults={
@@ -187,8 +199,33 @@ class LoginOTPVerifyView(APIView):
                         "last_seen_at": timezone.now(),
                     },
                 )
+                device_is_new = not token_existed
             except Exception:
                 logger.exception("Failed to register FCM token during login for user %s", user.id)
+
+        # ── Login notifications ───────────────────────────────────────────────
+        try:
+            from apps.notifications.services import notify_user
+            from apps.notifications.notification_templates import render_notification
+
+            if is_first_login:
+                notify_user(user, **render_notification("welcome"))
+            elif device_is_new:
+                # Build a human-readable device label from what the client sent.
+                device_name = (
+                    data.get("device_name")
+                    or {
+                        "android": "Android device",
+                        "ios":     "iOS device",
+                        "web":     "web browser",
+                    }.get(data.get("platform", ""), "new device")
+                )
+                notify_user(
+                    user,
+                    **render_notification("new_device_login", device_name=device_name),
+                )
+        except Exception:
+            logger.exception("Failed to send login notification for user %s", user.id)
 
         return Response(
             {
