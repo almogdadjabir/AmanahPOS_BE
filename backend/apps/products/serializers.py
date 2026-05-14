@@ -23,10 +23,12 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "tenant", "created_at", "updated_at"]
 
     def get_image(self, obj) -> str | None:
-        return build_image_url(obj.image, request=self.context.get("request"))
+        v = int(obj.updated_at.timestamp()) if obj.updated_at else None
+        return build_image_url(obj.image, request=self.context.get("request"), version=v)
 
     def get_thumbnail_url(self, obj) -> str | None:
-        return build_image_url(obj.thumbnail, request=self.context.get("request"))
+        v = int(obj.updated_at.timestamp()) if obj.updated_at else None
+        return build_image_url(obj.thumbnail, request=self.context.get("request"), version=v)
 
 
 class CategoryCreateSerializer(serializers.ModelSerializer):
@@ -79,10 +81,12 @@ class ProductSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "tenant", "created_at", "updated_at"]
 
     def get_image(self, obj) -> str | None:
-        return build_image_url(obj.image, request=self.context.get("request"))
+        v = int(obj.updated_at.timestamp()) if obj.updated_at else None
+        return build_image_url(obj.image, request=self.context.get("request"), version=v)
 
     def get_thumbnail_url(self, obj) -> str | None:
-        return build_image_url(obj.thumbnail, request=self.context.get("request"))
+        v = int(obj.updated_at.timestamp()) if obj.updated_at else None
+        return build_image_url(obj.thumbnail, request=self.context.get("request"), version=v)
 
     def get_stock_level(self, obj):
         try:

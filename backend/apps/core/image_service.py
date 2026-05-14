@@ -196,7 +196,7 @@ def delete_images(business_id: str, entity_type: str, entity_id: str) -> None:
             logger.warning("Failed to delete image %s: %s", key, exc)
 
 
-def build_image_url(key: str | None, request=None) -> str | None:
+def build_image_url(key: str | None, request=None, version: int | None = None) -> str | None:
     """
     Build the full absolute URL for a stored image key.
 
@@ -206,6 +206,8 @@ def build_image_url(key: str | None, request=None) -> str | None:
     reachable address rather than a bare relative path.
 
     Pass ``request`` (from serializer context) whenever available.
+    Pass ``version`` (epoch integer from updated_at) to append a ?v= cache-busting
+    parameter so browsers re-fetch after an image is replaced.
     """
     if not key:
         return None
@@ -213,16 +215,16 @@ def build_image_url(key: str | None, request=None) -> str | None:
     use_s3 = getattr(settings, "USE_S3", False)
     if not use_s3:
         path = f"{settings.MEDIA_URL}{key}"
-        if request is not None:
-            return request.build_absolute_uri(path)
-        return path
+        url = request.build_absolute_uri(path) if request is not None else path
+    else:
+        public_url = getattr(settings, "MINIO_PUBLIC_URL", "").rstrip("/")
+        bucket = getattr(settings, "AWS_S3_PUBLIC_BUCKET_NAME", "amanapos-public")
+        if public_url:
+            url = f"{public_url}/{bucket}/{key}"
+        else:
+            endpoint = getattr(settings, "AWS_S3_ENDPOINT_URL", "").rstrip("/")
+            url = f"{endpoint}/{bucket}/{key}"
 
-    public_url = getattr(settings, "MINIO_PUBLIC_URL", "").rstrip("/")
-    bucket = getattr(settings, "AWS_S3_PUBLIC_BUCKET_NAME", "amanapos-public")
-
-    if public_url:
-        return f"{public_url}/{bucket}/{key}"
-
-    # Fallback: endpoint URL (may be Docker-internal in dev)
-    endpoint = getattr(settings, "AWS_S3_ENDPOINT_URL", "").rstrip("/")
-    return f"{endpoint}/{bucket}/{key}"
+    if version:
+        url = f"{url}?v={version}"
+    return url
