@@ -400,7 +400,7 @@ class DashboardSummaryView(APIView):
 
         tenant = get_tenant_from_request(request)
         if not tenant:
-            raise BusinessLogicError("No active business found.")
+            return Response({"success": False, "message": "No active business found."}, status=status.HTTP_400_BAD_REQUEST)
 
         tz = zoneinfo.ZoneInfo(tenant.timezone)
         now_local = datetime.now(tz)
