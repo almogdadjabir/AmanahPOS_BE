@@ -60,6 +60,19 @@ class Sale(models.Model):
             models.Index(fields=["shop", "created_at"]),
             models.Index(fields=["cashier", "created_at"]),
             models.Index(fields=["receipt_number"]),
+            # Covering indexes for DashboardSummaryView
+            models.Index(
+                fields=["tenant", "status", "created_at"],
+                name="sale_tenant_status_creat_idx",
+            ),
+            models.Index(
+                fields=["tenant", "shop", "status", "created_at"],
+                name="sale_shop_status_creat_idx",
+            ),
+            models.Index(
+                fields=["tenant", "cashier", "status", "created_at"],
+                name="sale_cashier_status_idx",
+            ),
         ]
         constraints = [
             # Unique client_sale_id per tenant, NULLs excluded (online sales have no client_id).
