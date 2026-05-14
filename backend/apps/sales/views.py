@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.accounts.models.user import RoleChoices
 from apps.core.exceptions import BusinessLogicError, NotFound
 from apps.core.pagination import StandardPagination
 from apps.products.services import get_tenant_from_request
@@ -427,7 +428,7 @@ class DashboardSummaryView(APIView):
         user = request.user
         shop = None
 
-        if user.role == "cashier":
+        if user.role == RoleChoices.CASHIER:
             if not user.default_shop_id:
                 return Response(
                     {"success": False, "message": "Cashier has no assigned shop"},
@@ -450,7 +451,7 @@ class DashboardSummaryView(APIView):
         limit = min(max(limit, 1), 20)
 
         # ── Cache ─────────────────────────────────────────────────────────────
-        cashier_scope = str(user.id) if user.role == "cashier" else "any"
+        cashier_scope = str(user.id) if user.role == RoleChoices.CASHIER else "any"
         cache_key = (
             f"dsb:{tenant.id}:{shop.id if shop else 'all'}:"
             f"{target_date}:{user.role}:{cashier_scope}:{limit}"
@@ -512,7 +513,7 @@ class DashboardSummaryView(APIView):
             "sales_count": 0,
             "average_sale_amount": 0.0,
         }
-        if user.role == "cashier":
+        if user.role == RoleChoices.CASHIER:
             shift_agg = base_qs.filter(cashier=user).aggregate(
                 started_at=Min("created_at"),
                 gross=Sum("total_amount"),
@@ -584,7 +585,7 @@ class DashboardSummaryView(APIView):
         )
 
         product_ids = [r["product_id"] for r in top_rows]
-        products_map = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
+        products_map = {p.id: p for p in Product.objects.filter(id__in=product_ids, tenant=tenant)}
 
         top_sellers = [
             {
