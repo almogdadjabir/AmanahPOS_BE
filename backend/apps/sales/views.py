@@ -375,3 +375,270 @@ def _fail(client_sale_id: str, message: str) -> dict:
         "server_sale_id": None,
         "message": message,
     }
+
+
+class DashboardSummaryView(APIView):
+    """
+    GET /api/v1/sales/dashboard-summary/
+
+    Returns today's sales summary, shift data (cashiers only), hourly sparkline,
+    and top sellers. 60-second cache keyed per tenant/shop/date/user scope.
+    All amounts are float, never null.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):  # noqa: C901
+        import zoneinfo
+        from datetime import date as date_cls
+        from datetime import datetime, timedelta
+        from datetime import time as dt_time
+
+        from django.core.cache import cache
+        from django.db.models import Count, Min, Q, Sum
+        from django.db.models.functions import TruncHour
+        from django.utils import timezone as dj_tz
+
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            raise BusinessLogicError("No active business found.")
+
+        tz = zoneinfo.ZoneInfo(tenant.timezone)
+        now_local = datetime.now(tz)
+
+        # ── Date param ────────────────────────────────────────────────────────
+        date_str = request.query_params.get("date")
+        if date_str:
+            try:
+                target_date = date_cls.fromisoformat(date_str)
+            except ValueError:
+                return Response(
+                    {"success": False, "message": "date must be YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if target_date > now_local.date():
+                return Response(
+                    {"success": False, "message": "date cannot be in the future"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            target_date = now_local.date()
+
+        # ── Shop scoping ──────────────────────────────────────────────────────
+        user = request.user
+        shop = None
+
+        if user.role == "cashier":
+            if not user.default_shop_id:
+                return Response(
+                    {"success": False, "message": "Cashier has no assigned shop"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            shop = user.default_shop
+        else:
+            shop_id = request.query_params.get("shop_id")
+            if shop_id:
+                try:
+                    shop = Shop.objects.get(pk=shop_id, business=tenant, is_active=True)
+                except Shop.DoesNotExist:
+                    raise NotFound("Shop not found.")
+
+        # ── top_sellers_limit ─────────────────────────────────────────────────
+        try:
+            limit = int(request.query_params.get("top_sellers_limit", 5))
+        except (ValueError, TypeError):
+            limit = 5
+        limit = min(max(limit, 1), 20)
+
+        # ── Cache ─────────────────────────────────────────────────────────────
+        cashier_scope = str(user.id) if user.role == "cashier" else "any"
+        cache_key = (
+            f"dsb:{tenant.id}:{shop.id if shop else 'all'}:"
+            f"{target_date}:{user.role}:{cashier_scope}:{limit}"
+        )
+        cached = cache.get(cache_key)
+        if cached is not None:
+            return Response(cached)
+
+        # ── UTC range (index-friendly) ────────────────────────────────────────
+        local_start = datetime.combine(target_date, dt_time.min).replace(tzinfo=tz)
+        start_utc = local_start.astimezone(zoneinfo.ZoneInfo("UTC"))
+        end_utc = start_utc + timedelta(days=1)
+
+        # ── Base filter dict (reused across queries) ──────────────────────────
+        base_filter = {
+            "tenant": tenant,
+            "status": SaleStatus.COMPLETED,
+            "created_at__gte": start_utc,
+            "created_at__lt": end_utc,
+        }
+        if shop:
+            base_filter["shop"] = shop
+        base_qs = Sale.objects.filter(**base_filter)
+
+        # ── Query 1: today aggregates ─────────────────────────────────────────
+        today_agg = base_qs.aggregate(
+            gross=Sum("total_amount"),
+            sales_count=Count("id"),
+            cash=Sum("total_amount", filter=Q(payment_method=PaymentMethod.CASH)),
+            bankak=Sum("total_amount", filter=Q(payment_method=PaymentMethod.BANKAK)),
+        )
+
+        # ── Query 2: refunds (separate status filter) ─────────────────────────
+        refund_filter = {
+            "tenant": tenant,
+            "status__in": [SaleStatus.REFUNDED, SaleStatus.PARTIAL_REFUND],
+            "created_at__gte": start_utc,
+            "created_at__lt": end_utc,
+        }
+        if shop:
+            refund_filter["shop"] = shop
+        refund_agg = Sale.objects.filter(**refund_filter).aggregate(
+            refund_amount=Sum("total_amount"),
+            refund_count=Count("id"),
+        )
+
+        gross = float(today_agg["gross"] or 0)
+        sales_count = today_agg["sales_count"] or 0
+        refund_amount = float(refund_agg["refund_amount"] or 0)
+        refund_count = refund_agg["refund_count"] or 0
+        avg_sale = round(gross / sales_count, 2) if sales_count > 0 else 0.0
+
+        # ── Query 3: shift (cashier only) ─────────────────────────────────────
+        shift_data = {
+            "cashier_id": None,
+            "cashier_name": None,
+            "shift_started_at": None,
+            "gross_sales_amount": 0.0,
+            "sales_count": 0,
+            "average_sale_amount": 0.0,
+        }
+        if user.role == "cashier":
+            shift_agg = base_qs.filter(cashier=user).aggregate(
+                started_at=Min("created_at"),
+                gross=Sum("total_amount"),
+                count=Count("id"),
+            )
+            shift_gross = float(shift_agg["gross"] or 0)
+            shift_count = shift_agg["count"] or 0
+            shift_data = {
+                "cashier_id": str(user.id),
+                "cashier_name": user.full_name,
+                "shift_started_at": (
+                    shift_agg["started_at"].isoformat()
+                    if shift_agg["started_at"] else None
+                ),
+                "gross_sales_amount": shift_gross,
+                "sales_count": shift_count,
+                "average_sale_amount": (
+                    round(shift_gross / shift_count, 2) if shift_count > 0 else 0.0
+                ),
+            }
+
+        # ── Query 4: hourly sparkline (zero-filled) ───────────────────────────
+        is_today = target_date == now_local.date()
+        max_hour = now_local.hour if is_today else 23
+
+        hourly_rows = (
+            base_qs
+            .annotate(hour=TruncHour("created_at"))
+            .values("hour")
+            .annotate(amount=Sum("total_amount"), count=Count("id"))
+            .order_by("hour")
+        )
+        hourly_map = {}
+        for row in hourly_rows:
+            h = row["hour"].astimezone(tz).hour
+            hourly_map[h] = {
+                "amount": float(row["amount"] or 0),
+                "sales_count": row["count"] or 0,
+            }
+
+        sparkline_points = [
+            {
+                "label": f"{h:02d}:00",
+                "amount": hourly_map.get(h, {}).get("amount", 0.0),
+                "sales_count": hourly_map.get(h, {}).get("sales_count", 0),
+            }
+            for h in range(0, max_hour + 1)
+        ]
+
+        # ── Query 5: top sellers ──────────────────────────────────────────────
+        from apps.core.image_service import build_image_url
+        from apps.products.models import Product
+        from apps.sales.models import SaleItem
+
+        item_filter = {
+            "sale__tenant": tenant,
+            "sale__status": SaleStatus.COMPLETED,
+            "sale__created_at__gte": start_utc,
+            "sale__created_at__lt": end_utc,
+        }
+        if shop:
+            item_filter["sale__shop"] = shop
+
+        top_rows = list(
+            SaleItem.objects.filter(**item_filter)
+            .values("product_id")
+            .annotate(quantity_sold=Sum("quantity"), gross_amount=Sum("subtotal"))
+            .order_by("-quantity_sold")[:limit]
+        )
+
+        product_ids = [r["product_id"] for r in top_rows]
+        products_map = {p.id: p for p in Product.objects.filter(id__in=product_ids)}
+
+        top_sellers = [
+            {
+                "product_id": str(r["product_id"]),
+                "name": products_map[r["product_id"]].name,
+                "quantity_sold": float(r["quantity_sold"] or 0),
+                "gross_amount": float(r["gross_amount"] or 0),
+                "thumbnail_url": build_image_url(
+                    products_map[r["product_id"]].thumbnail,
+                    request=request,
+                    version=(
+                        int(products_map[r["product_id"]].updated_at.timestamp())
+                        if products_map[r["product_id"]].updated_at else None
+                    ),
+                ),
+            }
+            for r in top_rows
+            if r["product_id"] in products_map
+        ]
+
+        # ── Assemble response ─────────────────────────────────────────────────
+        now_utc = dj_tz.now()
+        response_data = {
+            "success": True,
+            "server_time": now_utc.isoformat(),
+            "timezone": tenant.timezone,
+            "currency": tenant.currency,
+            "scope": {
+                "business_id": str(tenant.id),
+                "shop_id": str(shop.id) if shop else None,
+                "shop_name": shop.name if shop else None,
+            },
+            "today": {
+                "date": str(target_date),
+                "gross_sales_amount": gross,
+                "net_sales_amount": round(gross - refund_amount, 2),
+                "sales_count": sales_count,
+                "average_sale_amount": avg_sale,
+                "refund_amount": refund_amount,
+                "refund_count": refund_count,
+                "cash_amount": float(today_agg["cash"] or 0),
+                "bankak_amount": float(today_agg["bankak"] or 0),
+            },
+            "shift": shift_data,
+            "sparkline": {
+                "interval": "hour",
+                "points": sparkline_points,
+            },
+            "top_sellers": top_sellers,
+            "sync": {
+                "includes_pending_offline_sales": False,
+                "last_calculated_at": now_utc.isoformat(),
+            },
+        }
+
+        cache.set(cache_key, response_data, 60)
+        return Response(response_data)
