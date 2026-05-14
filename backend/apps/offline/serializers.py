@@ -17,7 +17,12 @@ from apps.tenants.models import Business, Shop
 class BootstrapBusinessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
-        fields = ["id", "name", "slug", "business_type", "address", "phone", "email", "is_active", "updated_at"]
+        fields = [
+            "id", "name", "slug", "business_type",
+            "address", "phone", "email",
+            "currency", "timezone",
+            "is_active", "updated_at",
+        ]
 
 
 # ── Shops ─────────────────────────────────────────────────────────────────────
@@ -44,11 +49,13 @@ class BootstrapCategorySerializer(serializers.ModelSerializer):
 
     def get_image(self, obj) -> str | None:
         from apps.core.image_service import build_image_url
-        return build_image_url(obj.image, request=self.context.get("request"))
+        v = int(obj.updated_at.timestamp()) if obj.updated_at else None
+        return build_image_url(obj.image, request=self.context.get("request"), version=v)
 
     def get_thumbnail_url(self, obj) -> str | None:
         from apps.core.image_service import build_image_url
-        return build_image_url(obj.thumbnail, request=self.context.get("request"))
+        v = int(obj.updated_at.timestamp()) if obj.updated_at else None
+        return build_image_url(obj.thumbnail, request=self.context.get("request"), version=v)
 
 
 # ── Products ──────────────────────────────────────────────────────────────────
@@ -74,11 +81,13 @@ class BootstrapProductSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj) -> str | None:
         from apps.core.image_service import build_image_url
-        return build_image_url(obj.image, request=self.context.get("request"))
+        v = int(obj.updated_at.timestamp()) if obj.updated_at else None
+        return build_image_url(obj.image, request=self.context.get("request"), version=v)
 
     def get_thumbnail_url(self, obj) -> str | None:
         from apps.core.image_service import build_image_url
-        return build_image_url(obj.thumbnail, request=self.context.get("request"))
+        v = int(obj.updated_at.timestamp()) if obj.updated_at else None
+        return build_image_url(obj.thumbnail, request=self.context.get("request"), version=v)
 
 
 # ── Customers ─────────────────────────────────────────────────────────────────
