@@ -37,8 +37,8 @@ class Business(models.Model):
         related_name="businesses",
     )
     is_active = models.BooleanField(default=True, db_index=True)
-    currency = models.CharField(max_length=10, default="SDG")
-    timezone = models.CharField(max_length=60, default="Africa/Khartoum")
+    currency = models.CharField(max_length=10, default="SDG", blank=True)
+    timezone = models.CharField(max_length=60, default="Africa/Khartoum", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
