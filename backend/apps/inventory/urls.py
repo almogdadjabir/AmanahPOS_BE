@@ -12,4 +12,5 @@ urlpatterns = [
     path("batches/",           views.BatchListView.as_view(),         name="batch_list"),
     path("batches/<uuid:pk>/", views.BatchDetailView.as_view(),       name="batch_detail"),
     path("expiry-alerts/",     views.ExpiryAlertsView.as_view(),      name="expiry_alerts"),
+    path("inbound/",           views.InboundReceiveView.as_view(),    name="inbound_receive"),
 ]

@@ -412,3 +412,91 @@ class ExpiryAlertsView(APIView):
                 "expired":       ExpiryAlertSerializer(expired,       many=True).data,
             },
         })
+
+
+from apps.core.exceptions import SubscriptionLimitError
+from apps.core.permissions import IsManagerOrAbove
+from .models import InboundTransaction, InboundTransactionItem
+from .serializers import InboundReceiveSerializer, InboundTransactionSerializer
+from .services import inbound_receive
+
+
+class InboundReceiveView(APIView):
+    """
+    POST /api/v1/inventory/inbound/
+
+    Record a supplier stock delivery. Requires the
+    inventory_inbound_receiving feature on the active plan.
+    Available for SHOP businesses only.
+    Owner and manager roles only.
+    """
+    permission_classes = [IsAuthenticated, IsManagerOrAbove]
+
+    def post(self, request):
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            return Response(
+                {"success": False, "message": "No active business found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if tenant.business_type == BusinessType.RESTAURANT:
+            return Response(
+                {"success": False, "message": "Inventory management is not available for restaurant businesses."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        plan = tenant.subscription_plan
+        if plan is None or not plan.has_feature("inventory_inbound_receiving"):
+            raise SubscriptionLimitError(
+                "Your plan does not include Inbound Stock Receiving. "
+                "Upgrade your subscription to access this feature.",
+                code="FEATURE_NOT_INCLUDED",
+            )
+
+        serializer = InboundReceiveSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            shop = Shop.objects.get(pk=data["shop_id"], business=tenant)
+        except Shop.DoesNotExist:
+            raise NotFound("Shop not found.")
+
+        # Resolve product instances, enforcing tenant isolation
+        resolved_items = []
+        for item in data["items"]:
+            try:
+                product = Product.objects.get(pk=item["product_id"], tenant=tenant)
+            except Product.DoesNotExist:
+                return Response(
+                    {"success": False, "message": f"Product {item['product_id']} not found."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            resolved_items.append({
+                "product":      product,
+                "quantity":     item["quantity"],
+                "unit_cost":    item.get("unit_cost"),
+                "expiry_date":  item.get("expiry_date"),
+                "batch_number": item.get("batch_number", ""),
+            })
+
+        try:
+            txn = inbound_receive(
+                tenant=tenant,
+                shop=shop,
+                reference=data["reference"],
+                items=resolved_items,
+                created_by=request.user,
+                notes=data.get("notes", ""),
+            )
+        except ValueError as exc:
+            return Response(
+                {"success": False, "message": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {"success": True, "data": InboundTransactionSerializer(txn).data},
+            status=status.HTTP_201_CREATED,
+        )

@@ -125,3 +125,50 @@ class ExpiryAlertSerializer(serializers.ModelSerializer):
             "quantity", "expiry_date", "batch_number",
             "is_expired", "created_at",
         ]
+
+
+from .models import InboundTransaction, InboundTransactionItem
+
+
+class InboundItemInputSerializer(serializers.Serializer):
+    product_id   = serializers.UUIDField()
+    quantity     = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=Decimal("0.001"))
+    unit_cost    = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, allow_null=True)
+    expiry_date  = serializers.DateField(required=False, allow_null=True)
+    batch_number = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
+
+    def validate_expiry_date(self, value):
+        from datetime import date
+        if value and value < date.today():
+            raise serializers.ValidationError("Expiry date must be today or in the future.")
+        return value
+
+
+class InboundReceiveSerializer(serializers.Serializer):
+    shop_id   = serializers.UUIDField()
+    reference = serializers.CharField(max_length=255)
+    notes     = serializers.CharField(required=False, allow_blank=True, default="")
+    items     = InboundItemInputSerializer(many=True)
+
+    def validate_items(self, value):
+        if not value:
+            raise serializers.ValidationError("At least one item is required.")
+        return value
+
+
+class InboundTransactionItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product.name", read_only=True)
+
+    class Meta:
+        model  = InboundTransactionItem
+        fields = ["id", "product", "product_name", "quantity", "unit_cost", "expiry_date", "batch_number"]
+
+
+class InboundTransactionSerializer(serializers.ModelSerializer):
+    items      = InboundTransactionItemSerializer(many=True, read_only=True)
+    item_count = serializers.IntegerField(source="items.count", read_only=True)
+    shop_name  = serializers.CharField(source="shop.name", read_only=True)
+
+    class Meta:
+        model  = InboundTransaction
+        fields = ["id", "reference", "notes", "shop", "shop_name", "item_count", "items", "created_at"]
