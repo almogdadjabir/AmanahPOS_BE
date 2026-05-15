@@ -218,3 +218,90 @@ def transfer_stock(
         product.id, from_shop.id, to_shop.id, quantity,
     )
     return out_movement, in_movement
+
+
+def inbound_receive(
+    tenant,
+    shop: Shop,
+    reference: str,
+    items: list[dict],
+    created_by=None,
+    notes: str = "",
+):
+    """
+    Record a supplier stock delivery as a single auditable transaction.
+
+    Args:
+        tenant:     Business instance (the tenant).
+        shop:       Shop instance where stock arrives.
+        reference:  External reference (e.g. PO number). Must be unique per tenant.
+        items:      List of dicts with keys:
+                      - product (Product instance, required)
+                      - quantity (Decimal/int/float, required, > 0)
+                      - unit_cost (Decimal, optional)
+                      - expiry_date (date, optional)
+                      - batch_number (str, optional)
+        created_by: User performing the action.
+        notes:      Optional free-text notes on the header.
+
+    Returns:
+        The created InboundTransaction instance.
+
+    Raises:
+        ValueError: If reference already exists for this tenant.
+    """
+    from .models import InboundTransaction, InboundTransactionItem, ProductBatch
+
+    if InboundTransaction.objects.filter(tenant=tenant, reference=reference).exists():
+        raise ValueError(f"Inbound reference '{reference}' already exists for this tenant.")
+
+    with transaction.atomic():
+        txn = InboundTransaction.objects.create(
+            tenant=tenant,
+            shop=shop,
+            reference=reference,
+            notes=notes,
+            created_by=created_by,
+        )
+
+        for item in items:
+            product = item["product"]
+            quantity = Decimal(str(item["quantity"]))
+            unit_cost = item.get("unit_cost")
+            expiry_date = item.get("expiry_date")
+            batch_number = item.get("batch_number", "")
+
+            InboundTransactionItem.objects.create(
+                transaction=txn,
+                product=product,
+                quantity=quantity,
+                unit_cost=unit_cost,
+                expiry_date=expiry_date,
+                batch_number=batch_number,
+            )
+
+            add_stock(
+                product=product,
+                shop=shop,
+                quantity=quantity,
+                reference=reference,
+                notes=notes,
+                created_by=created_by,
+                movement_type=MovementType.IN,
+            )
+
+            if expiry_date:
+                ProductBatch.objects.create(
+                    product=product,
+                    shop=shop,
+                    quantity=quantity,
+                    expiry_date=expiry_date,
+                    batch_number=batch_number,
+                    notes=notes,
+                )
+
+    logger.info(
+        "Inbound transaction: ref=%s tenant=%s shop=%s items=%d",
+        reference, tenant.id, shop.id, len(items),
+    )
+    return txn
