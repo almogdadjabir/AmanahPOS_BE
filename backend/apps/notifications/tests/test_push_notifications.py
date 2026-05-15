@@ -202,7 +202,8 @@ class NotifyUserServiceTest(TestCase):
         user = make_user()
 
         with patch("apps.notifications.tasks.deliver_push_notification.delay") as mock_task:
-            notification = notify_user(user, title="Hello", body="World", notification_type="info")
+            with self.captureOnCommitCallbacks(execute=True):
+                notification = notify_user(user, title="Hello", body="World", notification_type="info")
 
         self.assertIsNotNone(notification.id)
         self.assertEqual(Notification.objects.filter(user=user).count(), 1)
