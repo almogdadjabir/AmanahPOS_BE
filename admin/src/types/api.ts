@@ -122,9 +122,37 @@ export interface InboundTransaction {
   notes: string;
   shop: string;
   shop_name: string;
+  vendor: VendorMinimal | null;
+  total_quantity: string;
   item_count: number;
   items: InboundTransactionItem[];
+  created_by_name: string | null;
   created_at: string;
+}
+
+export interface PremiumInventorySummary {
+  stock_items_count: number;
+  low_stock_count: number;
+  out_of_stock_count: number;
+  expiring_soon_count: number;
+  expired_count: number;
+  active_vendors_count: number;
+  inbound_this_month_count: number;
+  received_quantity_this_month: string;
+}
+
+export interface ExpiryBatch {
+  id: string;
+  product: string;
+  product_name: string;
+  product_sku: string;
+  shop: string;
+  shop_name: string;
+  batch_number: string;
+  quantity: string;
+  expiry_date: string;
+  days_remaining: number;
+  is_expired: boolean;
 }
 
 // ── Users ────────────────────────────────────────────────────────────────────
@@ -183,6 +211,24 @@ export interface Shop {
   name: string;
   address: string | null;
   phone: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VendorMinimal {
+  id: string;
+  name: string;
+  phone: string | null;
+}
+
+export interface Vendor {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  notes: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

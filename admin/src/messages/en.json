@@ -734,7 +734,13 @@
       "premiumDesc": "Record supplier deliveries and auto-update stock. Upgrade your plan to unlock this feature.",
       "premiumBadge": "Premium",
       "loadingProducts": "Loading products…",
-      "noProducts": "No active products found for this shop."
+      "noProducts": "No active products found for this shop.",
+      "vendor": "Vendor",
+      "vendorPlaceholder": "Select vendor…",
+      "vendorLoading": "Loading vendors…",
+      "noVendors": "No active vendors. Add a vendor first.",
+      "vendorInactive": "This vendor is inactive. Please select an active vendor.",
+      "vendorNotFound": "Vendor not found. Please refresh and try again."
     }
   },
   "subscriptions": {
