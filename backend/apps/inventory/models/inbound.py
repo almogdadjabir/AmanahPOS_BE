@@ -22,6 +22,14 @@ class InboundTransaction(models.Model):
         related_name="inbound_transactions",
         db_index=True,
     )
+    vendor = models.ForeignKey(
+        "inventory.Vendor",
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="inbound_transactions",
+        db_index=True,
+    )
     reference = models.CharField(max_length=255)
     notes = models.TextField(blank=True)
     created_by = models.ForeignKey(

@@ -22,6 +22,7 @@ from apps.inventory.models import (
     StockLevel,
     MovementType,
     ProductBatch,
+    Vendor,
 )
 from apps.products.models import Product
 from apps.subscriptions.models import Plan
@@ -85,6 +86,10 @@ def make_cashier(business, phone="+249912100003"):
     u.business = business
     u.save(update_fields=["business", "updated_at"])
     return u
+
+
+def make_vendor(tenant, name="Default Vendor"):
+    return Vendor.objects.create(tenant=tenant, name=name, is_active=True)
 
 
 INBOUND_URL = "/api/v1/inventory/inbound/"
@@ -231,13 +236,19 @@ class InboundReceiveAPITest(TestCase):
         self.business = make_business(self.owner, self.plan)
         self.shop = make_shop(self.business)
         self.product = make_product(self.business)
+        self.vendor = make_vendor(self.business)
         self.client.force_authenticate(user=self.owner)
 
     def _payload(self, reference="PO-API-001", extra_items=None):
         items = [{"product_id": str(self.product.id), "quantity": "5.000"}]
         if extra_items:
             items.extend(extra_items)
-        return {"shop_id": str(self.shop.id), "reference": reference, "items": items}
+        return {
+            "shop_id":   str(self.shop.id),
+            "vendor_id": str(self.vendor.id),
+            "reference": reference,
+            "items":     items,
+        }
 
     def test_owner_can_post(self):
         resp = self.client.post(INBOUND_URL, self._payload(), format="json")
@@ -275,9 +286,11 @@ class InboundReceiveAPITest(TestCase):
         resto = make_business(owner2, plan, business_type=BusinessType.RESTAURANT, name="Resto")
         shop2 = make_shop(resto, name="Resto Shop")
         product2 = make_product(resto, name="Burger")
+        vendor2 = make_vendor(resto, name="Resto Vendor")
         self.client.force_authenticate(user=owner2)
         payload = {
-            "shop_id": str(shop2.id),
+            "shop_id":   str(shop2.id),
+            "vendor_id": str(vendor2.id),
             "reference": "PO-RESTO-001",
             "items": [{"product_id": str(product2.id), "quantity": "3.000"}],
         }
@@ -294,10 +307,13 @@ class InboundReceiveAPITest(TestCase):
         resp = self.client.post(INBOUND_URL, self._payload("PO-SHAPE"), format="json")
         self.assertEqual(resp.status_code, 201)
         data = resp.data["data"]
-        self.assertIn("id", data)
-        self.assertIn("reference", data)
-        self.assertIn("item_count", data)
-        self.assertIn("items", data)
+        self.assertIn("id",             data)
+        self.assertIn("reference",      data)
+        self.assertIn("item_count",     data)
+        self.assertIn("items",          data)
+        self.assertIn("vendor",         data)
+        self.assertIn("total_quantity", data)
+        self.assertEqual(data["vendor"]["id"], str(self.vendor.id))
 
     def test_stock_incremented_after_api_call(self):
         self.client.post(INBOUND_URL, self._payload("PO-STOCK"), format="json")
@@ -305,13 +321,19 @@ class InboundReceiveAPITest(TestCase):
         self.assertEqual(level.quantity, Decimal("5"))
 
     def test_empty_items_returns_400(self):
-        payload = {"shop_id": str(self.shop.id), "reference": "PO-EMPTY", "items": []}
+        payload = {
+            "shop_id":   str(self.shop.id),
+            "vendor_id": str(self.vendor.id),
+            "reference": "PO-EMPTY",
+            "items":     [],
+        }
         resp = self.client.post(INBOUND_URL, payload, format="json")
         self.assertEqual(resp.status_code, 400)
 
     def test_invalid_product_returns_400(self):
         payload = {
-            "shop_id": str(self.shop.id),
+            "shop_id":   str(self.shop.id),
+            "vendor_id": str(self.vendor.id),
             "reference": "PO-BADPROD",
             "items": [{"product_id": str(uuid.uuid4()), "quantity": "5.000"}],
         }

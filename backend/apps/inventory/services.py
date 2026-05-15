@@ -225,6 +225,7 @@ def inbound_receive(
     shop: Shop,
     reference: str,
     items: list[dict],
+    vendor=None,
     created_by=None,
     notes: str = "",
 ):
@@ -241,6 +242,7 @@ def inbound_receive(
                       - unit_cost (Decimal, optional)
                       - expiry_date (date, optional)
                       - batch_number (str, optional)
+        vendor:     Vendor instance (the supplier). Included in movement notes for audit.
         created_by: User performing the action.
         notes:      Optional free-text notes on the header.
 
@@ -255,20 +257,27 @@ def inbound_receive(
     if InboundTransaction.objects.filter(tenant=tenant, reference=reference).exists():
         raise ValueError(f"Inbound reference '{reference}' already exists for this tenant.")
 
+    # Build an audit note for stock movements so the vendor is traceable there too.
+    vendor_label = vendor.name if vendor else "Unknown Vendor"
+    movement_notes = f"Inbound ref: {reference} | Vendor: {vendor_label}"
+    if notes:
+        movement_notes += f" | {notes}"
+
     with transaction.atomic():
         txn = InboundTransaction.objects.create(
             tenant=tenant,
             shop=shop,
+            vendor=vendor,
             reference=reference,
             notes=notes,
             created_by=created_by,
         )
 
         for item in items:
-            product = item["product"]
-            quantity = Decimal(str(item["quantity"]))
-            unit_cost = item.get("unit_cost")
-            expiry_date = item.get("expiry_date")
+            product      = item["product"]
+            quantity     = Decimal(str(item["quantity"]))
+            unit_cost    = item.get("unit_cost")
+            expiry_date  = item.get("expiry_date")
             batch_number = item.get("batch_number", "")
 
             InboundTransactionItem.objects.create(
@@ -285,7 +294,7 @@ def inbound_receive(
                 shop=shop,
                 quantity=quantity,
                 reference=reference,
-                notes=notes,
+                notes=movement_notes,
                 created_by=created_by,
                 movement_type=MovementType.IN,
             )
@@ -301,7 +310,7 @@ def inbound_receive(
                 )
 
     logger.info(
-        "Inbound transaction: ref=%s tenant=%s shop=%s items=%d",
-        reference, tenant.id, shop.id, len(items),
+        "Inbound transaction: ref=%s tenant=%s shop=%s vendor=%s items=%d",
+        reference, tenant.id, shop.id, vendor_label, len(items),
     )
     return txn

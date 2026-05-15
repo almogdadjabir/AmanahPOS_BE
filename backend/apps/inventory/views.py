@@ -14,7 +14,9 @@ from apps.core.permissions import IsManagerOrAbove
 from apps.products.models import Product
 from apps.products.services import get_tenant_from_request
 from apps.tenants.models import BusinessType, Shop
-from .models import ProductBatch, StockLevel, StockMovement
+from django.db.models import Count, Q, Sum
+
+from .models import InboundTransaction, InboundTransactionItem, ProductBatch, StockLevel, StockMovement, Vendor
 from .serializers import (
     ExpiryAlertSerializer,
     InboundReceiveSerializer,
@@ -26,6 +28,8 @@ from .serializers import (
     StockMovementCreateSerializer,
     StockMovementSerializer,
     StockTransferSerializer,
+    VendorCreateUpdateSerializer,
+    VendorSerializer,
 )
 from .services import add_stock, adjust_stock, deduct_stock, inbound_receive, transfer_stock
 
@@ -420,14 +424,65 @@ class ExpiryAlertsView(APIView):
 
 class InboundReceiveView(APIView):
     """
-    POST /api/v1/inventory/inbound/
+    GET  /api/v1/inventory/inbound/  → paginated list of inbound transactions
+    POST /api/v1/inventory/inbound/  → record a new stock delivery
 
-    Record a supplier stock delivery. Requires the
-    inventory_inbound_receiving feature on the active plan.
-    Available for SHOP businesses only.
-    Owner and manager roles only.
+    Feature-gated: inventory_inbound_receiving.
+    SHOP businesses only. Owner and manager roles only.
     """
     permission_classes = [IsAuthenticated, IsManagerOrAbove]
+
+    # ── GET: list ─────────────────────────────────────────────────────────────
+
+    def get(self, request):
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            return Response(
+                {"success": False, "message": "No active business found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        qs = (
+            InboundTransaction.objects
+            .filter(tenant=tenant)
+            .select_related("shop", "vendor", "created_by")
+            .prefetch_related("items__product")
+        )
+
+        # ── Filters ────────────────────────────────────────────────────────────
+        params = request.query_params
+
+        if vendor_id := params.get("vendor_id"):
+            qs = qs.filter(vendor_id=vendor_id)
+
+        if shop_id := params.get("shop_id"):
+            qs = qs.filter(shop_id=shop_id)
+
+        if reference := params.get("reference"):
+            qs = qs.filter(reference__icontains=reference)
+
+        if date_from := params.get("date_from"):
+            qs = qs.filter(created_at__date__gte=date_from)
+
+        if date_to := params.get("date_to"):
+            qs = qs.filter(created_at__date__lte=date_to)
+
+        if product_id := params.get("product_id"):
+            qs = qs.filter(items__product_id=product_id).distinct()
+
+        if search := params.get("search"):
+            qs = qs.filter(
+                Q(reference__icontains=search) | Q(vendor__name__icontains=search)
+            )
+
+        qs = qs.order_by("-created_at")
+
+        paginator = StandardPagination()
+        page      = paginator.paginate_queryset(qs, request)
+        serializer = InboundTransactionSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    # ── POST: create ───────────────────────────────────────────────────────────
 
     def post(self, request):
         tenant = get_tenant_from_request(request)
@@ -455,12 +510,25 @@ class InboundReceiveView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 
+        # ── Resolve shop ───────────────────────────────────────────────────────
         try:
             shop = Shop.objects.get(pk=data["shop_id"], business=tenant)
         except Shop.DoesNotExist:
             raise NotFound("Shop not found.")
 
-        # Resolve product instances, enforcing tenant isolation
+        # ── Resolve vendor (must be active and belong to this tenant) ──────────
+        try:
+            vendor = Vendor.objects.get(pk=data["vendor_id"], tenant=tenant)
+        except Vendor.DoesNotExist:
+            raise NotFound("Vendor not found.")
+
+        if not vendor.is_active:
+            return Response(
+                {"success": False, "message": "The selected vendor is inactive. Please choose an active vendor."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ── Resolve products (tenant-scoped) ───────────────────────────────────
         resolved_items = []
         for item in data["items"]:
             try:
@@ -482,6 +550,7 @@ class InboundReceiveView(APIView):
             txn = inbound_receive(
                 tenant=tenant,
                 shop=shop,
+                vendor=vendor,
                 reference=data["reference"],
                 items=resolved_items,
                 created_by=request.user,
@@ -497,3 +566,188 @@ class InboundReceiveView(APIView):
             {"success": True, "data": InboundTransactionSerializer(txn).data},
             status=status.HTTP_201_CREATED,
         )
+
+
+# ── Vendor CRUD ───────────────────────────────────────────────────────────────
+
+class VendorListCreateView(APIView):
+    """
+    GET  /api/v1/inventory/vendors/  → paginated vendor list
+    POST /api/v1/inventory/vendors/  → create vendor
+
+    Query params (GET):
+      search    — name, phone, or email (case-insensitive)
+      is_active — true | false
+    """
+    permission_classes = [IsAuthenticated, IsManagerOrAbove]
+
+    def get(self, request):
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            return Response(
+                {"success": False, "message": "No active business found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        qs = Vendor.objects.filter(tenant=tenant)
+
+        params = request.query_params
+
+        if (is_active := params.get("is_active")) is not None:
+            qs = qs.filter(is_active=is_active.lower() == "true")
+
+        if search := params.get("search"):
+            qs = qs.filter(
+                Q(name__icontains=search)
+                | Q(phone__icontains=search)
+                | Q(email__icontains=search)
+            )
+
+        paginator  = StandardPagination()
+        page       = paginator.paginate_queryset(qs, request)
+        serializer = VendorSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+    def post(self, request):
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            return Response(
+                {"success": False, "message": "No active business found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer = VendorCreateUpdateSerializer(
+            data=request.data,
+            context={"tenant": tenant},
+        )
+        serializer.is_valid(raise_exception=True)
+        vendor = serializer.save(tenant=tenant)
+        return Response(
+            {"success": True, "data": VendorSerializer(vendor).data},
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class VendorDetailView(APIView):
+    """
+    GET    /api/v1/inventory/vendors/<pk>/
+    PATCH  /api/v1/inventory/vendors/<pk>/
+    DELETE /api/v1/inventory/vendors/<pk>/  → soft-delete (is_active=False)
+    """
+    permission_classes = [IsAuthenticated, IsManagerOrAbove]
+
+    def _get_vendor(self, pk, tenant) -> Vendor:
+        from django.shortcuts import get_object_or_404
+        return get_object_or_404(Vendor, pk=pk, tenant=tenant)
+
+    def _get_tenant(self, request):
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            return None, Response(
+                {"success": False, "message": "No active business found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return tenant, None
+
+    def get(self, request, pk):
+        tenant, err = self._get_tenant(request)
+        if err:
+            return err
+        vendor = self._get_vendor(pk, tenant)
+        return Response({"success": True, "data": VendorSerializer(vendor).data})
+
+    def patch(self, request, pk):
+        tenant, err = self._get_tenant(request)
+        if err:
+            return err
+        vendor     = self._get_vendor(pk, tenant)
+        serializer = VendorCreateUpdateSerializer(
+            vendor,
+            data=request.data,
+            partial=True,
+            context={"tenant": tenant},
+        )
+        serializer.is_valid(raise_exception=True)
+        vendor = serializer.save()
+        return Response({"success": True, "data": VendorSerializer(vendor).data})
+
+    def delete(self, request, pk):
+        tenant, err = self._get_tenant(request)
+        if err:
+            return err
+        vendor = self._get_vendor(pk, tenant)
+        vendor.is_active = False
+        vendor.save(update_fields=["is_active", "updated_at"])
+        return Response({"success": True})
+
+
+# ── Vendor inbound summary ────────────────────────────────────────────────────
+
+class InboundVendorSummaryView(APIView):
+    """
+    GET /api/v1/inventory/inbound/vendor-summary/
+
+    Aggregated inbound stats grouped by vendor.
+
+    Query params: vendor_id, shop_id, date_from, date_to
+    """
+    permission_classes = [IsAuthenticated, IsManagerOrAbove]
+
+    def get(self, request):
+        from decimal import Decimal as D
+
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            return Response(
+                {"success": False, "message": "No active business found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        qs     = InboundTransaction.objects.filter(tenant=tenant)
+        params = request.query_params
+
+        if vendor_id := params.get("vendor_id"):
+            qs = qs.filter(vendor_id=vendor_id)
+
+        if shop_id := params.get("shop_id"):
+            qs = qs.filter(shop_id=shop_id)
+
+        if date_from := params.get("date_from"):
+            qs = qs.filter(created_at__date__gte=date_from)
+
+        if date_to := params.get("date_to"):
+            qs = qs.filter(created_at__date__lte=date_to)
+
+        total_transactions = qs.count()
+        total_quantity = (
+            InboundTransactionItem.objects
+            .filter(transaction__in=qs)
+            .aggregate(total=Sum("quantity"))["total"] or D("0")
+        )
+
+        vendor_rows = (
+            qs.filter(vendor__isnull=False)
+            .values("vendor_id", "vendor__name")
+            .annotate(
+                transactions_count=Count("id"),
+                total_quantity=Sum("items__quantity"),
+            )
+            .order_by("-transactions_count")
+        )
+
+        return Response({
+            "success": True,
+            "data": {
+                "total_transactions": total_transactions,
+                "total_quantity":     str(total_quantity),
+                "vendors": [
+                    {
+                        "vendor_id":          str(row["vendor_id"]),
+                        "vendor_name":         row["vendor__name"],
+                        "transactions_count":  row["transactions_count"],
+                        "total_quantity":      str(row["total_quantity"] or D("0")),
+                    }
+                    for row in vendor_rows
+                ],
+            },
+        })

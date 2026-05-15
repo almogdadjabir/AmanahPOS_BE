@@ -7,12 +7,12 @@ from .models import StockLevel, StockMovement, MovementType
 
 
 class StockMovementSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source="product.name", read_only=True)
-    shop_name = serializers.CharField(source="shop.name", read_only=True)
+    product_name    = serializers.CharField(source="product.name",       read_only=True)
+    shop_name       = serializers.CharField(source="shop.name",          read_only=True)
     created_by_name = serializers.CharField(source="created_by.full_name", read_only=True)
 
     class Meta:
-        model = StockMovement
+        model  = StockMovement
         fields = [
             "id", "product", "product_name", "shop", "shop_name",
             "movement_type", "quantity", "reference", "notes",
@@ -40,21 +40,21 @@ class StockMovementCreateSerializer(serializers.Serializer):
 
 class StockAdjustmentSerializer(serializers.Serializer):
     """For absolute stock adjustment (set to a specific number)."""
-    product = serializers.UUIDField()
-    shop = serializers.UUIDField()
+    product      = serializers.UUIDField()
+    shop         = serializers.UUIDField()
     new_quantity = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=Decimal("0"))
-    notes = serializers.CharField(required=False, allow_blank=True)
+    notes        = serializers.CharField(required=False, allow_blank=True)
 
 
 class StockLevelSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source="product.name", read_only=True)
-    product_sku = serializers.CharField(source="product.sku", read_only=True)
-    shop_name = serializers.CharField(source="shop.name", read_only=True)
-    is_low_stock = serializers.BooleanField(read_only=True)
+    product_name   = serializers.CharField(source="product.name", read_only=True)
+    product_sku    = serializers.CharField(source="product.sku",  read_only=True)
+    shop_name      = serializers.CharField(source="shop.name",    read_only=True)
+    is_low_stock   = serializers.BooleanField(read_only=True)
     is_out_of_stock = serializers.BooleanField(read_only=True)
 
     class Meta:
-        model = StockLevel
+        model  = StockLevel
         fields = [
             "id", "product", "product_name", "product_sku",
             "shop", "shop_name", "quantity",
@@ -65,16 +65,17 @@ class StockLevelSerializer(serializers.ModelSerializer):
 
 class StockTransferSerializer(serializers.Serializer):
     """For transferring stock between shops."""
-    product = serializers.UUIDField()
+    product   = serializers.UUIDField()
     from_shop = serializers.UUIDField()
-    to_shop = serializers.UUIDField()
-    quantity = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=Decimal("0.001"))
-    notes = serializers.CharField(required=False, allow_blank=True)
+    to_shop   = serializers.UUIDField()
+    quantity  = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=Decimal("0.001"))
+    notes     = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, attrs):
         if attrs["from_shop"] == attrs["to_shop"]:
             raise serializers.ValidationError("Source and destination shops cannot be the same.")
         return attrs
+
 
 from .models import ProductBatch
 
@@ -127,6 +128,47 @@ class ExpiryAlertSerializer(serializers.ModelSerializer):
         ]
 
 
+# ── Vendor ────────────────────────────────────────────────────────────────────
+
+from .models import Vendor
+
+
+class VendorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Vendor
+        fields = ["id", "name", "phone", "email", "address", "notes", "is_active", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class VendorMinimalSerializer(serializers.ModelSerializer):
+    """Lightweight vendor snapshot embedded in inbound transaction responses."""
+    class Meta:
+        model  = Vendor
+        fields = ["id", "name", "phone"]
+        read_only_fields = ["id", "name", "phone"]
+
+
+class VendorCreateUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Vendor
+        fields = ["name", "phone", "email", "address", "notes", "is_active"]
+
+    def validate_name(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Vendor name cannot be blank.")
+        tenant = self.context.get("tenant")
+        if tenant:
+            qs = Vendor.objects.filter(tenant=tenant, name__iexact=value)
+            if self.instance:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise serializers.ValidationError("A vendor with this name already exists.")
+        return value
+
+
+# ── Inbound receiving ─────────────────────────────────────────────────────────
+
 from .models import InboundTransaction, InboundTransactionItem
 
 
@@ -146,6 +188,7 @@ class InboundItemInputSerializer(serializers.Serializer):
 
 class InboundReceiveSerializer(serializers.Serializer):
     shop_id   = serializers.UUIDField()
+    vendor_id = serializers.UUIDField()
     reference = serializers.CharField(max_length=255)
     notes     = serializers.CharField(required=False, allow_blank=True, default="")
     items     = InboundItemInputSerializer(many=True)
@@ -166,11 +209,23 @@ class InboundTransactionItemSerializer(serializers.ModelSerializer):
 
 
 class InboundTransactionSerializer(serializers.ModelSerializer):
-    items      = InboundTransactionItemSerializer(many=True, read_only=True)
-    item_count = serializers.IntegerField(source="items.count", read_only=True)
-    shop_name  = serializers.CharField(source="shop.name", read_only=True)
+    items          = InboundTransactionItemSerializer(many=True, read_only=True)
+    item_count     = serializers.IntegerField(source="items.count", read_only=True)
+    total_quantity = serializers.SerializerMethodField()
+    shop_name      = serializers.CharField(source="shop.name", read_only=True)
+    vendor         = VendorMinimalSerializer(read_only=True)
 
     class Meta:
         model  = InboundTransaction
-        fields = ["id", "reference", "notes", "shop", "shop_name", "item_count", "items", "created_at"]
+        fields = [
+            "id", "reference", "notes",
+            "shop", "shop_name",
+            "vendor",
+            "item_count", "total_quantity", "items",
+            "created_at",
+        ]
         read_only_fields = ["id", "created_at"]
+
+    def get_total_quantity(self, obj) -> str:
+        total = sum(item.quantity for item in obj.items.all())
+        return str(total)
