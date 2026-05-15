@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { AlertCircle, Lock, Plus, Trash2, Zap } from 'lucide-react';
+import { AlertCircle, ArrowDownToLine, Lock, Plus, Trash2, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,15 +37,44 @@ export default function InboundReceivingPanel({ enabled, shops }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3.5 mb-5">
+      {/* Enabled premium panel header */}
+      <div
+        className="flex items-center justify-between rounded-xl px-4 py-3.5 mb-5"
+        style={{
+          background: 'linear-gradient(135deg, rgba(120,53,15,0.06) 0%, rgba(217,119,6,0.02) 100%)',
+          border: '1px solid rgba(217,119,6,0.18)',
+          borderLeft: '3px solid rgba(180,83,9,0.55)',
+        }}
+      >
         <div>
-          <p className="text-sm font-bold text-foreground">{t('inbound.sectionTitle')}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold text-foreground">{t('inbound.sectionTitle')}</p>
+            <span
+              className="inline-flex items-center gap-1 text-[9px] font-black tracking-[0.12em] uppercase px-1.5 py-0.5 rounded-full"
+              style={{
+                background: 'rgba(217,119,6,0.10)',
+                border: '1px solid rgba(217,119,6,0.25)',
+                color: 'rgb(146,64,14)',
+              }}
+            >
+              <Zap size={8} strokeWidth={2.5} />
+              {t('inbound.premiumBadge')}
+            </span>
+          </div>
           <p className="text-[12px] text-muted-foreground mt-0.5">{t('inbound.sectionDesc')}</p>
         </div>
-        <Button size="sm" onClick={() => setOpen(true)}>
-          <Plus size={14} />
+        <button
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-[13px] font-semibold transition-all hover:brightness-110 active:scale-[0.97]"
+          style={{
+            background: 'linear-gradient(135deg, rgb(180,83,9), rgb(146,64,14))',
+            color: 'white',
+            boxShadow: '0 1px 4px rgba(120,53,15,0.30), 0 0 0 1px rgba(120,53,15,0.08)',
+          }}
+        >
+          <ArrowDownToLine size={13} strokeWidth={2.5} />
           {t('inbound.receiveBtn')}
-        </Button>
+        </button>
       </div>
 
       <InboundDrawer
@@ -66,19 +95,88 @@ export default function InboundReceivingPanel({ enabled, shops }: Props) {
 function PremiumLockedCard() {
   const t = useTranslations('inventory');
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-amber-200/60 bg-amber-50/40 px-4 py-4 mb-5">
-      <span className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
-        <Lock size={14} />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-bold text-foreground">{t('inbound.premiumTitle')}</p>
-          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-200/60">
-            <Zap size={9} />
+    <div
+      className="relative overflow-hidden rounded-2xl mb-5"
+      style={{
+        background:  'linear-gradient(135deg, rgba(120,53,15,0.16) 0%, rgba(180,83,9,0.09) 55%, rgba(217,119,6,0.04) 100%)',
+        border:      '1px solid rgba(217,119,6,0.22)',
+        boxShadow:   'inset 0 1px 0 rgba(251,191,36,0.14), 0 2px 16px rgba(120,53,15,0.08)',
+      }}
+    >
+      {/* Shimmer sweep */}
+      <div
+        className="absolute inset-0 pointer-events-none animate-premium-shimmer"
+        style={{ background: 'linear-gradient(105deg, transparent 35%, rgba(251,191,36,0.07) 50%, transparent 65%)' }}
+        aria-hidden
+      />
+
+      {/* Top gold accent line */}
+      <div
+        className="absolute top-0 left-8 right-8 h-px pointer-events-none"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.55), transparent)' }}
+        aria-hidden
+      />
+
+      <div className="relative px-5 pt-5 pb-4">
+        {/* PREMIUM badge */}
+        <div className="mb-4">
+          <span
+            className="inline-flex items-center gap-1.5 text-[10px] font-black tracking-[0.13em] uppercase px-2.5 py-1 rounded-full"
+            style={{
+              background:  'linear-gradient(135deg, rgba(217,119,6,0.16), rgba(245,158,11,0.08))',
+              border:      '1px solid rgba(217,119,6,0.28)',
+              color:       'rgb(146,64,14)',
+              boxShadow:   '0 0 10px rgba(217,119,6,0.10)',
+            }}
+          >
+            <Zap size={9} strokeWidth={2.5} />
             {t('inbound.premiumBadge')}
           </span>
         </div>
-        <p className="text-[12px] text-muted-foreground mt-1">{t('inbound.premiumDesc')}</p>
+
+        <div className="flex items-start gap-4">
+          {/* Architectural lock frame */}
+          <div
+            className="shrink-0 mt-0.5 flex items-center justify-center"
+            style={{
+              width:        48,
+              height:       48,
+              background:   'linear-gradient(145deg, rgba(120,53,15,0.32), rgba(146,64,14,0.16))',
+              border:       '1px solid rgba(217,119,6,0.26)',
+              borderRadius: 14,
+              boxShadow:    '0 2px 10px rgba(120,53,15,0.16), inset 0 1px 0 rgba(251,191,36,0.16)',
+            }}
+          >
+            <Lock size={20} strokeWidth={2} style={{ color: 'rgb(146,64,14)' }} />
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <p
+              className="text-[15px] font-bold leading-snug mb-1.5"
+              style={{ color: 'rgb(101,40,8)' }}
+            >
+              {t('inbound.premiumTitle')}
+            </p>
+            <p className="text-[12px] text-muted-foreground leading-relaxed">
+              {t('inbound.premiumDesc')}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Decorative dot grid — bottom-right */}
+      <div
+        className="absolute bottom-3 right-4 pointer-events-none select-none"
+        style={{ opacity: 0.055 }}
+        aria-hidden
+      >
+        <svg width="52" height="28" viewBox="0 0 52 28" fill="none">
+          {[0,9,18,27,36,45].flatMap(x =>
+            [0,9,18].map(y => (
+              <circle key={`${x}-${y}`} cx={x + 4} cy={y + 4} r={1.8} fill="rgb(146,64,14)" />
+            ))
+          )}
+        </svg>
       </div>
     </div>
   );

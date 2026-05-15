@@ -874,12 +874,18 @@ function BusinessDetailContent({
 
       {/* Premium features — shops with active plan only */}
       {business.business_type === 'shop' && (
-        <div className="px-5 py-4 border-t border-border">
+        <div
+          className="px-5 py-4"
+          style={{ borderTop: '1px solid rgba(217,119,6,0.15)', background: 'linear-gradient(180deg, rgba(120,53,15,0.04) 0%, transparent 100%)' }}
+        >
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-5 h-5 rounded-md bg-amber-500/10 text-amber-600 flex items-center justify-center">
-              <Zap size={11} />
+            <span
+              className="w-5 h-5 rounded-md flex items-center justify-center"
+              style={{ background: 'rgba(217,119,6,0.12)', color: 'rgb(146,64,14)' }}
+            >
+              <Zap size={11} strokeWidth={2.5} />
             </span>
-            <p className="text-xs font-bold text-foreground">
+            <p className="text-xs font-bold" style={{ color: 'rgb(101,40,8)' }}>
               {t('features.sectionTitle')}
             </p>
           </div>
@@ -1295,9 +1301,33 @@ function FeatureToggleRow({
   onToggle:    () => void;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3.5">
+    <div
+      className="flex items-start gap-3 rounded-xl p-3.5 transition-all duration-300"
+      style={enabled ? {
+        background:  'linear-gradient(135deg, rgba(120,53,15,0.08) 0%, rgba(217,119,6,0.04) 100%)',
+        border:      '1px solid rgba(217,119,6,0.22)',
+        boxShadow:   'inset 0 1px 0 rgba(251,191,36,0.10)',
+      } : {
+        background:  'hsl(var(--card))',
+        border:      '1px solid hsl(var(--border))',
+      }}
+    >
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-semibold text-foreground">{label}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-[13px] font-semibold text-foreground">{label}</p>
+          {enabled && (
+            <span
+              className="text-[9px] font-black tracking-[0.11em] uppercase px-1.5 py-px rounded-full"
+              style={{
+                background: 'rgba(217,119,6,0.12)',
+                border:     '1px solid rgba(217,119,6,0.24)',
+                color:      'rgb(146,64,14)',
+              }}
+            >
+              ON
+            </span>
+          )}
+        </div>
         <p className="text-[11px] text-muted-foreground mt-0.5">{description}</p>
       </div>
       <button
@@ -1306,16 +1336,22 @@ function FeatureToggleRow({
         disabled={updating}
         aria-pressed={enabled}
         className={cn(
-          'relative shrink-0 w-10 h-6 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          enabled ? 'bg-success' : 'bg-muted-foreground/30',
+          'relative shrink-0 w-10 h-6 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           updating && 'opacity-50 cursor-not-allowed',
         )}
+        style={enabled ? {
+          background: 'linear-gradient(135deg, rgb(180,83,9), rgb(146,64,14))',
+          boxShadow:  '0 0 0 3px rgba(217,119,6,0.18)',
+        } : {
+          background: 'hsl(var(--muted-foreground) / 0.3)',
+        }}
       >
         <span
           className={cn(
-            'absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform',
+            'absolute left-0.5 top-0.5 w-5 h-5 rounded-full shadow-sm transition-transform duration-300',
             enabled ? 'translate-x-[18px]' : 'translate-x-0',
           )}
+          style={{ background: 'white' }}
         />
       </button>
     </div>
