@@ -162,6 +162,7 @@ class InboundTransactionItemSerializer(serializers.ModelSerializer):
     class Meta:
         model  = InboundTransactionItem
         fields = ["id", "product", "product_name", "quantity", "unit_cost", "expiry_date", "batch_number"]
+        read_only_fields = ["id"]
 
 
 class InboundTransactionSerializer(serializers.ModelSerializer):
@@ -172,3 +173,4 @@ class InboundTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model  = InboundTransaction
         fields = ["id", "reference", "notes", "shop", "shop_name", "item_count", "items", "created_at"]
+        read_only_fields = ["id", "created_at"]
