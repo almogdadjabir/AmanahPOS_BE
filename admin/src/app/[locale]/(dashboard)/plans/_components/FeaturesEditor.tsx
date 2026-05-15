@@ -7,18 +7,19 @@ import { Check, Plus, X } from 'lucide-react';
 // ── Predefined feature catalogue ──────────────────────────────────────────────
 
 const FEATURE_CATALOGUE = [
-  { key: 'pos',              label: 'Point of Sale',        hint: 'Core POS transactions & checkout' },
-  { key: 'reports',          label: 'Reports & Analytics',  hint: 'Sales, revenue, and trend reports' },
-  { key: 'inventory',        label: 'Inventory Management', hint: 'Stock levels, alerts, and movements' },
-  { key: 'multi_shop',       label: 'Multiple Shops',       hint: 'Manage more than one shop location' },
-  { key: 'customers',        label: 'Customer Management',  hint: 'Profiles, history, and loyalty' },
-  { key: 'loyalty',          label: 'Loyalty Points',       hint: 'Points earning and redemption' },
-  { key: 'staff_management', label: 'Staff Management',     hint: 'Staff roles, shifts, and permissions' },
-  { key: 'data_export',      label: 'Data Export',          hint: 'Export reports to CSV / PDF' },
-  { key: 'api_access',       label: 'API Access',           hint: 'Third-party integration endpoints' },
-  { key: 'custom_receipts',  label: 'Custom Receipts',      hint: 'Branded and custom receipt templates' },
-  { key: 'discounts',        label: 'Discounts & Coupons',  hint: 'Item discounts and promo codes' },
-  { key: 'refunds',          label: 'Refunds',              hint: 'Process full and partial refunds' },
+  { key: 'pos',                          label: 'Point of Sale',               hint: 'Core POS transactions & checkout' },
+  { key: 'reports',                      label: 'Reports & Analytics',         hint: 'Sales, revenue, and trend reports' },
+  { key: 'inventory',                    label: 'Inventory Management',        hint: 'Stock levels, alerts, and movements' },
+  { key: 'inventory_inbound_receiving',  label: 'Inbound Stock Receiving',     hint: 'Record supplier deliveries and auto-update stock levels' },
+  { key: 'multi_shop',                   label: 'Multiple Shops',              hint: 'Manage more than one shop location' },
+  { key: 'customers',                    label: 'Customer Management',         hint: 'Profiles, history, and loyalty' },
+  { key: 'loyalty',                      label: 'Loyalty Points',              hint: 'Points earning and redemption' },
+  { key: 'staff_management',             label: 'Staff Management',            hint: 'Staff roles, shifts, and permissions' },
+  { key: 'data_export',                  label: 'Data Export',                 hint: 'Export reports to CSV / PDF' },
+  { key: 'api_access',                   label: 'API Access',                  hint: 'Third-party integration endpoints' },
+  { key: 'custom_receipts',              label: 'Custom Receipts',             hint: 'Branded and custom receipt templates' },
+  { key: 'discounts',                    label: 'Discounts & Coupons',         hint: 'Item discounts and promo codes' },
+  { key: 'refunds',                      label: 'Refunds',                     hint: 'Process full and partial refunds' },
 ] as const;
 
 type FeatureKey = typeof FEATURE_CATALOGUE[number]['key'];

@@ -110,7 +110,7 @@ export const fetchBusiness = cache(async function fetchBusiness() {
 export const fetchUserProfile = cache(async function fetchUserProfile() {
   return safe(
     () => withUserCache(
-      (tok) => apiGet<ApiResponse<UserProfile>>('/api/v1/accounts/profile/', undefined, { token: tok }),
+      (tok) => apiGet<ApiResponse<UserProfile>>('/api/v1/auth/profile/', undefined, { token: tok }),
       [CACHE_TAGS.profile],
       120,
     ),

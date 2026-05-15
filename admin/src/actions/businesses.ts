@@ -1,7 +1,8 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
+import { CACHE_TAGS } from '@/lib/cacheTags';
 import type { AdminBusinessDetail } from '@/types/api';
 import { extractApiError } from '@/lib/action-error';
 import { devFetch, logFormData } from '@/lib/dev-logger';
@@ -223,6 +224,7 @@ export async function updateBusinessFeatureAction(
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { error: extractApiError(data, res.status, 'Failed to update feature.') };
     revalidatePath('/[locale]/(dashboard)/businesses', 'page');
+    revalidateTag(CACHE_TAGS.profile);
     return { success: true };
   } catch {
     return { error: 'Network error. Please try again.' };
