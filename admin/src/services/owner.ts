@@ -107,7 +107,7 @@ export const fetchBusiness = cache(async function fetchBusiness() {
   );
 });
 
-export async function fetchUserProfile() {
+export const fetchUserProfile = cache(async function fetchUserProfile() {
   return safe(
     () => withUserCache(
       (tok) => apiGet<ApiResponse<UserProfile>>('/api/v1/accounts/profile/', undefined, { token: tok }),
@@ -116,7 +116,7 @@ export async function fetchUserProfile() {
     ),
     null,
   );
-}
+});
 
 // ── Chart aggregation ─────────────────────────────────────────────────────────
 export interface DailyPoint { date: string; label: string; revenue: number; count: number }

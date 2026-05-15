@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { AlertCircle, Lock, Plus, Trash2, Zap } from 'lucide-react';
@@ -29,6 +29,10 @@ export default function InboundReceivingPanel({ enabled, shops }: Props) {
 
   if (!enabled) {
     return <PremiumLockedCard />;
+  }
+
+  if (shops.length === 0) {
+    return null; // No shops configured — feature enabled but nothing to receive into
   }
 
   return (
@@ -149,8 +153,6 @@ function DrawerContent({
   const [products, setProducts] = useState<Product[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
-  const formRef = useRef<HTMLFormElement>(null);
-
   const [state, dispatch, isPending] = useActionState<InboundState, FormData>(
     createInboundTransactionAction,
     null,
@@ -158,11 +160,16 @@ function DrawerContent({
 
   useEffect(() => {
     if (!shopId) return;
+    let ignored = false;
+    setRows([newRow()]);
+    setProducts([]);
     setLoadingProducts(true);
     fetchProductsForShopAction(shopId).then((res) => {
+      if (ignored) return;
       setProducts(res.ok ? res.data : []);
       setLoadingProducts(false);
     });
+    return () => { ignored = true; };
   }, [shopId]);
 
   useEffect(() => {
@@ -201,7 +208,6 @@ function DrawerContent({
 
   return (
     <form
-      ref={formRef}
       action={dispatch}
       onSubmit={handleSubmit}
       className="flex flex-col h-full"

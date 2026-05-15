@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { extractApiError } from '@/lib/action-error';
+import { devFetch } from '@/lib/dev-logger';
 import type { ApiList, StockLevel, StockMovement, Product } from '@/types/api';
 
 const API = () =>
@@ -240,7 +241,7 @@ export async function createInboundTransactionAction(
   if (notes) body.notes = notes;
 
   try {
-    const res = await fetch(`${API()}/api/v1/inventory/inbound/`, {
+    const res = await devFetch(`${API()}/api/v1/inventory/inbound/`, {
       method: 'POST',
       headers: {
         Authorization:  `Bearer ${await authToken()}`,
