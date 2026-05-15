@@ -193,11 +193,13 @@ export async function createInboundTransactionAction(
   formData: FormData,
 ): Promise<InboundState> {
   const shop      = (formData.get('shop')      as string)?.trim();
+  const vendor_id = (formData.get('vendor_id') as string)?.trim();
   const reference = (formData.get('reference') as string)?.trim();
   const notes     = (formData.get('notes')     as string)?.trim();
   const itemsJson = (formData.get('items')     as string)?.trim();
 
   if (!shop)      return { error: 'Shop is required.' };
+  if (!vendor_id) return { error: 'Vendor is required.' };
   if (!reference) return { error: 'Reference / invoice number is required.' };
 
   type ItemInput = {
@@ -229,6 +231,7 @@ export async function createInboundTransactionAction(
 
   const body: Record<string, unknown> = {
     shop_id:   shop,
+    vendor_id,
     reference,
     items: items.map(i => ({
       product_id:   i.product_id,

@@ -11,9 +11,10 @@ import Drawer from '@/components/ds/Drawer';
 import {
   createInboundTransactionAction,
   fetchProductsForShopAction,
+  fetchVendorsAction,
   type InboundState,
 } from '@/actions/inventory';
-import type { Shop, Product } from '@/types/api';
+import type { Shop, Product, Vendor } from '@/types/api';
 
 // ── Public export ─────────────────────────────────────────────────────────────
 
@@ -246,10 +247,13 @@ function DrawerContent({
   const t = useTranslations('inventory');
 
   const defaultShop = shops[0]?.id ?? '';
-  const [shopId, setShopId]     = useState(defaultShop);
-  const [rows,   setRows]       = useState<ItemRow[]>([newRow()]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [shopId,   setShopId]   = useState(defaultShop);
+  const [vendorId, setVendorId] = useState('');
+  const [rows,     setRows]     = useState<ItemRow[]>([newRow()]);
+  const [products,        setProducts]        = useState<Product[]>([]);
+  const [vendors,         setVendors]         = useState<Vendor[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingVendors,  setLoadingVendors]  = useState(false);
 
   const [state, dispatch, isPending] = useActionState<InboundState, FormData>(
     createInboundTransactionAction,
@@ -269,6 +273,20 @@ function DrawerContent({
     });
     return () => { ignored = true; };
   }, [shopId]);
+
+  // Fetch active vendors once when drawer mounts
+  useEffect(() => {
+    let ignored = false;
+    setLoadingVendors(true);
+    fetchVendorsAction().then((res) => {
+      if (ignored) return;
+      const list = res.ok ? res.data : [];
+      setVendors(list);
+      if (list.length > 0) setVendorId(list[0].id);
+      setLoadingVendors(false);
+    });
+    return () => { ignored = true; };
+  }, []);
 
   useEffect(() => {
     if (state && 'success' in state) {
@@ -336,6 +354,29 @@ function DrawerContent({
             <input type="hidden" name="shop" value={defaultShop} />
           )}
 
+          {/* Vendor selector — required, fetched on mount */}
+          <div>
+            <label className="text-sm font-semibold text-foreground block mb-1.5">
+              {t('inbound.vendor')}
+            </label>
+            {loadingVendors ? (
+              <p className="text-xs text-muted-foreground py-2">{t('inbound.vendorLoading')}</p>
+            ) : vendors.length === 0 ? (
+              <p className="text-xs text-amber-600 italic py-2">{t('inbound.noVendors')}</p>
+            ) : (
+              <select
+                name="vendor_id"
+                value={vendorId}
+                onChange={e => setVendorId(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {vendors.map(v => (
+                  <option key={v.id} value={v.id}>{v.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
           <Input
             label={t('inbound.reference')}
             name="reference"
@@ -398,7 +439,7 @@ function DrawerContent({
         <Button variant="secondary" size="sm" type="button" onClick={onClose}>
           {t('inbound.cancel')}
         </Button>
-        <Button size="sm" type="submit" disabled={isPending || products.length === 0}>
+        <Button size="sm" type="submit" disabled={isPending || products.length === 0 || vendors.length === 0 || loadingVendors}>
           {isPending ? t('inbound.submitting') : t('inbound.submit')}
         </Button>
       </div>
