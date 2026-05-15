@@ -18,11 +18,18 @@ urlpatterns = [
     path("batches/<uuid:pk>/", views.BatchDetailView.as_view(),      name="batch_detail"),
     path("expiry-alerts/",     views.ExpiryAlertsView.as_view(),     name="expiry_alerts"),
 
+    # ── Premium summary ───────────────────────────────────────────────────────
+    path("premium-summary/",        views.PremiumSummaryView.as_view(),       name="premium_summary"),
+
     # ── Inbound receiving ─────────────────────────────────────────────────────
     path("inbound/vendor-summary/", views.InboundVendorSummaryView.as_view(), name="inbound_vendor_summary"),
+    path("inbound/<uuid:pk>/",      views.InboundDetailView.as_view(),        name="inbound_detail"),
     path("inbound/",               views.InboundReceiveView.as_view(),        name="inbound_receive"),
 
     # ── Vendors ───────────────────────────────────────────────────────────────
     path("vendors/",           views.VendorListCreateView.as_view(), name="vendor_list"),
     path("vendors/<uuid:pk>/", views.VendorDetailView.as_view(),     name="vendor_detail"),
+
+    # ── Reports (premium-gated) ───────────────────────────────────────────────
+    path("reports/expiry/",         views.ExpiryReportView.as_view(),         name="expiry_report"),
 ]

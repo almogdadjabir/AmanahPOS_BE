@@ -14,11 +14,16 @@ from apps.core.permissions import IsManagerOrAbove
 from apps.products.models import Product
 from apps.products.services import get_tenant_from_request
 from apps.tenants.models import BusinessType, Shop
-from django.db.models import Count, Q, Sum
+from datetime import date, timedelta
+from decimal import Decimal as D
+
+from django.db.models import Count, F, Q, Sum
+from django.utils import timezone
 
 from .models import InboundTransaction, InboundTransactionItem, ProductBatch, StockLevel, StockMovement, Vendor
 from .serializers import (
     ExpiryAlertSerializer,
+    ExpiryBatchSerializer,
     InboundReceiveSerializer,
     InboundTransactionSerializer,
     ProductBatchSerializer,
@@ -751,3 +756,206 @@ class InboundVendorSummaryView(APIView):
                 ],
             },
         })
+
+
+# ── Premium summary ───────────────────────────────────────────────────────────
+
+class PremiumSummaryView(APIView):
+    """
+    GET /api/v1/inventory/premium-summary/
+
+    Feature-gated KPI summary for the premium inventory dashboard.
+    Query param: shop_id (optional) — scopes stock/batch/inbound counts to one shop.
+    """
+    permission_classes = [IsAuthenticated, IsManagerOrAbove]
+
+    def get(self, request):
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            return Response(
+                {"success": False, "message": "No active business found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        plan = tenant.subscription_plan
+        if plan is None or not plan.has_feature("inventory_inbound_receiving"):
+            raise SubscriptionLimitError(
+                "Your plan does not include Premium Inventory.",
+                code="FEATURE_NOT_INCLUDED",
+            )
+
+        shop_id     = request.query_params.get("shop_id")
+        today       = date.today()
+        expiry_soon = today + timedelta(days=30)
+        now         = timezone.now()
+
+        sl_qs      = StockLevel.objects.filter(shop__business=tenant)
+        batch_qs   = ProductBatch.objects.filter(shop__business=tenant)
+        inbound_qs = InboundTransaction.objects.filter(tenant=tenant)
+
+        if shop_id:
+            sl_qs      = sl_qs.filter(shop_id=shop_id)
+            batch_qs   = batch_qs.filter(shop_id=shop_id)
+            inbound_qs = inbound_qs.filter(shop_id=shop_id)
+
+        stock_items_count  = sl_qs.count()
+        low_stock_count    = sl_qs.filter(
+            quantity__gt=0,
+            quantity__lte=F("product__min_stock_level"),
+        ).count()
+        out_of_stock_count = sl_qs.filter(quantity__lte=0).count()
+
+        expiring_soon_count = batch_qs.filter(
+            expiry_date__gte=today,
+            expiry_date__lte=expiry_soon,
+        ).count()
+        expired_count = batch_qs.filter(expiry_date__lt=today).count()
+
+        active_vendors_count = Vendor.objects.filter(
+            tenant=tenant, is_active=True,
+        ).count()
+
+        inbound_month_qs = inbound_qs.filter(
+            created_at__year=now.year,
+            created_at__month=now.month,
+        )
+        inbound_this_month_count = inbound_month_qs.count()
+        received_qty = (
+            InboundTransactionItem.objects
+            .filter(transaction__in=inbound_month_qs)
+            .aggregate(total=Sum("quantity"))["total"] or D("0")
+        )
+
+        return Response({
+            "success": True,
+            "data": {
+                "stock_items_count":            stock_items_count,
+                "low_stock_count":              low_stock_count,
+                "out_of_stock_count":           out_of_stock_count,
+                "expiring_soon_count":          expiring_soon_count,
+                "expired_count":                expired_count,
+                "active_vendors_count":         active_vendors_count,
+                "inbound_this_month_count":     inbound_this_month_count,
+                "received_quantity_this_month": str(received_qty),
+            },
+        })
+
+
+# ── Inbound transaction detail ────────────────────────────────────────────────
+
+class InboundDetailView(APIView):
+    """
+    GET /api/v1/inventory/inbound/<uuid:pk>/
+
+    Feature-gated. Returns full inbound transaction with items, vendor,
+    shop, and created_by_name.
+    """
+    permission_classes = [IsAuthenticated, IsManagerOrAbove]
+
+    def get(self, request, pk):
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            return Response(
+                {"success": False, "message": "No active business found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        plan = tenant.subscription_plan
+        if plan is None or not plan.has_feature("inventory_inbound_receiving"):
+            raise SubscriptionLimitError(
+                "Your plan does not include Premium Inventory.",
+                code="FEATURE_NOT_INCLUDED",
+            )
+
+        try:
+            txn = (
+                InboundTransaction.objects
+                .select_related("vendor", "shop", "created_by")
+                .prefetch_related("items__product")
+                .get(pk=pk, tenant=tenant)
+            )
+        except InboundTransaction.DoesNotExist:
+            raise NotFound("Inbound transaction not found.")
+
+        return Response({
+            "success": True,
+            "data": InboundTransactionSerializer(txn).data,
+        })
+
+
+# ── Expiry report ─────────────────────────────────────────────────────────────
+
+class ExpiryReportView(APIView):
+    """
+    GET /api/v1/inventory/reports/expiry/
+
+    Feature-gated paginated expiry report.
+
+    Query params:
+      status      — expiring_soon | expired | all (default)
+      shop_id     — filter by shop
+      vendor_id   — filter by vendor (approximate: products supplied by vendor)
+      date_from   — expiry_date >=
+      date_to     — expiry_date <=
+      search      — product name or batch number
+    """
+    permission_classes = [IsAuthenticated, IsManagerOrAbove]
+
+    def get(self, request):
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            return Response(
+                {"success": False, "message": "No active business found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        plan = tenant.subscription_plan
+        if plan is None or not plan.has_feature("inventory_inbound_receiving"):
+            raise SubscriptionLimitError(
+                "Your plan does not include Premium Inventory.",
+                code="FEATURE_NOT_INCLUDED",
+            )
+
+        qs = (
+            ProductBatch.objects
+            .filter(shop__business=tenant)
+            .select_related("product", "shop")
+            .order_by("expiry_date")
+        )
+
+        params = request.query_params
+        today  = date.today()
+
+        status_filter = params.get("status", "all")
+        if status_filter == "expiring_soon":
+            qs = qs.filter(expiry_date__gte=today, expiry_date__lte=today + timedelta(days=30))
+        elif status_filter == "expired":
+            qs = qs.filter(expiry_date__lt=today)
+
+        if shop_id := params.get("shop_id"):
+            qs = qs.filter(shop_id=shop_id)
+
+        if date_from := params.get("date_from"):
+            qs = qs.filter(expiry_date__gte=date_from)
+
+        if date_to := params.get("date_to"):
+            qs = qs.filter(expiry_date__lte=date_to)
+
+        if vendor_id := params.get("vendor_id"):
+            supplied = (
+                InboundTransactionItem.objects
+                .filter(transaction__vendor_id=vendor_id, transaction__tenant=tenant)
+                .values_list("product_id", flat=True)
+                .distinct()
+            )
+            qs = qs.filter(product__in=supplied)
+
+        if search := params.get("search"):
+            qs = qs.filter(
+                Q(product__name__icontains=search) | Q(batch_number__icontains=search)
+            )
+
+        paginator  = StandardPagination()
+        page       = paginator.paginate_queryset(qs, request)
+        serializer = ExpiryBatchSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
