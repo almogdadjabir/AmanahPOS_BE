@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { extractApiError } from '@/lib/action-error';
-import type { ApiList, StockLevel, StockMovement } from '@/types/api';
+import type { ApiList, StockLevel, StockMovement, Product } from '@/types/api';
 
 const API = () =>
   process.env.INTERNAL_API_URL ||
@@ -150,6 +150,108 @@ export async function stockAdjustmentAction(
     if (!res.ok) return { error: extractApiError(data, res.status, 'Failed to adjust stock.') };
     revalidatePath('/[locale]/(dashboard)/inventory', 'page');
     return { success: true };
+  } catch {
+    return { error: 'Network error. Please try again.' };
+  }
+}
+
+// ── Products for a shop (used in inbound form) ────────────────────────────────
+
+export type ProductsResult =
+  | { ok: true; data: Product[] }
+  | { ok: false; error: string };
+
+export async function fetchProductsForShopAction(shopId: string): Promise<ProductsResult> {
+  try {
+    const url = new URL(`${API()}/api/v1/products/`);
+    url.searchParams.set('shop', shopId);
+    url.searchParams.set('is_active', 'true');
+    url.searchParams.set('page_size', '200');
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${await authToken()}` },
+      cache: 'no-store',
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
+    return { ok: true, data: (json as ApiList<Product>).results ?? [] };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
+  }
+}
+
+// ── Inbound receiving ────────────────────────────────────────────────────────
+
+export type InboundState =
+  | { success: true; reference: string }
+  | { error: string }
+  | null;
+
+export async function createInboundTransactionAction(
+  _prev: InboundState,
+  formData: FormData,
+): Promise<InboundState> {
+  const shop      = (formData.get('shop')      as string)?.trim();
+  const reference = (formData.get('reference') as string)?.trim();
+  const notes     = (formData.get('notes')     as string)?.trim();
+  const itemsJson = (formData.get('items')     as string)?.trim();
+
+  if (!shop)      return { error: 'Shop is required.' };
+  if (!reference) return { error: 'Reference / invoice number is required.' };
+
+  type ItemInput = {
+    product_id:    string;
+    quantity:      string;
+    unit_cost?:    string;
+    expiry_date?:  string;
+    batch_number?: string;
+  };
+
+  let items: ItemInput[];
+  try {
+    items = JSON.parse(itemsJson || '[]');
+  } catch {
+    return { error: 'Invalid items payload.' };
+  }
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return { error: 'At least one item is required.' };
+  }
+
+  for (const item of items) {
+    if (!item.product_id) return { error: 'Each item must have a product selected.' };
+    const qty = Number(item.quantity);
+    if (!item.quantity || isNaN(qty) || qty <= 0) {
+      return { error: 'Each item must have a quantity greater than 0.' };
+    }
+  }
+
+  const body: Record<string, unknown> = {
+    shop,
+    reference,
+    items: items.map(i => ({
+      product_id:   i.product_id,
+      quantity:     i.quantity,
+      unit_cost:    i.unit_cost    || undefined,
+      expiry_date:  i.expiry_date  || undefined,
+      batch_number: i.batch_number || undefined,
+    })),
+  };
+  if (notes) body.notes = notes;
+
+  try {
+    const res = await fetch(`${API()}/api/v1/inventory/inbound/`, {
+      method: 'POST',
+      headers: {
+        Authorization:  `Bearer ${await authToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: extractApiError(data, res.status, 'Failed to record inbound.') };
+    revalidatePath('/[locale]/(dashboard)/inventory', 'page');
+    return { success: true, reference };
   } catch {
     return { error: 'Network error. Please try again.' };
   }

@@ -2,7 +2,7 @@ import { cache } from 'react';
 import { apiGet, ApiError } from '@/lib/api';
 import { withUserCache } from '@/lib/serverCache';
 import { CACHE_TAGS } from '@/lib/cacheTags';
-import type { ApiList, ApiResponse, Sale, SalesSummary, StockLevel, Subscription, Business } from '@/types/api';
+import type { ApiList, ApiResponse, Sale, SalesSummary, StockLevel, Subscription, Business, UserProfile } from '@/types/api';
 
 function toISO(d: Date) { return d.toISOString().split('T')[0]; }
 
@@ -106,6 +106,17 @@ export const fetchBusiness = cache(async function fetchBusiness() {
     null,
   );
 });
+
+export async function fetchUserProfile() {
+  return safe(
+    () => withUserCache(
+      (tok) => apiGet<ApiResponse<UserProfile>>('/api/v1/accounts/profile/', undefined, { token: tok }),
+      [CACHE_TAGS.profile],
+      120,
+    ),
+    null,
+  );
+}
 
 // ── Chart aggregation ─────────────────────────────────────────────────────────
 export interface DailyPoint { date: string; label: string; revenue: number; count: number }

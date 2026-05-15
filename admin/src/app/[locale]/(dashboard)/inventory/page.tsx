@@ -8,7 +8,8 @@ import InventoryPageHeader from './_components/InventoryPageHeader';
 import InventoryStats, { InventoryStatsSkeleton } from './_components/InventoryStats';
 import InventoryFilters from './_components/InventoryFilters';
 import InventoryTable from './_components/InventoryTable';
-import { fetchBusiness } from '@/services/owner';
+import InboundReceivingPanel from './_components/InboundReceivingPanel';
+import { fetchBusiness, fetchUserProfile } from '@/services/owner';
 
 interface Props {
   searchParams: Promise<{
@@ -19,15 +20,23 @@ interface Props {
 }
 
 export default async function InventoryPage({ searchParams }: Props) {
-  const bizRes = await fetchBusiness();
+  const [bizRes, profileRes] = await Promise.all([fetchBusiness(), fetchUserProfile()]);
   if (bizRes?.data?.[0]?.business_type !== 'shop') notFound();
-  const params  = await searchParams;
-  const page    = Math.max(1, Number(params.page) || 1);
+
+  const params   = await searchParams;
+  const page     = Math.max(1, Number(params.page) || 1);
   const tableKey = JSON.stringify({ search: params.search, status: params.status, page });
+
+  const isInboundEnabled = Boolean(
+    profileRes?.data?.enabled_features?.inventory_inbound_receiving,
+  );
+  const shops = bizRes?.data?.[0]?.shops ?? [];
 
   return (
     <InventoryDrawerShell>
       <InventoryPageHeader />
+
+      <InboundReceivingPanel enabled={isInboundEnabled} shops={shops} />
 
       <ErrorBoundary fallback={<SectionError message="Failed to load inventory stats" />}>
         <Suspense fallback={<InventoryStatsSkeleton />}>
