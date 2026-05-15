@@ -209,11 +209,12 @@ class InboundTransactionItemSerializer(serializers.ModelSerializer):
 
 
 class InboundTransactionSerializer(serializers.ModelSerializer):
-    items          = InboundTransactionItemSerializer(many=True, read_only=True)
-    item_count     = serializers.IntegerField(source="items.count", read_only=True)
-    total_quantity = serializers.SerializerMethodField()
-    shop_name      = serializers.CharField(source="shop.name", read_only=True)
-    vendor         = VendorMinimalSerializer(read_only=True)
+    items           = InboundTransactionItemSerializer(many=True, read_only=True)
+    item_count      = serializers.IntegerField(source="items.count", read_only=True)
+    total_quantity  = serializers.SerializerMethodField()
+    shop_name       = serializers.CharField(source="shop.name", read_only=True)
+    vendor          = VendorMinimalSerializer(read_only=True)
+    created_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model  = InboundTransaction
@@ -222,6 +223,7 @@ class InboundTransactionSerializer(serializers.ModelSerializer):
             "shop", "shop_name",
             "vendor",
             "item_count", "total_quantity", "items",
+            "created_by_name",
             "created_at",
         ]
         read_only_fields = ["id", "created_at"]
@@ -229,3 +231,30 @@ class InboundTransactionSerializer(serializers.ModelSerializer):
     def get_total_quantity(self, obj) -> str:
         total = sum(item.quantity for item in obj.items.all())
         return str(total)
+
+    def get_created_by_name(self, obj) -> str | None:
+        return obj.created_by.full_name if obj.created_by else None
+
+
+# ── Expiry report ─────────────────────────────────────────────────────────────
+
+class ExpiryBatchSerializer(serializers.ModelSerializer):
+    product_name   = serializers.CharField(source="product.name", read_only=True)
+    product_sku    = serializers.CharField(source="product.sku",  read_only=True)
+    shop_name      = serializers.CharField(source="shop.name",    read_only=True)
+    is_expired     = serializers.BooleanField(read_only=True)
+    days_remaining = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = ProductBatch
+        fields = [
+            "id", "product", "product_name", "product_sku",
+            "shop", "shop_name",
+            "batch_number", "quantity",
+            "expiry_date", "days_remaining",
+            "is_expired",
+        ]
+
+    def get_days_remaining(self, obj) -> int:
+        from datetime import date
+        return (obj.expiry_date - date.today()).days
