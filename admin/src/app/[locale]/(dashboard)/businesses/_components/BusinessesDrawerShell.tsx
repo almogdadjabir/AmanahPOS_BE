@@ -14,8 +14,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   createBusinessAction,
   fetchBusinessDetailAction,
+  fetchBusinessFeaturesAction,
   toggleBusinessStatusAction,
   updateBusinessAction,
+  updateBusinessFeatureAction,
   type CreateBusinessState,
   type UpdateBusinessState,
   type BusinessDetailResult,
@@ -43,6 +45,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Loader2,
+  Zap,
 } from "lucide-react";
 import { searchOwnersAction } from "@/actions/subscriptions";
 import type { AdminOwner, BusinessType } from "@/types/api";
@@ -588,21 +591,45 @@ function BusinessDetailContent({
   const [business, setBusiness] = useState<AdminBusinessDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [features, setFeatures] = useState<Record<string, boolean> | null>(null);
+  const [featuresLoading, setFeaturesLoading] = useState(false);
+  const [featureUpdating, setFeatureUpdating] = useState<string | null>(null);
+  const [featureError, setFeatureError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
     setErrorMsg(null);
 
-    const result: BusinessDetailResult =
-      await fetchBusinessDetailAction(businessId);
+    const result: BusinessDetailResult = await fetchBusinessDetailAction(businessId);
 
     if (result.ok) {
       setBusiness(result.data);
+      const planId = result.data.active_subscription?.plan_id;
+      if (planId && result.data.business_type === 'shop') {
+        setFeaturesLoading(true);
+        const featRes = await fetchBusinessFeaturesAction(planId);
+        if (featRes.ok) setFeatures(featRes.features);
+        setFeaturesLoading(false);
+      }
     } else {
       setErrorMsg(result.error);
     }
 
     setLoading(false);
+  }
+
+  async function handleFeatureToggle(featureKey: string, currentValue: boolean) {
+    const planId = business?.active_subscription?.plan_id;
+    if (!planId) return;
+    setFeatureUpdating(featureKey);
+    setFeatureError(null);
+    const result = await updateBusinessFeatureAction(planId, featureKey, !currentValue);
+    if (result && 'error' in result) {
+      setFeatureError(result.error);
+    } else {
+      setFeatures(prev => prev ? { ...prev, [featureKey]: !currentValue } : prev);
+    }
+    setFeatureUpdating(null);
   }
 
   useEffect(() => {
@@ -836,6 +863,46 @@ function BusinessDetailContent({
           </div>
         )}
       </div>
+
+      {/* Premium features — shops with active plan only */}
+      {business.business_type === 'shop' && (
+        <div className="px-5 py-4 border-t border-border">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-5 h-5 rounded-md bg-amber-500/10 text-amber-600 flex items-center justify-center">
+              <Zap size={11} />
+            </span>
+            <p className="text-xs font-bold text-foreground">
+              {t('features.sectionTitle')}
+            </p>
+          </div>
+
+          {!business.active_subscription ? (
+            <p className="text-[11px] text-muted-foreground italic">
+              {t('features.noSubscription')}
+            </p>
+          ) : featuresLoading ? (
+            <div className="h-14 rounded-xl bg-muted animate-pulse" />
+          ) : features ? (
+            <div className="space-y-2">
+              {featureError && (
+                <p className="text-[11px] text-destructive font-semibold">{featureError}</p>
+              )}
+              <FeatureToggleRow
+                label={t('features.inboundReceiving')}
+                description={t('features.inboundReceivingDesc')}
+                enabled={features.inventory_inbound_receiving ?? false}
+                updating={featureUpdating === 'inventory_inbound_receiving'}
+                onToggle={() =>
+                  handleFeatureToggle(
+                    'inventory_inbound_receiving',
+                    features.inventory_inbound_receiving ?? false,
+                  )
+                }
+              />
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }
@@ -1200,3 +1267,44 @@ function StatBox({
 
 const inputCls =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors";
+
+function FeatureToggleRow({
+  label,
+  description,
+  enabled,
+  updating,
+  onToggle,
+}: {
+  label:       string;
+  description: string;
+  enabled:     boolean;
+  updating:    boolean;
+  onToggle:    () => void;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-border bg-card p-3.5">
+      <div className="min-w-0 flex-1">
+        <p className="text-[13px] font-semibold text-foreground">{label}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">{description}</p>
+      </div>
+      <button
+        type="button"
+        onClick={onToggle}
+        disabled={updating}
+        aria-pressed={enabled}
+        className={cn(
+          'relative shrink-0 w-10 h-6 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          enabled ? 'bg-success' : 'bg-muted-foreground/30',
+          updating && 'opacity-50 cursor-not-allowed',
+        )}
+      >
+        <span
+          className={cn(
+            'absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform',
+            enabled ? 'translate-x-4' : 'translate-x-0.5',
+          )}
+        />
+      </button>
+    </div>
+  );
+}

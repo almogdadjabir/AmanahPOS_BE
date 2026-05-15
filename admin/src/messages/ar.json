@@ -537,6 +537,14 @@
         "addressPlaceholder": "العنوان الفعلي",
         "saving": "جارٍ الحفظ…",
         "save": "حفظ التعديلات"
+      },
+      "features": {
+        "sectionTitle": "الميزات المميزة",
+        "noSubscription": "لا يوجد اشتراك نشط — عيّن خطة لإدارة الميزات.",
+        "inboundReceiving": "استلام المخزون الوارد",
+        "inboundReceivingDesc": "يتيح لأصحاب هذا العمل تسجيل الكميات الواردة من الموردين.",
+        "enabled": "مفعّل",
+        "disabled": "معطّل"
       }
     }
   },
@@ -695,6 +703,41 @@
       "typeTransferIn": "تحويل وارد",
       "typeTransferOut": "تحويل صادر",
       "typeOpening": "مخزون افتتاحي"
+    },
+    "inbound": {
+      "sectionTitle": "استلام مخزون",
+      "sectionDesc": "سجّل البضاعة الواردة من مورد أو عملية شراء.",
+      "receiveBtn": "استلام مخزون",
+      "drawerTitle": "استلام مخزون",
+      "drawerSubtitle": "تسجيل حركة وارد جديدة",
+      "reference": "المرجع / رقم الفاتورة",
+      "referencePlaceholder": "مثال: INV-20260515-001",
+      "shop": "الفرع",
+      "notes": "ملاحظات",
+      "notesOptional": "(اختياري)",
+      "notesPlaceholder": "المورد، ملاحظات التسليم…",
+      "itemsTitle": "الأصناف",
+      "addItem": "إضافة صنف",
+      "removeItem": "حذف",
+      "product": "المنتج",
+      "productPlaceholder": "اختر منتجاً…",
+      "quantity": "الكمية",
+      "unitCost": "سعر الوحدة",
+      "unitCostOptional": "(اختياري)",
+      "expiryDate": "تاريخ الانتهاء",
+      "expiryDateOptional": "(اختياري)",
+      "batchNumber": "رقم الدفعة",
+      "batchNumberOptional": "(اختياري)",
+      "submit": "تسجيل الوارد",
+      "submitting": "جاري الحفظ…",
+      "cancel": "إلغاء",
+      "successTitle": "تم تسجيل الوارد",
+      "successDesc": "تم حفظ المرجع {reference} بنجاح.",
+      "premiumTitle": "استلام المخزون الوارد",
+      "premiumDesc": "سجّل تسليمات الموردين وحدّث المخزون تلقائياً. رقّ خطتك لفتح هذه الميزة.",
+      "premiumBadge": "ميزة مميزة",
+      "loadingProducts": "جاري تحميل المنتجات…",
+      "noProducts": "لم يتم العثور على منتجات نشطة لهذا الفرع."
     }
   },
   "subscriptions": {

@@ -174,3 +174,57 @@ export async function toggleBusinessStatusAction(
     return { error: 'Network error. Please try again.' };
   }
 }
+
+// ── Premium feature management ────────────────────────────────────────────────
+
+export type FeaturesResult =
+  | { ok: true; features: Record<string, boolean> }
+  | { ok: false; error: string };
+
+export async function fetchBusinessFeaturesAction(planId: string): Promise<FeaturesResult> {
+  try {
+    const res = await fetch(`${API()}/api/v1/admin/plans/${planId}/`, {
+      headers: { Authorization: `Bearer ${await authToken()}`, 'Content-Type': 'application/json' },
+      cache: 'no-store',
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
+    const raw: Record<string, unknown> = (json?.data?.features) ?? {};
+    return {
+      ok: true,
+      features: Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, Boolean(v)])),
+    };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
+  }
+}
+
+export type UpdateFeatureState =
+  | { success: true }
+  | { error: string }
+  | null;
+
+export async function updateBusinessFeatureAction(
+  planId:     string,
+  featureKey: string,
+  enabled:    boolean,
+): Promise<UpdateFeatureState> {
+  const current = await fetchBusinessFeaturesAction(planId);
+  if (!current.ok) return { error: current.error };
+
+  const updated = { ...current.features, [featureKey]: enabled };
+
+  try {
+    const res = await devFetch(`${API()}/api/v1/admin/plans/${planId}/`, {
+      method:  'PATCH',
+      headers: authHeaders(await authToken()),
+      body:    JSON.stringify({ features: updated }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: extractApiError(data, res.status, 'Failed to update feature.') };
+    revalidatePath('/[locale]/(dashboard)/businesses', 'page');
+    return { success: true };
+  } catch {
+    return { error: 'Network error. Please try again.' };
+  }
+}
