@@ -2,7 +2,11 @@
 Views for the inventory app.
 """
 import logging
+from datetime import date, timedelta
+from decimal import Decimal as D
 
+from django.db.models import Count, F, Q, Sum
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -14,11 +18,6 @@ from apps.core.permissions import IsManagerOrAbove
 from apps.products.models import Product
 from apps.products.services import get_tenant_from_request
 from apps.tenants.models import BusinessType, Shop
-from datetime import date, timedelta
-from decimal import Decimal as D
-
-from django.db.models import Count, F, Q, Sum
-from django.utils import timezone
 
 from .models import InboundTransaction, InboundTransactionItem, ProductBatch, StockLevel, StockMovement, Vendor
 from .serializers import (
