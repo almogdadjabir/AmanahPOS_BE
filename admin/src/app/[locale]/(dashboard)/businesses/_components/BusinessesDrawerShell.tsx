@@ -875,7 +875,7 @@ function BusinessDetailContent({
       {/* Premium features — shops with active plan only */}
       {business.business_type === 'shop' && (
         <div className="px-5 py-4 border-t border-border">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-1">
             <span className="w-5 h-5 rounded-md bg-amber-500/10 text-amber-600 flex items-center justify-center">
               <Zap size={11} />
             </span>
@@ -883,6 +883,9 @@ function BusinessDetailContent({
               {t('features.sectionTitle')}
             </p>
           </div>
+          <p className="text-[11px] text-muted-foreground mb-3">
+            {t('features.planScopeNote')}
+          </p>
 
           {!business.active_subscription ? (
             <p className="text-[11px] text-muted-foreground italic">
@@ -908,6 +911,8 @@ function BusinessDetailContent({
                 }
               />
             </div>
+          ) : featureError ? (
+            <p className="text-[11px] text-destructive font-semibold">{featureError}</p>
           ) : null}
         </div>
       )}
