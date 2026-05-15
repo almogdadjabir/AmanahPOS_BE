@@ -311,6 +311,7 @@ class AdminBusinessDetailSerializer(serializers.ModelSerializer):
             return None
         return {
             "id":             str(sub.id),
+            "plan_id":        str(sub.plan.id),
             "plan_name":      sub.plan.name,
             "end_date":       str(sub.end_date),
             "days_remaining": sub.days_remaining,
