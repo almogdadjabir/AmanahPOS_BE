@@ -125,6 +125,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     bankak_account_number = serializers.CharField(
         max_length=50, required=False, allow_blank=True, write_only=True
     )
+    enabled_features = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -141,6 +142,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "default_shop_id",
             "bankak_account",
             "bankak_account_number",
+            "enabled_features",
             "created_at",
             "last_login_at",
         ]
@@ -171,6 +173,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if not account:
             return None
         return {"id": str(account.id), "account_number": account.account_number}
+
+    def get_enabled_features(self, obj) -> dict:
+        business = obj.business
+        if not business or not business.subscription_plan_id:
+            return {}
+        plan = business.subscription_plan
+        return {k: bool(v) for k, v in (plan.features or {}).items()}
 
     def validate_bankak_account_number(self, value: str) -> str:
         import re
