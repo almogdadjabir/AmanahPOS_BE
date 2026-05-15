@@ -183,7 +183,7 @@ export type FeaturesResult =
 
 export async function fetchBusinessFeaturesAction(planId: string): Promise<FeaturesResult> {
   try {
-    const res = await fetch(`${API()}/api/v1/admin/plans/${planId}/`, {
+    const res = await devFetch(`${API()}/api/v1/admin/plans/${planId}/`, {
       headers: { Authorization: `Bearer ${await authToken()}`, 'Content-Type': 'application/json' },
       cache: 'no-store',
     });

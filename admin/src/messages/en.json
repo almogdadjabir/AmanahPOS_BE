@@ -542,9 +542,7 @@
         "sectionTitle": "Premium Features",
         "noSubscription": "No active subscription — assign a plan to manage features.",
         "inboundReceiving": "Inventory Inbound Receiving",
-        "inboundReceivingDesc": "Allow this business's owners to record stock-in from suppliers.",
-        "enabled": "On",
-        "disabled": "Off"
+        "inboundReceivingDesc": "Allow this business's owners to record stock-in from suppliers."
       }
     }
   },

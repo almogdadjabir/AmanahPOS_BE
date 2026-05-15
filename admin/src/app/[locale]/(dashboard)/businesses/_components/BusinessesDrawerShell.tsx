@@ -599,6 +599,10 @@ function BusinessDetailContent({
   async function load() {
     setLoading(true);
     setErrorMsg(null);
+    setFeatures(null);
+    setFeatureError(null);
+    setFeaturesLoading(false);
+    setFeatureUpdating(null);
 
     const result: BusinessDetailResult = await fetchBusinessDetailAction(businessId);
 
@@ -608,7 +612,11 @@ function BusinessDetailContent({
       if (planId && result.data.business_type === 'shop') {
         setFeaturesLoading(true);
         const featRes = await fetchBusinessFeaturesAction(planId);
-        if (featRes.ok) setFeatures(featRes.features);
+        if (featRes.ok) {
+          setFeatures(featRes.features);
+        } else {
+          setFeatureError(featRes.error);
+        }
         setFeaturesLoading(false);
       }
     } else {
