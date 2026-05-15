@@ -228,7 +228,7 @@ export async function createInboundTransactionAction(
   }
 
   const body: Record<string, unknown> = {
-    shop,
+    shop_id:   shop,
     reference,
     items: items.map(i => ({
       product_id:   i.product_id,
