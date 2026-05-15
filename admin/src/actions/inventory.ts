@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { extractApiError } from '@/lib/action-error';
 import { devFetch } from '@/lib/dev-logger';
-import type { ApiList, StockLevel, StockMovement, Product } from '@/types/api';
+import type { ApiList, ApiResponse, ExpiryBatch, InboundTransaction, PremiumInventorySummary, Product, StockLevel, StockMovement, Vendor } from '@/types/api';
 
 const API = () =>
   process.env.INTERNAL_API_URL ||
@@ -255,5 +255,111 @@ export async function createInboundTransactionAction(
     return { success: true, reference };
   } catch {
     return { error: 'Network error. Please try again.' };
+  }
+}
+
+// ── Vendor list ───────────────────────────────────────────────────────────────
+
+export type VendorsResult =
+  | { ok: true; data: Vendor[] }
+  | { ok: false; error: string };
+
+export async function fetchVendorsAction(): Promise<VendorsResult> {
+  try {
+    const res = await fetch(
+      `${API()}/api/v1/inventory/vendors/?is_active=true&page_size=200`,
+      {
+        headers: { Authorization: `Bearer ${await authToken()}` },
+        cache: 'no-store',
+      },
+    );
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
+    return { ok: true, data: (json as ApiList<Vendor>).results ?? [] };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
+  }
+}
+
+// ── Premium summary ───────────────────────────────────────────────────────────
+
+export type PremiumSummaryResult =
+  | { ok: true; data: PremiumInventorySummary }
+  | { ok: false; error: string };
+
+export async function fetchPremiumSummaryAction(shopId?: string): Promise<PremiumSummaryResult> {
+  try {
+    const url = new URL(`${API()}/api/v1/inventory/premium-summary/`);
+    if (shopId) url.searchParams.set('shop_id', shopId);
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${await authToken()}` },
+      cache: 'no-store',
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
+    return { ok: true, data: (json as ApiResponse<PremiumInventorySummary>).data };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
+  }
+}
+
+// ── Inbound transaction detail ────────────────────────────────────────────────
+
+export type InboundDetailResult =
+  | { ok: true; data: InboundTransaction }
+  | { ok: false; error: string };
+
+export async function fetchInboundTransactionAction(id: string): Promise<InboundDetailResult> {
+  try {
+    const res = await fetch(`${API()}/api/v1/inventory/inbound/${id}/`, {
+      headers: { Authorization: `Bearer ${await authToken()}` },
+      cache: 'no-store',
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
+    return { ok: true, data: (json as ApiResponse<InboundTransaction>).data };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
+  }
+}
+
+// ── Expiry report ─────────────────────────────────────────────────────────────
+
+export interface ExpiryReportParams {
+  status?:    'expiring_soon' | 'expired' | 'all';
+  shop_id?:   string;
+  vendor_id?: string;
+  date_from?: string;
+  date_to?:   string;
+  search?:    string;
+  page?:      number;
+}
+
+export type ExpiryReportResult =
+  | { ok: true; data: ExpiryBatch[]; count: number; total_pages: number }
+  | { ok: false; error: string };
+
+export async function fetchExpiryReportAction(params: ExpiryReportParams = {}): Promise<ExpiryReportResult> {
+  try {
+    const url = new URL(`${API()}/api/v1/inventory/reports/expiry/`);
+    if (params.status)    url.searchParams.set('status',    params.status);
+    if (params.shop_id)   url.searchParams.set('shop_id',   params.shop_id);
+    if (params.vendor_id) url.searchParams.set('vendor_id', params.vendor_id);
+    if (params.date_from) url.searchParams.set('date_from', params.date_from);
+    if (params.date_to)   url.searchParams.set('date_to',   params.date_to);
+    if (params.search)    url.searchParams.set('search',    params.search);
+    if (params.page)      url.searchParams.set('page',      String(params.page));
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${await authToken()}` },
+      cache: 'no-store',
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
+    const list = json as ApiList<ExpiryBatch>;
+    return { ok: true, data: list.results ?? [], count: list.count ?? 0, total_pages: list.total_pages ?? 1 };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
   }
 }
