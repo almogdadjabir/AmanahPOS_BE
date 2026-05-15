@@ -106,6 +106,27 @@ export interface StockMovement {
   created_at: string;
 }
 
+export interface InboundTransactionItem {
+  id: string;
+  product: string;
+  product_name: string;
+  quantity: string;
+  unit_cost: string | null;
+  expiry_date: string | null;
+  batch_number: string;
+}
+
+export interface InboundTransaction {
+  id: string;
+  reference: string;
+  notes: string;
+  shop: string;
+  shop_name: string;
+  item_count: number;
+  items: InboundTransactionItem[];
+  created_at: string;
+}
+
 // ── Users ────────────────────────────────────────────────────────────────────
 export type UserRole = 'owner' | 'manager' | 'cashier';
 
@@ -136,6 +157,7 @@ export interface UserProfile {
   last_login_at: string | null;
   bankak_phone: string | null;
   bankak_name: string | null;
+  enabled_features: Record<string, boolean>;
 }
 
 // ── Customers ────────────────────────────────────────────────────────────────
@@ -273,6 +295,7 @@ export interface AdminBusinessShop {
 
 export interface AdminBusinessActiveSubscription {
   id: string;
+  plan_id: string;
   plan_name: string;
   end_date: string;
   days_remaining: number;
