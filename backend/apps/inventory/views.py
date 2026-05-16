@@ -836,6 +836,10 @@ class PremiumSummaryView(APIView):
                 "active_vendors_count":         active_vendors_count,
                 "inbound_this_month_count":     inbound_this_month_count,
                 "received_quantity_this_month": str(received_qty),
+                # Alias fields for the bento shell
+                "total_skus":         stock_items_count,
+                "inbound_this_month": inbound_this_month_count,
+                "units_received":     str(received_qty),
             },
         })
 

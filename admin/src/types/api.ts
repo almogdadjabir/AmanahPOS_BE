@@ -139,6 +139,10 @@ export interface PremiumInventorySummary {
   active_vendors_count: number;
   inbound_this_month_count: number;
   received_quantity_this_month: string;
+  // Alias fields used by the bento shell
+  total_skus?:         number;
+  inbound_this_month?: number;
+  units_received?:     string;
 }
 
 export interface ExpiryBatch {
