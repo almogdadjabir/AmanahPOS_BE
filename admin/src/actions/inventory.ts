@@ -366,3 +366,179 @@ export async function fetchExpiryReportAction(params: ExpiryReportParams = {}): 
     return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
   }
 }
+
+// ── Vendor list (management — supports showAll + search) ──────────────────────
+
+export interface VendorsManagementParams {
+  search?:  string;
+  showAll?: boolean;
+}
+
+export async function fetchVendorsManagementAction(
+  params: VendorsManagementParams = {},
+): Promise<VendorsResult> {
+  try {
+    const url = new URL(`${API()}/api/v1/inventory/vendors/`);
+    if (!params.showAll) url.searchParams.set('is_active', 'true');
+    if (params.search)   url.searchParams.set('search', params.search);
+    url.searchParams.set('page_size', '200');
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${await authToken()}` },
+      cache: 'no-store',
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
+    return { ok: true, data: (json as ApiList<Vendor>).results ?? [] };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
+  }
+}
+
+// ── Inbound transaction list ───────────────────────────────────────────────────
+
+export interface InboundListParams {
+  vendor_id?: string;
+  shop_id?:   string;
+  search?:    string;
+  page?:      number;
+}
+
+export type InboundListResult =
+  | { ok: true; data: InboundTransaction[]; count: number; total_pages: number }
+  | { ok: false; error: string };
+
+export async function fetchInboundListAction(
+  params: InboundListParams = {},
+): Promise<InboundListResult> {
+  try {
+    const url = new URL(`${API()}/api/v1/inventory/inbound/`);
+    if (params.vendor_id) url.searchParams.set('vendor_id', params.vendor_id);
+    if (params.shop_id)   url.searchParams.set('shop_id',   params.shop_id);
+    if (params.search)    url.searchParams.set('search',    params.search);
+    if (params.page)      url.searchParams.set('page',      String(params.page));
+    url.searchParams.set('page_size', '20');
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${await authToken()}` },
+      cache: 'no-store',
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
+    const list = json as ApiList<InboundTransaction>;
+    return { ok: true, data: list.results ?? [], count: list.count ?? 0, total_pages: list.total_pages ?? 1 };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
+  }
+}
+
+// ── Vendor mutations ──────────────────────────────────────────────────────────
+
+export type VendorFormState =
+  | { success: true; vendor: Vendor }
+  | { error: string }
+  | null;
+
+export async function createVendorAction(
+  _prev: VendorFormState,
+  formData: FormData,
+): Promise<VendorFormState> {
+  const name    = (formData.get('name')    as string)?.trim();
+  const phone   = (formData.get('phone')   as string)?.trim();
+  const email   = (formData.get('email')   as string)?.trim();
+  const address = (formData.get('address') as string)?.trim();
+  const notes   = (formData.get('notes')   as string)?.trim();
+
+  if (!name) return { error: 'Vendor name is required.' };
+
+  try {
+    const res = await devFetch(`${API()}/api/v1/inventory/vendors/`, {
+      method: 'POST',
+      headers: {
+        Authorization:  `Bearer ${await authToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        phone:   phone   || undefined,
+        email:   email   || undefined,
+        address: address || undefined,
+        notes:   notes   || undefined,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: extractApiError(data, res.status, 'Failed to create vendor.') };
+    return { success: true, vendor: (data as ApiResponse<Vendor>).data };
+  } catch {
+    return { error: 'Network error. Please try again.' };
+  }
+}
+
+export async function updateVendorAction(
+  _prev: VendorFormState,
+  formData: FormData,
+): Promise<VendorFormState> {
+  const id      = (formData.get('id')      as string)?.trim();
+  const name    = (formData.get('name')    as string)?.trim();
+  const phone   = (formData.get('phone')   as string)?.trim();
+  const email   = (formData.get('email')   as string)?.trim();
+  const address = (formData.get('address') as string)?.trim();
+  const notes   = (formData.get('notes')   as string)?.trim();
+
+  if (!id)   return { error: 'Vendor ID is missing.' };
+  if (!name) return { error: 'Vendor name is required.' };
+
+  try {
+    const res = await devFetch(`${API()}/api/v1/inventory/vendors/${id}/`, {
+      method: 'PATCH',
+      headers: {
+        Authorization:  `Bearer ${await authToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, phone, email, address, notes }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: extractApiError(data, res.status, 'Failed to update vendor.') };
+    return { success: true, vendor: (data as ApiResponse<Vendor>).data };
+  } catch {
+    return { error: 'Network error. Please try again.' };
+  }
+}
+
+export async function deactivateVendorAction(
+  id: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await devFetch(`${API()}/api/v1/inventory/vendors/${id}/`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${await authToken()}` },
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return { ok: false, error: extractApiError(data, res.status, 'Failed to deactivate vendor.') };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'Network error. Please try again.' };
+  }
+}
+
+export async function reactivateVendorAction(
+  id: string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await devFetch(`${API()}/api/v1/inventory/vendors/${id}/`, {
+      method: 'PATCH',
+      headers: {
+        Authorization:  `Bearer ${await authToken()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ is_active: true }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { ok: false, error: extractApiError(data, res.status, 'Failed to reactivate vendor.') };
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'Network error. Please try again.' };
+  }
+}
