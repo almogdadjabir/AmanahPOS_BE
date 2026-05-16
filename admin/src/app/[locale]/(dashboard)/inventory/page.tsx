@@ -8,8 +8,10 @@ import InventoryPageHeader from './_components/InventoryPageHeader';
 import InventoryStats, { InventoryStatsSkeleton } from './_components/InventoryStats';
 import InventoryFilters from './_components/InventoryFilters';
 import InventoryTable from './_components/InventoryTable';
-import InboundReceivingPanel from './_components/InboundReceivingPanel';
+import PremiumInventoryShell from './_components/PremiumInventoryShell';
+import PremiumLockedInventoryCard from './_components/PremiumLockedInventoryCard';
 import { fetchBusiness, fetchUserProfile } from '@/services/owner';
+import { fetchPremiumSummaryAction } from '@/actions/inventory';
 
 interface Props {
   searchParams: Promise<{
@@ -32,12 +34,11 @@ export default async function InventoryPage({ searchParams }: Props) {
   );
   const shops = bizRes?.data?.[0]?.shops ?? [];
 
-  return (
-    <InventoryDrawerShell>
-      <InventoryPageHeader />
+  const summaryRes = isInboundEnabled ? await fetchPremiumSummaryAction() : null;
+  const summary    = summaryRes?.ok ? summaryRes.data : null;
 
-      <InboundReceivingPanel enabled={isInboundEnabled} shops={shops} />
-
+  const stockContent = (
+    <>
       <ErrorBoundary fallback={<SectionError message="Failed to load inventory stats" />}>
         <Suspense fallback={<InventoryStatsSkeleton />}>
           <InventoryStats />
@@ -59,6 +60,23 @@ export default async function InventoryPage({ searchParams }: Props) {
           />
         </Suspense>
       </ErrorBoundary>
+    </>
+  );
+
+  return (
+    <InventoryDrawerShell>
+      <InventoryPageHeader />
+
+      {isInboundEnabled ? (
+        <PremiumInventoryShell summary={summary} shops={shops}>
+          {stockContent}
+        </PremiumInventoryShell>
+      ) : (
+        <>
+          <PremiumLockedInventoryCard />
+          {stockContent}
+        </>
+      )}
     </InventoryDrawerShell>
   );
 }
