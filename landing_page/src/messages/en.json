@@ -106,6 +106,11 @@
     "b1": "Create your account",
     "b2": "Book a live demo"
   },
+  "notFound": {
+    "title": "Page not found",
+    "description": "Sorry, the page you're looking for doesn't exist.",
+    "cta": "Back to home"
+  },
   "foot": {
     "tag": "A point of sale built for Sudanese merchants. Sell anywhere — phone, tablet, or counter.",
     "c1": "Product",
