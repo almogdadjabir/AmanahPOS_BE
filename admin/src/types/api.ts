@@ -155,6 +155,19 @@ export interface ExpiryBatch {
   is_expired: boolean;
 }
 
+export interface VendorSummaryItem {
+  vendor_id:          string;
+  vendor_name:        string;
+  transactions_count: number;
+  total_quantity:     string;
+}
+
+export interface VendorSummaryData {
+  total_transactions: number;
+  total_quantity:     string;
+  vendors:            VendorSummaryItem[];
+}
+
 // ── Users ────────────────────────────────────────────────────────────────────
 export type UserRole = 'owner' | 'manager' | 'cashier';
 

@@ -752,7 +752,12 @@
       "kpiExpired": "Expired",
       "kpiActiveVendors": "Active Vendors",
       "kpiInboundThisMonth": "Inbound This Month",
-      "kpiUnitsReceived": "Units Received"
+      "kpiUnitsReceived": "Units Received",
+      "tabLowStock": "Low Stock",
+      "tabExpiry": "Expiry",
+      "tabReports": "Reports",
+      "lowStockHint": "Restocking reminder: {productName} is at {quantity} units.",
+      "lowStockHintDismiss": "Dismiss"
     },
     "vendors": {
       "title": "Vendors",
@@ -797,6 +802,52 @@
       "colUnitCost": "Unit Cost",
       "colExpiry": "Expiry",
       "colBatch": "Batch #"
+    },
+    "lowStock": {
+      "title": "Low Stock",
+      "colProduct": "Product",
+      "colSku": "SKU",
+      "colShop": "Shop",
+      "colQty": "Qty",
+      "colStatus": "Status",
+      "receive": "Receive",
+      "empty": "All products are well-stocked — nothing needs restocking right now.",
+      "loadMore": "Load more",
+      "failedToLoad": "Failed to load low stock report",
+      "searchPlaceholder": "Search products…",
+      "shopFilter": "All shops"
+    },
+    "expiry": {
+      "title": "Expiry Report",
+      "filterAll": "All",
+      "filterExpiringSoon": "Expiring Soon",
+      "filterExpired": "Expired",
+      "colProduct": "Product",
+      "colSku": "SKU",
+      "colShop": "Shop",
+      "colBatch": "Batch #",
+      "colQty": "Qty",
+      "colDays": "Days",
+      "emptyAll": "No batches on record.",
+      "emptyExpiringSoon": "No batches expiring in the next 30 days.",
+      "emptyExpired": "No expired batches.",
+      "loadMore": "Load more",
+      "failedToLoad": "Failed to load expiry report",
+      "shopFilter": "All shops"
+    },
+    "reports": {
+      "title": "Vendor Report",
+      "totalTransactions": "Total Transactions",
+      "totalUnits": "Total Units Received",
+      "colVendor": "Vendor",
+      "colTransactions": "Transactions",
+      "colTotalQty": "Total Qty",
+      "dateFrom": "From",
+      "dateTo": "To",
+      "apply": "Apply",
+      "shopFilter": "All shops",
+      "empty": "No inbound transactions found for the selected period.",
+      "failedToLoad": "Failed to load vendor report"
     }
   },
   "subscriptions": {

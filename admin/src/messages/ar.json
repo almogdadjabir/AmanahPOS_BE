@@ -752,7 +752,12 @@
       "kpiExpired": "منتهية الصلاحية",
       "kpiActiveVendors": "موردون نشطون",
       "kpiInboundThisMonth": "وارد هذا الشهر",
-      "kpiUnitsReceived": "وحدات مستلمة"
+      "kpiUnitsReceived": "وحدات مستلمة",
+      "tabLowStock": "مخزون منخفض",
+      "tabExpiry": "الانتهاء",
+      "tabReports": "التقارير",
+      "lowStockHint": "تذكير إعادة التخزين: {productName} لديه {quantity} وحدة فقط.",
+      "lowStockHintDismiss": "إغلاق"
     },
     "vendors": {
       "title": "الموردون",
@@ -797,6 +802,52 @@
       "colUnitCost": "سعر الوحدة",
       "colExpiry": "تاريخ الانتهاء",
       "colBatch": "رقم الدفعة"
+    },
+    "lowStock": {
+      "title": "مخزون منخفض",
+      "colProduct": "المنتج",
+      "colSku": "الرمز",
+      "colShop": "الفرع",
+      "colQty": "الكمية",
+      "colStatus": "الحالة",
+      "receive": "استلام",
+      "empty": "جميع المنتجات في مستويات جيدة — لا شيء يحتاج إعادة تخزين.",
+      "loadMore": "تحميل المزيد",
+      "failedToLoad": "فشل تحميل تقرير المخزون المنخفض",
+      "searchPlaceholder": "بحث عن منتج…",
+      "shopFilter": "كل الفروع"
+    },
+    "expiry": {
+      "title": "تقرير الانتهاء",
+      "filterAll": "الكل",
+      "filterExpiringSoon": "تنتهي قريباً",
+      "filterExpired": "منتهية",
+      "colProduct": "المنتج",
+      "colSku": "الرمز",
+      "colShop": "الفرع",
+      "colBatch": "رقم الدفعة",
+      "colQty": "الكمية",
+      "colDays": "الأيام",
+      "emptyAll": "لا توجد دفعات مسجّلة.",
+      "emptyExpiringSoon": "لا توجد دفعات تنتهي خلال 30 يوماً.",
+      "emptyExpired": "لا توجد دفعات منتهية الصلاحية.",
+      "loadMore": "تحميل المزيد",
+      "failedToLoad": "فشل تحميل تقرير الانتهاء",
+      "shopFilter": "كل الفروع"
+    },
+    "reports": {
+      "title": "تقرير الموردين",
+      "totalTransactions": "إجمالي الحركات",
+      "totalUnits": "إجمالي الوحدات المستلمة",
+      "colVendor": "المورد",
+      "colTransactions": "الحركات",
+      "colTotalQty": "إجمالي الكمية",
+      "dateFrom": "من",
+      "dateTo": "إلى",
+      "apply": "تطبيق",
+      "shopFilter": "كل الفروع",
+      "empty": "لا توجد حركات وارد للفترة المحددة.",
+      "failedToLoad": "فشل تحميل تقرير الموردين"
     }
   },
   "subscriptions": {

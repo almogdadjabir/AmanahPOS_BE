@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { extractApiError } from '@/lib/action-error';
 import { devFetch } from '@/lib/dev-logger';
-import type { ApiList, ApiResponse, ExpiryBatch, InboundTransaction, PremiumInventorySummary, Product, StockLevel, StockMovement, Vendor } from '@/types/api';
+import type { ApiList, ApiResponse, ExpiryBatch, InboundTransaction, PremiumInventorySummary, Product, StockLevel, StockMovement, Vendor, VendorSummaryData } from '@/types/api';
 
 const API = () =>
   process.env.INTERNAL_API_URL ||
@@ -540,5 +540,38 @@ export async function reactivateVendorAction(
     return { ok: true };
   } catch {
     return { ok: false, error: 'Network error. Please try again.' };
+  }
+}
+
+// ── Vendor inbound summary ────────────────────────────────────────────────────
+
+export interface VendorSummaryParams {
+  shop_id?:   string;
+  date_from?: string;
+  date_to?:   string;
+}
+
+export type VendorSummaryResult =
+  | { ok: true; data: VendorSummaryData }
+  | { ok: false; error: string };
+
+export async function fetchVendorSummaryAction(
+  params: VendorSummaryParams = {},
+): Promise<VendorSummaryResult> {
+  try {
+    const url = new URL(`${API()}/api/v1/inventory/inbound/vendor-summary/`);
+    if (params.shop_id)   url.searchParams.set('shop_id',   params.shop_id);
+    if (params.date_from) url.searchParams.set('date_from', params.date_from);
+    if (params.date_to)   url.searchParams.set('date_to',   params.date_to);
+
+    const res = await fetch(url.toString(), {
+      headers: { Authorization: `Bearer ${await authToken()}` },
+      cache: 'no-store',
+    });
+    const json = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: extractApiError(json, res.status) };
+    return { ok: true, data: (json as ApiResponse<VendorSummaryData>).data };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Network error' };
   }
 }
