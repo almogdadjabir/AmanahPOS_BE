@@ -90,11 +90,11 @@ export default function PremiumInventoryShell({ shops, summary, data }: Props) {
           </>
         }
         heroChildren={
-          <div className="grid grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-4 gap-4">
             {heroKpis.map((k) => (
               <div
                 key={k.label}
-                className="px-4 py-3.5 rounded-[14px]"
+                className="p-4 rounded-xl"
                 style={KPI_CARD_STYLE}
               >
                 <div className="text-[10.5px] font-extrabold uppercase tracking-[0.5px] text-white/55">{k.label}</div>
@@ -110,8 +110,8 @@ export default function PremiumInventoryShell({ shops, summary, data }: Props) {
       >
         {/* Bento grid */}
         <div
-          className="grid gap-3.5"
-          style={{ gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: 'minmax(170px, auto)' }}
+          className="grid grid-cols-4 gap-4"
+          style={{ gridAutoRows: 'minmax(170px, auto)' }}
         >
           <HealthRing {...data.health} onOpen={() => setDrawer('stock')} />
           <InboundVelocity {...data.velocity} onOpen={() => setDrawer('inbound')} />

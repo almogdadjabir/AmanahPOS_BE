@@ -19,7 +19,7 @@ export function PremiumFrame({
   feature, plan, subtitle, icon, actions, heroChildren, children, className,
 }: PremiumFrameProps) {
   return (
-    <div className={cn('flex flex-col gap-4', className)}>
+    <div className={cn('flex flex-col gap-6', className)}>
       <PremiumHero feature={feature} plan={plan} subtitle={subtitle} icon={icon} actions={actions}>
         {heroChildren}
       </PremiumHero>
@@ -44,7 +44,7 @@ function PremiumHero({
 
       <div className="relative flex items-start gap-4">
         <div
-          className="grid place-items-center w-13 h-13 rounded-[14px] bg-premium-grad flex-shrink-0"
+          className="grid place-items-center w-13 h-13 rounded-xl bg-premium-grad flex-shrink-0"
           style={{ width: 52, height: 52, boxShadow: '0 12px 28px -10px rgba(55,63,148,0.6), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -10px 24px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(232,215,166,0.22)' }}
         >
           {icon ?? <Layers className="h-6 w-6" strokeWidth={2} />}

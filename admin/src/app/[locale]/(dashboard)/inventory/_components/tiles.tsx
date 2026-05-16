@@ -33,7 +33,7 @@ export function BentoTile({ span = 1, rowSpan = 1, children, className }: BentoT
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-[18px] bg-card border border-border p-[18px] flex flex-col shadow-[0_1px_2px_rgba(0,0,0,0.03)]',
+        'relative overflow-hidden rounded-2xl bg-card border border-border p-5 flex flex-col shadow-card',
         className,
       )}
       style={{ gridColumn: `span ${span}`, gridRow: `span ${rowSpan}` }}
@@ -64,10 +64,10 @@ export function TileTitle({ icon, title, count, accent = 'primary', action }: Ti
       ? { background: 'linear-gradient(155deg, #6471C7 0%, #4751B0 100%)' }
       : undefined;
   return (
-    <div className="flex items-center gap-2.5 mb-3.5">
+    <div className="flex items-center gap-2.5 mb-4">
       <div
         className={cn(
-          'grid place-items-center w-[30px] h-[30px] rounded-[9px] border',
+          'grid place-items-center w-7 h-7 rounded-lg border',
           ACCENTS[accent],
         )}
         style={premiumStyle}
@@ -134,7 +134,7 @@ export function HealthRing({ pct, inStock, low, out, onOpen }: HealthRingProps) 
             key={s.label}
             type="button"
             onClick={onOpen}
-            className="px-2.5 py-2 rounded-[10px] bg-muted/50 text-center hover:bg-muted transition-colors"
+            className="px-2.5 py-2 rounded-lg bg-muted/50 text-center hover:bg-muted transition-colors"
           >
             <span className="inline-flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.c }} />
@@ -177,7 +177,7 @@ export function InboundVelocity({
           <button
             type="button"
             onClick={onOpen}
-            className="text-xs font-bold text-foreground bg-card border border-border rounded-[10px] px-3 py-1.5 hover:bg-muted"
+            className="text-xs font-bold text-foreground bg-card border border-border rounded-lg px-3 py-1.5 hover:bg-muted"
           >
             Open inbound
           </button>
@@ -199,7 +199,7 @@ export function InboundVelocity({
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-3.5 mt-3 pt-3 border-t border-border">
+      <div className="flex items-center gap-3.5 mt-4 pt-4 border-t border-border">
         <Stat label="Avg/day" value={avgPerDay.toString()} />
         <Divider />
         <Stat label="Peak" value={`${peak.value}`} hint={`(${peak.label})`} />
@@ -287,7 +287,7 @@ export function RestockQueue({
             }}
           >
             <div
-              className="min-w-[38px] h-[38px] rounded-[10px] grid place-items-center text-white font-extrabold text-[15px] tabular-nums"
+              className="min-w-[38px] h-[38px] rounded-lg grid place-items-center text-white font-extrabold text-[15px] tabular-nums"
               style={{ background: r.qty === 0 ? '#E53E3E' : '#D97706' }}
             >
               {r.qty}
@@ -338,7 +338,7 @@ export function ExpiryTimeline({
           <button
             type="button"
             onClick={onOpen}
-            className="text-xs font-bold text-foreground bg-card border border-border rounded-[10px] px-3 py-1.5 hover:bg-muted"
+            className="text-xs font-bold text-foreground bg-card border border-border rounded-lg px-3 py-1.5 hover:bg-muted"
           >
             Open expiry
           </button>
@@ -504,7 +504,7 @@ export function RecentReceipts({
           <button
             type="button"
             onClick={onOpen}
-            className="text-xs font-bold text-foreground bg-card border border-border rounded-[10px] px-3 py-1.5 hover:bg-muted"
+            className="text-xs font-bold text-foreground bg-card border border-border rounded-lg px-3 py-1.5 hover:bg-muted"
           >
             Open inbound
           </button>
@@ -514,7 +514,7 @@ export function RecentReceipts({
         {receipts.map((r) => (
           <div key={r.id} className="flex items-center gap-3.5 px-3.5 py-3 rounded-xl bg-muted/50">
             <div
-              className="grid place-items-center w-9 h-9 rounded-[10px] text-white"
+              className="grid place-items-center w-9 h-9 rounded-lg text-white"
               style={{
                 background: 'linear-gradient(155deg, #8B95DA 0%, #4751B0 50%, #2B3173 100%)',
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 0 1px rgba(232,215,166,0.18)',
@@ -564,7 +564,7 @@ export function QuickCommand({ actions }: { actions: QuickAction[] }) {
             type="button"
             onClick={a.onClick}
             className={cn(
-              'flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] text-left transition-colors',
+              'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-colors',
               a.primary ? 'text-white bg-premium-cta border border-[rgba(232,215,166,0.18)]'
                        : 'bg-card border border-border text-foreground hover:bg-muted',
             )}
