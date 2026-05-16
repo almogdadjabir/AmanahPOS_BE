@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { TableSkeleton } from '@/components/ds/Skeleton';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SectionError } from '@/components/SectionError';
-import type { PremiumInventorySummary, Shop } from '@/types/api';
+import type { PremiumInventorySummary } from '@/types/api';
 import InventoryDrawerShell from './_components/InventoryDrawerShell';
 import InventoryPageHeader from './_components/InventoryPageHeader';
 import InventoryStats, { InventoryStatsSkeleton } from './_components/InventoryStats';
@@ -109,7 +109,7 @@ async function loadPremiumInventoryData(): Promise<{
       days: b.days_remaining,
       qty:  Math.round(Number(b.quantity)),
     }));
-  const nearestDangerCount = expiryBatches.filter(b => b.days < 7).length;
+  const nearestDangerCount = expiryBatches.filter(b => b.days < 5).length;
   const suggestion = nearestDangerCount > 0
     ? `${nearestDangerCount} ${nearestDangerCount === 1 ? 'batch' : 'batches'} expire within 5 days. Suggested: run a markdown.`
     : undefined;
@@ -158,14 +158,12 @@ async function loadPremiumInventoryData(): Promise<{
 // ── Non-premium experience (identical to previous behavior) ───────────
 
 async function BasicInventoryView({
-  shops,
   params,
 }: {
-  shops:  Shop[];
   params: SearchParams;
 }) {
   const page     = Math.max(1, Number(params.page) || 1);
-  const tableKey = JSON.stringify({ search: params.search, status: params.status, page });
+  const tableKey = `${params.search ?? ''}-${params.status ?? ''}-${page}`;
 
   return (
     <InventoryDrawerShell>
@@ -204,7 +202,7 @@ export default async function InventoryPage({ searchParams }: Props) {
   const params    = await searchParams;
 
   if (!isPremium) {
-    return <BasicInventoryView shops={shops} params={params} />;
+    return <BasicInventoryView params={params} />;
   }
 
   const { summary, data } = await loadPremiumInventoryData();
