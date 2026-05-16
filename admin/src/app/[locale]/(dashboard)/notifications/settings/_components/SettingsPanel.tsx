@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { CheckCircle2 } from 'lucide-react';
-import { updateAdminNotifSettings } from '@/services/notifications';
+import { updateAdminNotifSettings } from '@/actions/notifications';
 import type { NotificationSetting } from '@/types/api';
 import { cn } from '@/lib/utils';
 

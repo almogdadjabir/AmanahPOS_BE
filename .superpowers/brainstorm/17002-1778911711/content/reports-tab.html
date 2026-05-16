@@ -1,0 +1,85 @@
+<h2>Reports tab — what format?</h2>
+<p class="subtitle">SP3 adds 3 new tabs. The Low Stock and Expiry tabs are straightforward tables. The Reports tab is the interesting one — what should it show?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="font-family:monospace;font-size:11px;background:#0f172a;color:#94a3b8;padding:12px;border-radius:6px;">
+        <div style="color:#e2e8f0;font-weight:bold;margin-bottom:8px;font-size:12px;">Vendor Report</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px;">
+          <div style="background:#1e293b;padding:5px;border-radius:3px;text-align:center;">
+            <div style="color:#e2e8f0;font-size:14px;font-weight:bold;">24</div>
+            <div style="color:#64748b;font-size:9px;">Total transactions</div>
+          </div>
+          <div style="background:#1e293b;padding:5px;border-radius:3px;text-align:center;">
+            <div style="color:#e2e8f0;font-size:14px;font-weight:bold;">680</div>
+            <div style="color:#64748b;font-size:9px;">Units received</div>
+          </div>
+        </div>
+
+        <div style="font-size:9px;color:#64748b;margin-bottom:4px;display:flex;gap:6px;">
+          <span style="background:#1e293b;padding:2px 6px;border-radius:3px;">Vendor ↓</span>
+          <span>Transactions</span><span>Total Qty</span><span>Last delivery</span>
+        </div>
+        <div style="background:#1e293b;padding:4px 6px;border-radius:3px;margin-bottom:2px;font-size:9px;display:flex;gap:8px;">
+          <span style="color:#e2e8f0;flex:1.5">Al Noor</span><span>10</span><span>200.000</span><span style="color:#64748b;">May 15</span>
+        </div>
+        <div style="background:#1e293b;padding:4px 6px;border-radius:3px;margin-bottom:2px;font-size:9px;display:flex;gap:8px;">
+          <span style="color:#e2e8f0;flex:1.5">Blue Wave</span><span>8</span><span>320.000</span><span style="color:#64748b;">May 10</span>
+        </div>
+        <div style="background:#1e293b;padding:4px 6px;border-radius:3px;font-size:9px;display:flex;gap:8px;">
+          <span style="color:#e2e8f0;flex:1.5">Nile Traders</span><span>6</span><span>160.000</span><span style="color:#64748b;">May 1</span>
+        </div>
+        <div style="color:#64748b;font-size:9px;margin-top:6px;border-top:1px solid #1e293b;padding-top:4px;">
+          Filter by: vendor · shop · date range
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Vendor delivery summary (recommended)</h3>
+      <p>Total transactions + units at top. Table sorted by quantity: vendor, transaction count, total qty, last delivery date. Filter by vendor/shop/date range. No charts — clean and fast.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="font-family:monospace;font-size:11px;background:#0f172a;color:#94a3b8;padding:12px;border-radius:6px;">
+        <div style="color:#e2e8f0;font-weight:bold;margin-bottom:8px;font-size:12px;">Reports</div>
+
+        <div style="background:#1e293b;padding:4px;border-radius:3px;margin-bottom:6px;display:flex;gap:2px;font-size:9px;">
+          <span style="background:#3b82f6;color:white;padding:2px 6px;border-radius:2px;">Vendors</span>
+          <span style="color:#64748b;padding:2px 6px;">Inbound Timeline</span>
+        </div>
+
+        <div style="margin-bottom:6px;">
+          <div style="color:#64748b;font-size:9px;margin-bottom:3px;">Units received per vendor (last 30 days)</div>
+          <div style="display:flex;align-items:flex-end;gap:2px;height:30px;">
+            <div style="background:#3b82f6;width:14px;height:28px;border-radius:1px;"></div>
+            <div style="background:#3b82f6;width:14px;height:18px;border-radius:1px;"></div>
+            <div style="background:#3b82f6;width:14px;height:12px;border-radius:1px;"></div>
+            <div style="background:#3b82f6;width:14px;height:8px;border-radius:1px;opacity:0.5"></div>
+          </div>
+          <div style="display:flex;gap:2px;font-size:8px;color:#64748b;margin-top:2px;">
+            <span style="width:14px;text-align:center">BW</span>
+            <span style="width:14px;text-align:center">AN</span>
+            <span style="width:14px;text-align:center">NT</span>
+            <span style="width:14px;text-align:center">...</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:2px;font-size:9px;">
+          <div style="color:#e2e8f0;">Al Noor</div><div>10 txn</div><div>200.000</div>
+          <div style="color:#e2e8f0;">Blue Wave</div><div>8 txn</div><div>320.000</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Vendor summary + bar chart</h3>
+      <p>Same table plus a bar chart showing units per vendor. Adds visual impact but requires recharts (already installed). More token-heavy to implement.</p>
+    </div>
+  </div>
+
+</div>
+<p class="subtitle" style="margin-top:16px;">A is faster to build and works better with sparse data. B adds visual flair if you want it.</p>

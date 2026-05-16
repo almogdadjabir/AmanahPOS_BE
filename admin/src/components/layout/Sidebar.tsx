@@ -10,7 +10,7 @@ import type { UserProfile, BusinessType } from '@/types/api';
 import {
   LayoutGrid, Users, Store, CreditCard, Server,
   Receipt, Package, BarChart2, UserCheck, CreditCard as SubIcon,
-  LogOut, History, Bell,
+  LogOut, History, Bell, Sparkles,
 } from 'lucide-react';
 
 const ADMIN_NAV = [
@@ -40,6 +40,7 @@ export default function Sidebar({ profile, businessType, isOpen, onClose }: Prop
   const tNav    = useTranslations('nav');
   const pathname = usePathname();
   const isAdmin  = profile.is_staff === true;
+  const isPremiumInventory = Boolean(profile.enabled_features?.inventory_inbound_receiving);
   const ownerNav = businessType !== 'shop'
     ? OWNER_NAV.filter(item => item.key !== 'inventory')
     : OWNER_NAV;
@@ -113,7 +114,10 @@ export default function Sidebar({ profile, businessType, isOpen, onClose }: Prop
                     active ? 'text-primary-light' : 'text-white/30 group-hover:text-white/60',
                   )}
                 />
-                {tNav(key as Parameters<typeof tNav>[0])}
+                <span className="flex-1 truncate">{tNav(key as Parameters<typeof tNav>[0])}</span>
+                {key === 'inventory' && isPremiumInventory && (
+                  <Sparkles size={10} style={{ color: '#D97706' }} className="shrink-0" />
+                )}
               </Link>
             );
           })}

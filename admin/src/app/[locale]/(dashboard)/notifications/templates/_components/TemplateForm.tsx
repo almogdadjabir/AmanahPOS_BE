@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Eye } from 'lucide-react';
-import { createAdminTemplate, updateAdminTemplate } from '@/services/notifications';
+import { createAdminTemplate, updateAdminTemplate } from '@/actions/notifications';
 import type { NotificationTemplate } from '@/types/api';
 
 const CATEGORIES = ['auth', 'subscription', 'stock', 'marketing', 'system', 'other'];

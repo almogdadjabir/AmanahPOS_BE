@@ -1,0 +1,74 @@
+<h2>Premium Inventory: page structure</h2>
+<p class="subtitle">When <code>inventory_inbound_receiving</code> is enabled, how should the Inventory page be restructured?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="font-family:monospace;font-size:11px;line-height:1.6;background:#0f172a;color:#94a3b8;padding:12px;border-radius:6px;">
+        <div style="color:#e2e8f0;font-weight:bold;border-bottom:1px solid #334155;padding-bottom:6px;margin-bottom:8px;">Inventory</div>
+        <div style="background:#1e293b;padding:6px 8px;border-radius:4px;margin-bottom:6px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;">
+          <div style="background:#0ea5e9;color:white;padding:4px;border-radius:3px;text-align:center;font-size:10px;">120 SKUs</div>
+          <div style="background:#22c55e;color:white;padding:4px;border-radius:3px;text-align:center;font-size:10px;">8 Vendors</div>
+          <div style="background:#f59e0b;color:white;padding:4px;border-radius:3px;text-align:center;font-size:10px;">5 Expiring</div>
+          <div style="background:#8b5cf6;color:white;padding:4px;border-radius:3px;text-align:center;font-size:10px;">18 Inbound</div>
+        </div>
+        <div style="background:#1e293b;padding:4px;border-radius:4px;margin-bottom:6px;display:flex;gap:2px;">
+          <div style="background:#3b82f6;color:white;padding:3px 8px;border-radius:3px;font-size:10px;">Stock</div>
+          <div style="color:#64748b;padding:3px 8px;font-size:10px;">Inbound</div>
+          <div style="color:#64748b;padding:3px 8px;font-size:10px;">Vendors</div>
+          <div style="color:#64748b;padding:3px 8px;font-size:10px;">Low Stock</div>
+          <div style="color:#64748b;padding:3px 8px;font-size:10px;">Expiry</div>
+          <div style="color:#64748b;padding:3px 8px;font-size:10px;">Reports</div>
+        </div>
+        <div style="background:#1e293b;padding:6px 8px;border-radius:4px;">
+          <div style="color:#64748b;font-size:10px;margin-bottom:4px;">Search _________ [All] [Low Stock] [Out of Stock]</div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:2px;font-size:10px;">
+            <div style="color:#94a3b8;">Product</div><div style="color:#94a3b8;">Shop</div><div style="color:#94a3b8;">SKU</div><div style="color:#94a3b8;">Qty</div><div style="color:#94a3b8;">Status</div>
+            <div>Milk 1L</div><div>Main</div><div>MLK</div><div>12</div><div style="color:#22c55e;">OK</div>
+            <div>Sugar</div><div>Main</div><div>SGR</div><div>2</div><div style="color:#f59e0b;">Low</div>
+            <div>Bread</div><div>Branch</div><div>BRD</div><div>0</div><div style="color:#ef4444;">Out</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Full tab takeover</h3>
+      <p>Premium KPI row at top, then a tab bar. "Stock" tab = existing table. Other tabs = Inbound, Vendors, Low Stock, Expiry, Reports. Clean single-surface layout.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="font-family:monospace;font-size:11px;line-height:1.6;background:#0f172a;color:#94a3b8;padding:12px;border-radius:6px;">
+        <div style="color:#e2e8f0;font-weight:bold;border-bottom:1px solid #334155;padding-bottom:6px;margin-bottom:8px;">Inventory</div>
+        <div style="background:#78350f;border:1px solid #b45309;padding:6px 8px;border-radius:4px;margin-bottom:6px;">
+          <div style="color:#fbbf24;font-size:10px;font-weight:bold;">⚡ INVENTORY CONTROL CENTER</div>
+          <div style="display:flex;gap:4px;margin-top:4px;">
+            <div style="color:#64748b;padding:2px 6px;font-size:10px;">Inbound</div>
+            <div style="color:#fbbf24;border-bottom:1px solid #fbbf24;padding:2px 6px;font-size:10px;">Vendors</div>
+            <div style="color:#64748b;padding:2px 6px;font-size:10px;">Reports</div>
+          </div>
+          <div style="background:#1e293b;padding:4px;border-radius:3px;margin-top:4px;font-size:10px;color:#94a3b8;">Vendor list panel here...</div>
+        </div>
+        <div style="background:#1e293b;padding:4px 6px;border-radius:4px;margin-bottom:4px;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;">
+          <div style="background:#0f172a;padding:4px;border-radius:2px;font-size:9px;text-align:center;">120 SKUs</div>
+          <div style="background:#0f172a;padding:4px;border-radius:2px;font-size:9px;text-align:center;">109 OK</div>
+          <div style="background:#0f172a;padding:4px;border-radius:2px;font-size:9px;text-align:center;">8 Low</div>
+          <div style="background:#0f172a;padding:4px;border-radius:2px;font-size:9px;text-align:center;">3 Out</div>
+        </div>
+        <div style="background:#1e293b;padding:6px 8px;border-radius:4px;">
+          <div style="color:#64748b;font-size:10px;margin-bottom:4px;">Search _________ [All] [Low Stock]</div>
+          <div style="font-size:10px;color:#94a3b8;">Full stock table below ↓</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Premium panel above existing table</h3>
+      <p>An "Inventory Control Center" amber card with its own tabs (Inbound, Vendors, Reports) sits above the unchanged stock stats + table. Two independent sections coexist.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">Option A feels like a proper premium upgrade. Option B is safer — the existing stock table always visible. Which direction?</p>

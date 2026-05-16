@@ -142,17 +142,23 @@ export default function PremiumInventoryShell({ shops, summary, data }: Props) {
 
       <Drawer open={drawer === 'lowstock'} onClose={() => setDrawer(null)} title="Low Stock">
         {drawer === 'lowstock' && (
-          <LowStockList shops={shops} onReceive={handleLowStockReceive} />
+          <div className="p-5">
+            <LowStockList shops={shops} onReceive={handleLowStockReceive} />
+          </div>
         )}
       </Drawer>
 
       <Drawer open={drawer === 'expiry'} onClose={() => setDrawer(null)} title="Expiry Report">
-        {drawer === 'expiry' && <ExpiryReport shops={shops} />}
+        {drawer === 'expiry' && (
+          <div className="p-5">
+            <ExpiryReport shops={shops} />
+          </div>
+        )}
       </Drawer>
 
       <Drawer open={drawer === 'inbound'} onClose={() => setDrawer(null)} title="Inbound">
         {drawer === 'inbound' && (
-          <div>
+          <div className="p-5 flex flex-col gap-6">
             <InboundReceivingPanel enabled={true} shops={shops} />
             <InboundTransactionsList />
           </div>
@@ -160,7 +166,11 @@ export default function PremiumInventoryShell({ shops, summary, data }: Props) {
       </Drawer>
 
       <Drawer open={drawer === 'vendors'} onClose={() => setDrawer(null)} title="Vendors">
-        {drawer === 'vendors' && <VendorsList />}
+        {drawer === 'vendors' && (
+          <div className="p-5">
+            <VendorsList />
+          </div>
+        )}
       </Drawer>
     </>
   );
