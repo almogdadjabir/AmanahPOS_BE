@@ -42,16 +42,18 @@ type PremiumInventoryData = {
   receipts: ReceiptLite[];
 };
 
-async function loadPremiumInventoryData(
-  shops: Shop[],
-  summary: PremiumInventorySummary | null,
-): Promise<PremiumInventoryData> {
-  const [restockRes, expiryRes, vendorRes, receiptsRes] = await Promise.all([
+async function loadPremiumInventoryData(): Promise<{
+  summary: PremiumInventorySummary | null;
+  data: PremiumInventoryData;
+}> {
+  const [summaryRes, restockRes, expiryRes, vendorRes, receiptsRes] = await Promise.all([
+    fetchPremiumSummaryAction(),
     fetchStockLevelsAction({ status: 'low_stock', limit: 10 }),
     fetchExpiryReportAction({ status: 'expiring_soon', page: 1 }),
     fetchVendorSummaryAction(),
     fetchInboundListAction({ page: 1 }),
   ]);
+  const summary = summaryRes?.ok ? summaryRes.data : null;
 
   // ── Health ─────────────────────────────────────────────────────────
   const totalItems = summary?.stock_items_count ?? 0;
@@ -136,17 +138,20 @@ async function loadPremiumInventoryData(
   }));
 
   return {
-    health:   { pct, inStock, low, out },
-    velocity: {
-      series, labels, avgPerDay,
-      peak:     { value: peakVal, label: labels[peakIdx] ?? '—' },
-      spend:    '—',
-      deltaPct,
+    summary,
+    data: {
+      health:   { pct, inStock, low, out },
+      velocity: {
+        series, labels, avgPerDay,
+        peak:     { value: peakVal, label: labels[peakIdx] ?? '—' },
+        spend:    '—',
+        deltaPct,
+      },
+      restock,
+      expiry:   { batches: expiryBatches, nearestDangerCount, suggestion },
+      vendors,
+      receipts,
     },
-    restock,
-    expiry:   { batches: expiryBatches, nearestDangerCount, suggestion },
-    vendors,
-    receipts,
   };
 }
 
@@ -202,9 +207,7 @@ export default async function InventoryPage({ searchParams }: Props) {
     return <BasicInventoryView shops={shops} params={params} />;
   }
 
-  const summaryRes = await fetchPremiumSummaryAction();
-  const summary    = summaryRes?.ok ? summaryRes.data : null;
-  const data       = await loadPremiumInventoryData(shops, summary);
+  const { summary, data } = await loadPremiumInventoryData();
 
   return (
     <InventoryDrawerShell>
