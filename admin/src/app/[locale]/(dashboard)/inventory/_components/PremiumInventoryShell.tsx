@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useCallback, useState } from 'react';
+import { type CSSProperties, ReactNode, useCallback, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Download, Plus, RefreshCcw, ScanLine, Sparkles, Truck, Users } from 'lucide-react';
 import { PremiumFrame } from '@/components/premium/PremiumFrame';
@@ -17,6 +17,13 @@ import VendorsList from './VendorsList';
 import InboundReceivingPanel from './InboundReceivingPanel';
 import InboundTransactionsList from './InboundTransactionsList';
 import type { PremiumInventorySummary, Shop } from '@/types/api';
+
+const KPI_CARD_STYLE: CSSProperties = {
+  background:     'linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)',
+  border:         '1px solid rgba(255,255,255,0.09)',
+  backdropFilter: 'blur(14px)',
+  boxShadow:      'inset 0 1px 0 rgba(255,255,255,0.08)',
+};
 
 type DrawerKey = null | 'stock' | 'lowstock' | 'expiry' | 'inbound' | 'vendors';
 
@@ -37,7 +44,7 @@ export default function PremiumInventoryShell({ shops, summary, data }: Props) {
   const t = useTranslations('inventory');
   const [drawer, setDrawer] = useState<DrawerKey>(null);
 
-  const heroKpis = [
+  const heroKpis = useMemo(() => [
     {
       label: t('premium.kpiHealth'),
       value: `${data.health.pct.toFixed(1)}%`,
@@ -62,7 +69,7 @@ export default function PremiumInventoryShell({ shops, summary, data }: Props) {
       sub:   `${data.expiry.nearestDangerCount} in next 5 days`,
       tone:  '#FCA5A5',
     },
-  ];
+  ], [t, data.health, data.expiry.batches.length, data.expiry.nearestDangerCount, summary]);
 
   const handleReceive = useCallback((_it: RestockItem) => { setDrawer('inbound'); }, []);
   const handleLowStockReceive = useCallback((_name: string, _qty: string) => { setDrawer('inbound'); }, []);
@@ -75,8 +82,8 @@ export default function PremiumInventoryShell({ shops, summary, data }: Props) {
         subtitle={`${shops.length} ${shops.length === 1 ? 'shop' : 'shops'} · ${summary?.total_skus ?? 0} SKUs · ${data.vendors.length} vendors`}
         actions={
           <>
-            <HeaderBtn variant="ghost" icon={<ScanLine className="h-3.5 w-3.5" />}>Scan</HeaderBtn>
-            <HeaderBtn variant="ghost" icon={<Download className="h-3.5 w-3.5" />}>Export</HeaderBtn>
+            <HeaderBtn variant="ghost" icon={<ScanLine className="h-3.5 w-3.5" />} disabled>Scan</HeaderBtn>
+            <HeaderBtn variant="ghost" icon={<Download className="h-3.5 w-3.5" />} disabled>Export</HeaderBtn>
             <HeaderBtn variant="cta" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setDrawer('inbound')}>
               {t('premium.receiveStock')}
             </HeaderBtn>
@@ -88,12 +95,7 @@ export default function PremiumInventoryShell({ shops, summary, data }: Props) {
               <div
                 key={k.label}
                 className="px-4 py-3.5 rounded-[14px]"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)',
-                  border: '1px solid rgba(255,255,255,0.09)',
-                  backdropFilter: 'blur(14px)',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
-                }}
+                style={KPI_CARD_STYLE}
               >
                 <div className="text-[10.5px] font-extrabold uppercase tracking-[0.5px] text-white/55">{k.label}</div>
                 <div className="mt-0.5 text-[28px] font-extrabold text-white tabular-nums tracking-tight">{k.value}</div>
@@ -167,19 +169,21 @@ export default function PremiumInventoryShell({ shops, summary, data }: Props) {
 // ── Local helpers ──────────────────────────────────────────────────────
 
 function HeaderBtn({
-  variant = 'ghost', icon, children, onClick,
+  variant = 'ghost', icon, children, onClick, disabled,
 }: {
-  variant?: 'ghost' | 'cta';
-  icon:     ReactNode;
-  children: ReactNode;
-  onClick?: () => void;
+  variant?:  'ghost' | 'cta';
+  icon:      ReactNode;
+  children:  ReactNode;
+  onClick?:  () => void;
+  disabled?: boolean;
 }) {
   const isCta = variant === 'cta';
   return (
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+      disabled={disabled}
+      className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       style={
         isCta
           ? { background: 'linear-gradient(180deg, #5A65C2 0%, #3D4699 100%)', color: 'white', border: '1px solid rgba(232,215,166,0.20)', boxShadow: '0 8px 20px -10px rgba(55,63,148,0.55), inset 0 1px 0 rgba(255,255,255,0.20)' }
