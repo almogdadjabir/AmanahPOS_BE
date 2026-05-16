@@ -61,7 +61,7 @@ export function TileTitle({ icon, title, count, accent = 'primary', action }: Ti
   };
   const premiumStyle =
     accent === 'premium'
-      ? { background: 'linear-gradient(155deg, #6471C7 0%, #4751B0 100%)' }
+      ? { background: 'linear-gradient(155deg, #D97706 0%, #92400E 100%)' }
       : undefined;
   return (
     <div className="flex items-center gap-2.5 mb-4">
@@ -104,9 +104,9 @@ export function HealthRing({ pct, inStock, low, out, onOpen }: HealthRingProps) 
         <svg width={172} height={172} viewBox="0 0 172 172">
           <defs>
             <linearGradient id="ringGrad" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%"   stopColor="#8B95DA" />
-              <stop offset="50%"  stopColor="#4751B0" />
-              <stop offset="100%" stopColor="#2B3173" />
+              <stop offset="0%"   stopColor="#FBBF24" />
+              <stop offset="50%"  stopColor="#D97706" />
+              <stop offset="100%" stopColor="#92400E" />
             </linearGradient>
           </defs>
           <circle cx="86" cy="86" r={radius} fill="none" stroke="#EEF2F6" strokeWidth="14" />
@@ -192,7 +192,7 @@ export function InboundVelocity({
                 height: v === 0 ? 4 : Math.max(8, (v / max) * 120),
                 background: v === 0
                   ? 'var(--border-soft, #EEF2F6)'
-                  : 'linear-gradient(180deg, #8B95DA 0%, #4751B0 60%, #2B3173 100%)',
+                  : 'linear-gradient(180deg, #FBBF24 0%, #D97706 60%, #92400E 100%)',
               }}
             />
             <span className="text-[10px] font-bold text-muted-foreground">{labels[i]}</span>
@@ -463,7 +463,7 @@ export function VendorBoard({
                 style={{
                   width: `${Math.min(100, v.share * 2.6)}%`,
                   background:
-                    i === 0 ? 'linear-gradient(90deg, #8B95DA 0%, #4751B0 100%)' :
+                    i === 0 ? 'linear-gradient(90deg, #FBBF24 0%, #D97706 100%)' :
                     i === 1 ? '#3B82F6' :
                     i === 2 ? '#D97706' : '#6B7280',
                 }}
@@ -516,8 +516,8 @@ export function RecentReceipts({
             <div
               className="grid place-items-center w-9 h-9 rounded-lg text-white"
               style={{
-                background: 'linear-gradient(155deg, #8B95DA 0%, #4751B0 50%, #2B3173 100%)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 0 1px rgba(232,215,166,0.18)',
+                background: 'linear-gradient(155deg, #FBBF24 0%, #D97706 50%, #92400E 100%)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 0 0 1px rgba(244,219,169,0.25)',
               }}
             >
               <Truck className="h-4 w-4" />

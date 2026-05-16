@@ -186,7 +186,7 @@ function HeaderBtn({
       className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       style={
         isCta
-          ? { background: 'linear-gradient(180deg, #5A65C2 0%, #3D4699 100%)', color: 'white', border: '1px solid rgba(232,215,166,0.20)', boxShadow: '0 8px 20px -10px rgba(55,63,148,0.55), inset 0 1px 0 rgba(255,255,255,0.20)' }
+          ? { background: 'linear-gradient(180deg, #D97706 0%, #92400E 100%)', color: 'white', border: '1px solid rgba(244,219,169,0.25)', boxShadow: '0 8px 20px -10px rgba(120,53,15,0.55), inset 0 1px 0 rgba(255,255,255,0.20)' }
           : { background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)', color: 'white', border: '1px solid rgba(255,255,255,0.18)' }
       }
     >
