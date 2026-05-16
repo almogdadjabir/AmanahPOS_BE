@@ -224,7 +224,7 @@ function BusinessRow({
       <TableCell>
         <div className="flex flex-col items-start gap-1">
           <Badge
-            variant={biz.has_active_subscription ? "success" : "secondary"}
+            variant={biz.has_active_subscription ? "success" : "default"}
             className={cn(
               "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
               biz.has_active_subscription
