@@ -36,6 +36,13 @@ export default function VendorsList() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Clean up debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    };
+  }, []);
+
   function handleSearchChange(val: string) {
     setRawSearch(val);
     if (searchTimer.current) clearTimeout(searchTimer.current);
