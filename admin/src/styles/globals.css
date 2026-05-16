@@ -81,3 +81,78 @@
 @layer utilities {
   [dir="rtl"] .flip-rtl { transform: scaleX(-1); }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Premium feature design tokens
+   Append to admin/src/styles/globals.css (or import once).
+
+   Convention:
+   • Brand teal stays the everyday brand color.
+   • Premium chrome is its own family — pure indigo luminance with
+     a champagne shimmer. No cross-hue gradients (no teal→indigo
+     muddy band).
+   ───────────────────────────────────────────────────────────── */
+
+:root {
+  --premium-50:  #EEF0FB;
+  --premium-100: #DDE1F5;
+  --premium-200: #B6BCE8;
+  --premium-300: #8B95DA;
+  --premium-400: #6471C7;
+  --premium-500: #4751B0; /* anchor */
+  --premium-600: #383F94;
+  --premium-700: #2B3173;
+  --premium-800: #1E2452;
+  --premium-900: #141938;
+  --premium-ink: #0D1230;
+
+  /* Used sparingly for the "expensive" sparkle */
+  --gold-soft:   #E8D7A6;
+  --gold:        #D4B675;
+  --gold-deep:   #9B7E45;
+
+  --premium-glow:  0 14px 44px -18px rgba(55, 63, 148, 0.42),
+                   0 1px 0 0 rgba(255, 255, 255, 0.04) inset;
+}
+
+/* Premium signature gradient — use as background-image */
+.bg-premium-grad {
+  background-image: linear-gradient(155deg, #8B95DA 0%, #4751B0 50%, #2B3173 100%);
+}
+
+/* Solid premium fill for primary CTAs inside the frame */
+.bg-premium-cta {
+  background-image: linear-gradient(180deg, #5A65C2 0%, #3D4699 100%);
+  box-shadow: 0 8px 20px -10px rgba(55, 63, 148, 0.55),
+              inset 0 1px 0 rgba(255, 255, 255, 0.20);
+}
+.bg-premium-cta:hover { filter: brightness(1.05); }
+
+/* Premium hero background — refined deep indigo with auroras */
+.bg-premium-hero {
+  background:
+    radial-gradient(900px 320px at 100% -10%, rgba(100,113,199,0.30), transparent 55%),
+    radial-gradient(800px 320px at 0% 120%,  rgba(212,182,117,0.10), transparent 55%),
+    radial-gradient(700px 240px at 60% 110%, rgba(139,149,218,0.18), transparent 60%),
+    linear-gradient(160deg, #0E1334 0%, #161D45 55%, #1B2354 100%);
+}
+
+/* Hairline gold sheen along the top edge of the hero */
+.premium-hero-sheen::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(232, 215, 166, 0.35) 30%,
+    rgba(232, 215, 166, 0.55) 50%,
+    rgba(232, 215, 166, 0.35) 70%,
+    transparent 100%);
+  pointer-events: none;
+}
+
+/* Live pulse */
+@keyframes premium-livepulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(94, 234, 212, 0.55); }
+  50%      { box-shadow: 0 0 0 6px rgba(94, 234, 212, 0); }
+}
+.premium-live-dot { animation: premium-livepulse 1.8s ease-out infinite; }
