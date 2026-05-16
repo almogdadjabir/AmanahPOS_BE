@@ -1,142 +1,193 @@
 'use client';
 
-import { useState } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import PremiumKPIRow from './PremiumKPIRow';
-import InboundReceivingPanel from './InboundReceivingPanel';
-import InboundTransactionsList from './InboundTransactionsList';
-import VendorsList from './VendorsList';
+import { Download, Plus, RefreshCcw, ScanLine, Sparkles, Truck, Users } from 'lucide-react';
+import { PremiumFrame } from '@/components/premium/PremiumFrame';
+import Drawer from '@/components/ds/Drawer';
+import {
+  HealthRing, InboundVelocity, RestockQueue, ExpiryTimeline,
+  VendorBoard, RecentReceipts, QuickCommand,
+  type RestockItem, type ExpiryBatchLite, type VendorLite, type ReceiptLite,
+} from './tiles';
+import StockDrawerContent from './StockDrawerContent';
 import LowStockList from './LowStockList';
 import ExpiryReport from './ExpiryReport';
-import VendorReport from './VendorReport';
+import VendorsList from './VendorsList';
+import InboundReceivingPanel from './InboundReceivingPanel';
+import InboundTransactionsList from './InboundTransactionsList';
 import type { PremiumInventorySummary, Shop } from '@/types/api';
 
-type Tab = 'stock' | 'inbound' | 'vendors' | 'lowstock' | 'expiry' | 'reports';
+type DrawerKey = null | 'stock' | 'lowstock' | 'expiry' | 'inbound' | 'vendors';
 
 interface Props {
-  summary:  PremiumInventorySummary | null;
-  shops:    Shop[];
-  children: React.ReactNode;
+  shops:   Shop[];
+  summary: PremiumInventorySummary | null;
+  data: {
+    health:   { pct: number; inStock: number; low: number; out: number };
+    velocity: { series: number[]; labels: string[]; avgPerDay: number; peak: { value: number; label: string }; spend: string; deltaPct: number };
+    restock:  RestockItem[];
+    expiry:   { batches: ExpiryBatchLite[]; nearestDangerCount: number; suggestion?: string };
+    vendors:  VendorLite[];
+    receipts: ReceiptLite[];
+  };
 }
 
-export default function PremiumInventoryShell({ summary, shops, children }: Props) {
+export default function PremiumInventoryShell({ shops, summary, data }: Props) {
   const t = useTranslations('inventory');
-  const [activeTab,    setActiveTab]    = useState<Tab>('stock');
-  const [visited,      setVisited]      = useState<Set<Tab>>(new Set(['stock']));
-  const [lowStockHint, setLowStockHint] = useState<{ productName: string; quantity: string } | null>(null);
+  const [drawer, setDrawer] = useState<DrawerKey>(null);
 
-  const TABS: { id: Tab; label: string }[] = [
-    { id: 'stock',    label: t('premium.tabStock') },
-    { id: 'inbound',  label: t('premium.tabInbound') },
-    { id: 'vendors',  label: t('premium.tabVendors') },
-    { id: 'lowstock', label: t('premium.tabLowStock') },
-    { id: 'expiry',   label: t('premium.tabExpiry') },
-    { id: 'reports',  label: t('premium.tabReports') },
+  const heroKpis = [
+    {
+      label: t('premium.kpiHealth'),
+      value: `${data.health.pct.toFixed(1)}%`,
+      sub:   `${data.health.inStock} / ${data.health.inStock + data.health.low + data.health.out} healthy`,
+      tone:  '#5EEAD4',
+    },
+    {
+      label: t('premium.kpiRestock'),
+      value: `${data.health.low + data.health.out}`,
+      sub:   `${data.health.low} low · ${data.health.out} out`,
+      tone:  '#FCD34D',
+    },
+    {
+      label: t('premium.kpiInboundMonth'),
+      value: summary?.inbound_this_month?.toString() ?? '0',
+      sub:   summary?.units_received != null ? `${summary.units_received} units received` : '—',
+      tone:  '#93C5FD',
+    },
+    {
+      label: t('premium.kpiExpiring30'),
+      value: `${data.expiry.batches.length}`,
+      sub:   `${data.expiry.nearestDangerCount} in next 5 days`,
+      tone:  '#FCA5A5',
+    },
   ];
 
-  function switchTab(tab: Tab) {
-    setActiveTab(tab);
-    setVisited(prev => { const s = new Set(prev); s.add(tab); return s; });
-  }
-
-  function handleReceive(productName: string, quantity: string) {
-    setLowStockHint({ productName, quantity });
-    switchTab('inbound');
-  }
+  const handleReceive = useCallback((_it: RestockItem) => { setDrawer('inbound'); }, []);
+  const handleLowStockReceive = useCallback((_name: string, _qty: string) => { setDrawer('inbound'); }, []);
 
   return (
-    <div>
-      {/* KPI row */}
-      {summary && <PremiumKPIRow data={summary} />}
-
-      {/* Tab bar — horizontally scrollable on narrow screens */}
-      <div className="overflow-x-auto mb-6">
-        <div className="flex gap-1 p-1 rounded-xl bg-muted border border-border min-w-max">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => switchTab(tab.id)}
-              className={cn(
-                'shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150',
-                activeTab === tab.id
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Stock tab — always mounted */}
-      <div className={cn(activeTab !== 'stock' && 'hidden')}>
-        {children}
-      </div>
-
-      {/* Inbound tab — lazy */}
-      {visited.has('inbound') && (
-        <div className={cn(activeTab !== 'inbound' && 'hidden')}>
-          {lowStockHint && (
-            <div
-              className="flex items-center gap-3 rounded-xl px-4 py-3 mb-4"
-              style={{
-                background:  'linear-gradient(135deg, rgba(120,53,15,0.08) 0%, rgba(217,119,6,0.04) 100%)',
-                border:      '1px solid rgba(217,119,6,0.20)',
-                borderLeft:  '3px solid rgba(180,83,9,0.55)',
-              }}
-            >
-              <p className="text-[12px] text-foreground flex-1">
-                {t('premium.lowStockHint', {
-                  productName: lowStockHint.productName,
-                  quantity:    lowStockHint.quantity,
-                })}
-              </p>
-              <button
-                type="button"
-                onClick={() => setLowStockHint(null)}
-                className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label={t('premium.lowStockHintDismiss')}
+    <>
+      <PremiumFrame
+        feature={t('premium.featureName')}
+        plan={t('premium.planName')}
+        subtitle={`${shops.length} ${shops.length === 1 ? 'shop' : 'shops'} · ${summary?.total_skus ?? 0} SKUs · ${data.vendors.length} vendors`}
+        actions={
+          <>
+            <HeaderBtn variant="ghost" icon={<ScanLine className="h-3.5 w-3.5" />}>Scan</HeaderBtn>
+            <HeaderBtn variant="ghost" icon={<Download className="h-3.5 w-3.5" />}>Export</HeaderBtn>
+            <HeaderBtn variant="cta" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setDrawer('inbound')}>
+              {t('premium.receiveStock')}
+            </HeaderBtn>
+          </>
+        }
+        heroChildren={
+          <div className="grid grid-cols-4 gap-3.5">
+            {heroKpis.map((k) => (
+              <div
+                key={k.label}
+                className="px-4 py-3.5 rounded-[14px]"
+                style={{
+                  background: 'linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 100%)',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                  backdropFilter: 'blur(14px)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+                }}
               >
-                <X size={14} />
-              </button>
-            </div>
-          )}
-          <InboundReceivingPanel enabled={true} shops={shops} />
-          <InboundTransactionsList />
+                <div className="text-[10.5px] font-extrabold uppercase tracking-[0.5px] text-white/55">{k.label}</div>
+                <div className="mt-0.5 text-[28px] font-extrabold text-white tabular-nums tracking-tight">{k.value}</div>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: k.tone, boxShadow: `0 0 8px ${k.tone}` }} />
+                  <span className="text-[11px] font-semibold text-white/70">{k.sub}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        }
+      >
+        {/* Bento grid */}
+        <div
+          className="grid gap-3.5"
+          style={{ gridTemplateColumns: 'repeat(4, 1fr)', gridAutoRows: 'minmax(170px, auto)' }}
+        >
+          <HealthRing {...data.health} onOpen={() => setDrawer('stock')} />
+          <InboundVelocity {...data.velocity} onOpen={() => setDrawer('inbound')} />
+          <RestockQueue items={data.restock} onReceive={handleReceive} onOpenAll={() => setDrawer('lowstock')} />
+          <ExpiryTimeline
+            batches={data.expiry.batches}
+            suggestion={data.expiry.suggestion ? <span>{data.expiry.suggestion}</span> : undefined}
+            onOpen={() => setDrawer('expiry')}
+          />
+          <VendorBoard vendors={data.vendors} onOpenAll={() => setDrawer('vendors')} />
+          <RecentReceipts receipts={data.receipts} onOpen={() => setDrawer('inbound')} />
+          <QuickCommand
+            actions={[
+              { label: t('premium.quickReceive'), hint: t('premium.quickReceiveHint'), icon: <Truck className="h-3.5 w-3.5" />,    primary: true, onClick: () => setDrawer('inbound') },
+              { label: t('premium.quickAdjust'),  hint: t('premium.quickAdjustHint'),  icon: <RefreshCcw className="h-3.5 w-3.5" />,              onClick: () => setDrawer('stock') },
+              { label: t('premium.quickVendor'),  hint: t('premium.quickVendorHint'),  icon: <Users className="h-3.5 w-3.5" />,                   onClick: () => setDrawer('vendors') },
+              { label: t('premium.quickReport'),  hint: t('premium.quickReportHint'),  icon: <Sparkles className="h-3.5 w-3.5" />,                onClick: () => setDrawer('inbound') },
+            ]}
+          />
         </div>
-      )}
+      </PremiumFrame>
 
-      {/* Vendors tab — lazy */}
-      {visited.has('vendors') && (
-        <div className={cn(activeTab !== 'vendors' && 'hidden')}>
-          <VendorsList />
-        </div>
-      )}
+      {/* ── Drawers ─────────────────────────────────────────────────── */}
 
-      {/* Low Stock tab — lazy */}
-      {visited.has('lowstock') && (
-        <div className={cn(activeTab !== 'lowstock' && 'hidden')}>
-          <LowStockList shops={shops} onReceive={handleReceive} />
-        </div>
-      )}
+      <Drawer open={drawer === 'stock'} onClose={() => setDrawer(null)} title="Stock Levels">
+        {drawer === 'stock' && <StockDrawerContent shops={shops} />}
+      </Drawer>
 
-      {/* Expiry tab — lazy */}
-      {visited.has('expiry') && (
-        <div className={cn(activeTab !== 'expiry' && 'hidden')}>
-          <ExpiryReport shops={shops} />
-        </div>
-      )}
+      <Drawer open={drawer === 'lowstock'} onClose={() => setDrawer(null)} title="Low Stock">
+        {drawer === 'lowstock' && (
+          <LowStockList shops={shops} onReceive={handleLowStockReceive} />
+        )}
+      </Drawer>
 
-      {/* Reports tab — lazy */}
-      {visited.has('reports') && (
-        <div className={cn(activeTab !== 'reports' && 'hidden')}>
-          <VendorReport shops={shops} />
-        </div>
-      )}
-    </div>
+      <Drawer open={drawer === 'expiry'} onClose={() => setDrawer(null)} title="Expiry Report">
+        {drawer === 'expiry' && <ExpiryReport shops={shops} />}
+      </Drawer>
+
+      <Drawer open={drawer === 'inbound'} onClose={() => setDrawer(null)} title="Inbound">
+        {drawer === 'inbound' && (
+          <div>
+            <InboundReceivingPanel enabled={true} shops={shops} />
+            <InboundTransactionsList />
+          </div>
+        )}
+      </Drawer>
+
+      <Drawer open={drawer === 'vendors'} onClose={() => setDrawer(null)} title="Vendors">
+        {drawer === 'vendors' && <VendorsList />}
+      </Drawer>
+    </>
+  );
+}
+
+// ── Local helpers ──────────────────────────────────────────────────────
+
+function HeaderBtn({
+  variant = 'ghost', icon, children, onClick,
+}: {
+  variant?: 'ghost' | 'cta';
+  icon:     ReactNode;
+  children: ReactNode;
+  onClick?: () => void;
+}) {
+  const isCta = variant === 'cta';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+      style={
+        isCta
+          ? { background: 'linear-gradient(180deg, #5A65C2 0%, #3D4699 100%)', color: 'white', border: '1px solid rgba(232,215,166,0.20)', boxShadow: '0 8px 20px -10px rgba(55,63,148,0.55), inset 0 1px 0 rgba(255,255,255,0.20)' }
+          : { background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)', color: 'white', border: '1px solid rgba(255,255,255,0.18)' }
+      }
+    >
+      {icon}
+      {children}
+    </button>
   );
 }
