@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
-import { nunitoSans, reemKufi, tajawal, geist, jetbrainsMono } from '@/lib/fonts';
+import { reemKufi, tajawal, geist, jetbrainsMono } from '@/lib/fonts';
 import '@/styles/globals.css';
 
 type Props = {
@@ -39,7 +39,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html
       lang={locale}
       dir={dir}
-      className={`${nunitoSans.variable} ${reemKufi.variable} ${tajawal.variable} ${geist.variable} ${jetbrainsMono.variable}`}
+      className={`${reemKufi.variable} ${tajawal.variable} ${geist.variable} ${jetbrainsMono.variable}`}
     >
       <body>
         <NextIntlClientProvider messages={messages}>
