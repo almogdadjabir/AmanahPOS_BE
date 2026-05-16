@@ -1,4 +1,12 @@
-import { Reem_Kufi, Tajawal, Geist, JetBrains_Mono } from 'next/font/google';
+import { Nunito_Sans, Reem_Kufi, Tajawal, Geist, JetBrains_Mono } from 'next/font/google';
+
+export const nunitoSans = Nunito_Sans({
+  subsets: ['latin'],
+  variable: '--font-nunito',
+  weight: ['400', '500', '600', '700', '800', '900'],
+  display: 'swap',
+  preload: true,
+});
 
 export const reemKufi = Reem_Kufi({
   subsets: ['arabic'],
