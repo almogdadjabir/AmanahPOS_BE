@@ -156,7 +156,7 @@ export default function VendorsList() {
                     ? 'bg-success/10 text-success'
                     : 'bg-muted text-muted-foreground',
                 )}>
-                  {vendor.is_active ? 'Active' : 'Inactive'}
+                  {vendor.is_active ? t('vendors.active') : t('vendors.inactive')}
                 </span>
                 <button
                   type="button"

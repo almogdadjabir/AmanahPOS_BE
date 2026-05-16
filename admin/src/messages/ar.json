@@ -773,7 +773,9 @@
       "reactivate": "إعادة تفعيل",
       "empty": "لا يوجد موردون — أضف أول مورد.",
       "emptySearch": "لا يوجد موردون يطابقون بحثك.",
-      "failedToLoad": "فشل تحميل الموردين"
+      "failedToLoad": "فشل تحميل الموردين",
+      "active": "نشط",
+      "inactive": "غير نشط"
     },
     "inboundList": {
       "title": "حركات الوارد",

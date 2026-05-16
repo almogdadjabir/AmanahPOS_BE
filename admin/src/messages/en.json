@@ -773,7 +773,9 @@
       "reactivate": "Re-activate",
       "empty": "No vendors yet — add your first supplier.",
       "emptySearch": "No vendors match your search.",
-      "failedToLoad": "Failed to load vendors"
+      "failedToLoad": "Failed to load vendors",
+      "active": "Active",
+      "inactive": "Inactive"
     },
     "inboundList": {
       "title": "Inbound Transactions",

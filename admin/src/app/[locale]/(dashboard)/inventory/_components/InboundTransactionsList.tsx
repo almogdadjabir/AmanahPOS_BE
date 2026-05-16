@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { AlertCircle } from 'lucide-react';
 import { fetchInboundListAction } from '@/actions/inventory';
 import type { InboundTransaction } from '@/types/api';
@@ -9,6 +9,7 @@ import InboundTransactionDetailDrawer from './InboundTransactionDetailDrawer';
 
 export default function InboundTransactionsList() {
   const t = useTranslations('inventory');
+  const locale = useLocale();
   const [transactions, setTransactions] = useState<InboundTransaction[]>([]);
   const [page,        setPage]          = useState(1);
   const [total,       setTotal]         = useState(0);
@@ -107,7 +108,7 @@ export default function InboundTransactionsList() {
             <span className="text-[12px] text-muted-foreground">{txn.item_count}</span>
             <span className="text-[12px] text-muted-foreground">{txn.total_quantity}</span>
             <span className="text-[11px] text-muted-foreground">
-              {new Date(txn.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {new Date(txn.created_at).toLocaleDateString(locale, { month: 'short', day: 'numeric' })}
             </span>
           </button>
         ))}
