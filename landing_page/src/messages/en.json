@@ -101,11 +101,6 @@
     "android": "Google Play",
     "web": "Start now — no app needed"
   },
-  "notFound": {
-    "title": "Page not found",
-    "description": "Sorry, we couldn't find the page you're looking for. It may have moved or been removed.",
-    "cta": "Back to home"
-  },
   "foot": {
     "tag": "The point of sale built for Sudanese merchants. Sell anywhere — phone, tablet, counter.",
     "c1": "Product",

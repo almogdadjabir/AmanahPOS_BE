@@ -1,5 +1,3 @@
-'use client';
-
 import { useTranslations } from 'next-intl';
 
 const FONT = "var(--font-nunito), var(--font-geist), system-ui, sans-serif";
