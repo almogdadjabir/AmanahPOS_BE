@@ -1,4 +1,13 @@
-.PHONY: help build up down restart shell logs migrate makemigrations collectstatic createsuperuser test lint format clean
+.PHONY: help build up up-prod down restart shell logs migrate makemigrations collectstatic createsuperuser test lint format clean
+
+# Detect environment: use prod compose+env when .env.prod exists, otherwise local docker-compose.yml
+ifneq (,$(wildcard .env.prod))
+  COMPOSE      = docker compose -f docker-compose.prod.yml --env-file .env.prod
+  COMPOSE_EXEC = docker compose -f docker-compose.prod.yml --env-file .env.prod exec app
+else
+  COMPOSE      = docker compose
+  COMPOSE_EXEC = docker compose exec app
+endif
 
 # Default target
 help:
@@ -7,6 +16,7 @@ help:
 	@echo "  Docker:"
 	@echo "    make build          Build all Docker images"
 	@echo "    make up             Start all services in detached mode"
+	@echo "    make deploy         Rebuild images (no cache) then start (use on server after git pull)"
 	@echo "    make down           Stop all services"
 	@echo "    make restart        Restart all services"
 	@echo "    make logs           Tail logs for all services"
@@ -37,97 +47,100 @@ help:
 # ─── Docker ────────────────────────────────────────────────────────────────────
 
 build:
-	docker compose build
+	$(COMPOSE) build
 
 up:
-	docker compose up -d
+	$(COMPOSE) up -d
 
 up-local:
 	docker compose -f docker-compose.yml up
 
+deploy:
+	$(COMPOSE) build --no-cache && $(COMPOSE) up -d
+
 down:
-	docker compose down
+	$(COMPOSE) down
 
 restart:
-	docker compose restart
+	$(COMPOSE) restart
 
 logs:
-	docker compose logs -f
+	$(COMPOSE) logs -f
 
 logs-app:
-	docker compose logs -f app
+	$(COMPOSE) logs -f app
 
 logs-worker:
-	docker compose logs -f celery_worker
+	$(COMPOSE) logs -f celery_worker
 
 logs-beat:
-	docker compose logs -f celery_beat
+	$(COMPOSE) logs -f celery_beat
 
 logs-nginx:
-	docker compose logs -f nginx
+	$(COMPOSE) logs -f nginx
 
 # ─── Django ────────────────────────────────────────────────────────────────────
 
 shell:
-	docker compose exec app python manage.py shell_plus --ipython
+	$(COMPOSE_EXEC) python manage.py shell_plus --ipython
 
 bash:
-	docker compose exec app bash
+	$(COMPOSE_EXEC) bash
 
 migrate:
-	docker compose exec app python manage.py migrate
+	$(COMPOSE_EXEC) python manage.py migrate
 
 makemigrations:
-	docker compose exec app python manage.py makemigrations
+	$(COMPOSE_EXEC) python manage.py makemigrations
 
 makemigrations-init:
-	docker compose run --rm --entrypoint="" app python manage.py makemigrations
+	$(COMPOSE) run --rm --entrypoint="" app python manage.py makemigrations
 
 makemigrations-app:
 	@read -p "App name: " app; \
-	docker compose exec app python manage.py makemigrations $$app
+	$(COMPOSE_EXEC) python manage.py makemigrations $$app
 
 collectstatic:
-	docker compose exec app python manage.py collectstatic --noinput
+	$(COMPOSE_EXEC) python manage.py collectstatic --noinput
 
 createsuperuser:
-	docker compose exec app python manage.py createsuperuser
+	$(COMPOSE_EXEC) python manage.py createsuperuser
 
 showmigrations:
-	docker compose exec app python manage.py showmigrations
+	$(COMPOSE_EXEC) python manage.py showmigrations
 
 check:
-	docker compose exec app python manage.py check
+	$(COMPOSE_EXEC) python manage.py check
 
 # ─── Testing & Quality ─────────────────────────────────────────────────────────
 
 test:
-	docker compose exec app pytest
+	$(COMPOSE_EXEC) pytest
 
 test-cov:
-	docker compose exec app pytest --cov=apps --cov-report=html --cov-report=term-missing
+	$(COMPOSE_EXEC) pytest --cov=apps --cov-report=html --cov-report=term-missing
 
 lint:
-	docker compose exec app flake8 apps/ config/
+	$(COMPOSE_EXEC) flake8 apps/ config/
 
 format:
-	docker compose exec app black apps/ config/
-	docker compose exec app isort apps/ config/
+	$(COMPOSE_EXEC) black apps/ config/
+	$(COMPOSE_EXEC) isort apps/ config/
 
 typecheck:
-	docker compose exec app mypy apps/ config/
+	$(COMPOSE_EXEC) mypy apps/ config/
 
 # ─── Maintenance ───────────────────────────────────────────────────────────────
 
 clean:
-	docker compose down -v --remove-orphans
+	$(COMPOSE) down -v --remove-orphans
 	docker image prune -f
 
 flush-redis:
-	docker compose exec redis redis-cli FLUSHALL
+	$(COMPOSE) exec redis redis-cli -a $${REDIS_PASSWORD} FLUSHALL
 
 psql:
-	docker compose exec postgres psql -U $${DB_USER:-amanapos} -d $${DB_NAME:-amanapos}
+	$(COMPOSE_EXEC) python manage.py dbshell
 
 env:
 	@if [ ! -f .env ]; then \
