@@ -41,6 +41,14 @@ export default function PhoneInput({
   function handlePaste(e: React.ClipboardEvent<HTMLInputElement>) {
     e.preventDefault();
     let raw = e.clipboardData.getData('text').replace(/\s+/g, '');
+    // Non-Sudan international number — keep full +XXXX... format
+    if ((raw.startsWith('+') && !raw.startsWith('+249')) ||
+        (raw.startsWith('00') && !raw.startsWith('00249'))) {
+      if (raw.startsWith('00')) raw = '+' + raw.slice(2);
+      if (inputRef.current) inputRef.current.value = raw;
+      return;
+    }
+    // Sudan number — strip to local digits only
     if      (raw.startsWith('+249'))  raw = raw.slice(4);
     else if (raw.startsWith('00249')) raw = raw.slice(5);
     else if (raw.startsWith('249'))   raw = raw.slice(3);
@@ -70,8 +78,8 @@ export default function PhoneInput({
           name={phoneName}
           type="tel"
           dir="ltr"
-          inputMode="numeric"
-          pattern="[0-9]{7,15}"
+          inputMode="tel"
+          pattern="[+]?[0-9]{7,15}"
           autoComplete="tel-national"
           autoFocus={autoFocus}
           disabled={disabled}

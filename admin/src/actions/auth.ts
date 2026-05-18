@@ -15,7 +15,10 @@ const API = () =>
   'https://api.amanapos.com';
 
 function buildPhone(local: string, code: string) {
-  return `${code}${local.replace(/^0+/, '')}`;
+  const t = local.trim();
+  if (t.startsWith('+')) return t;                   // already international (e.g. +971...)
+  if (t.startsWith('00')) return '+' + t.slice(2);   // 00971... → +971...
+  return `${code}${t.replace(/^0+/, '')}`;           // local digits → prepend Sudan +249
 }
 
 async function setAuthCookie(token: string) {
