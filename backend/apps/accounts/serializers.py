@@ -66,9 +66,13 @@ class OTPVerifySerializer(serializers.Serializer):
         return format_phone(value)
 
 
+_OTP_CHANNEL_CHOICES = ["sms", "whatsapp"]
+
+
 class LoginOTPSerializer(serializers.Serializer):
     """Serializer for initiating OTP-based login."""
-    phone = serializers.CharField(max_length=20)
+    phone   = serializers.CharField(max_length=20)
+    channel = serializers.ChoiceField(choices=_OTP_CHANNEL_CHOICES, required=False)
 
     def validate_phone(self, value: str) -> str:
         if not is_valid_phone(value):
@@ -85,6 +89,7 @@ class LoginOTPVerifySerializer(serializers.Serializer):
     """
     phone    = serializers.CharField(max_length=20)
     otp      = serializers.CharField(min_length=4, max_length=8)
+    channel  = serializers.ChoiceField(choices=_OTP_CHANNEL_CHOICES, required=False)
     fcm_token   = serializers.CharField(max_length=512, required=False, allow_blank=True, default="")
     platform    = serializers.ChoiceField(
         choices=["android", "ios", "web"],

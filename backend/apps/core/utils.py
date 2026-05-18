@@ -1,10 +1,12 @@
 """
 Core utility functions for AmanaPOS.
 """
+import hmac as _hmac
 import logging
-import random
 import re
+import secrets
 import string
+from hashlib import sha256 as _sha256
 
 from django.conf import settings
 from django.core.cache import cache
@@ -18,14 +20,15 @@ logger = logging.getLogger(__name__)
 
 def generate_otp(length: int | None = None) -> str:
     """
-    Generate a numeric OTP. In DEBUG mode returns DEV_OTP_CODE if set.
+    Generate a cryptographically secure numeric OTP.
+    In DEBUG mode returns DEV_OTP_CODE if set (for local testing only).
     """
     if settings.DEBUG:
         dev_code = getattr(settings, "DEV_OTP_CODE", "")
         if dev_code:
             return dev_code
     length = length or getattr(settings, "OTP_LENGTH", 6)
-    return "".join(random.choices(string.digits, k=length))
+    return "".join(str(secrets.randbelow(10)) for _ in range(length))
 
 
 def store_otp_in_redis(phone: str, otp: str, expiry_seconds: int | None = None) -> None:
@@ -89,6 +92,97 @@ def verify_otp_from_redis(phone: str, otp: str) -> bool:
     delete_otp_from_redis(phone)
     logger.info("OTP verified successfully for %s", phone)
     return True
+
+
+# ─── Per-channel hashed OTP ──────────────────────────────────────────────────
+#
+# Redis key scheme:
+#   OTP hash  : otp:{channel}:{phone}
+#   Cooldown  : otp_cooldown:{channel}:{phone}
+#   Attempts  : otp_attempts:{channel}:{phone}
+#
+
+def _channel_otp_key(channel: str, phone: str) -> str:
+    return f"otp:{channel}:{phone}"
+
+
+def _channel_cooldown_key(channel: str, phone: str) -> str:
+    return f"otp_cooldown:{channel}:{phone}"
+
+
+def _channel_attempts_key(channel: str, phone: str) -> str:
+    return f"otp_attempts:{channel}:{phone}"
+
+
+def _hash_otp(phone: str, otp: str) -> str:
+    """HMAC-SHA256 of OTP, keyed by (SECRET_KEY + phone). Never store raw OTP."""
+    key = (settings.SECRET_KEY + phone).encode()
+    return _hmac.new(key, otp.encode(), _sha256).hexdigest()
+
+
+def store_channel_otp(phone: str, otp: str, channel: str, expiry_seconds: int | None = None) -> None:
+    """Store HMAC-hashed OTP under otp:{channel}:{phone}."""
+    expiry = expiry_seconds or getattr(settings, "OTP_EXPIRY_SECONDS", 300)
+    cache.set(_channel_otp_key(channel, phone), _hash_otp(phone, otp), timeout=expiry)
+    logger.debug("Hashed OTP stored for channel=%s (expires=%ds)", channel, expiry)
+
+
+def get_channel_otp_hash(phone: str, channel: str) -> str | None:
+    """Return the stored OTP hash, or None if expired/not found."""
+    return cache.get(_channel_otp_key(channel, phone))
+
+
+def delete_channel_otp(phone: str, channel: str) -> None:
+    """Delete the OTP from Redis (call after successful verification)."""
+    cache.delete(_channel_otp_key(channel, phone))
+
+
+def verify_channel_otp(phone: str, otp: str, channel: str) -> bool:
+    """
+    Compare submitted OTP against stored hash using constant-time comparison.
+    Does NOT delete the key — the caller is responsible for cleanup.
+    """
+    stored = cache.get(_channel_otp_key(channel, phone))
+    if stored is None:
+        return False
+    return _hmac.compare_digest(_hash_otp(phone, otp), stored)
+
+
+def set_channel_cooldown(phone: str, channel: str, seconds: int | None = None) -> None:
+    """Set a per-channel resend cooldown."""
+    ttl = seconds or getattr(settings, "OTP_RESEND_COOLDOWN_SECONDS", 60)
+    cache.set(_channel_cooldown_key(channel, phone), 1, timeout=ttl)
+
+
+def get_channel_cooldown_remaining(phone: str, channel: str) -> int:
+    """Return seconds remaining on the per-channel cooldown, 0 if none active."""
+    key = _channel_cooldown_key(channel, phone)
+    if hasattr(cache, "ttl"):
+        ttl = cache.ttl(key)
+        return max(0, ttl) if ttl else 0
+    return 0 if cache.get(key) is None else 60
+
+
+def get_otp_attempts(phone: str, channel: str) -> int:
+    """Return current failed-attempt count for this phone/channel."""
+    val = cache.get(_channel_attempts_key(channel, phone))
+    return int(val) if val is not None else 0
+
+
+def increment_otp_attempts(phone: str, channel: str) -> int:
+    """Increment failed-attempt counter and return the new count."""
+    key = _channel_attempts_key(channel, phone)
+    try:
+        return cache.incr(key)
+    except ValueError:
+        expiry = getattr(settings, "OTP_EXPIRY_SECONDS", 300)
+        cache.set(key, 1, timeout=expiry)
+        return 1
+
+
+def reset_otp_attempts(phone: str, channel: str) -> None:
+    """Clear the failed-attempt counter (on success or new OTP issuance)."""
+    cache.delete(_channel_attempts_key(channel, phone))
 
 
 # ─── Phone Numbers ────────────────────────────────────────────────────────────

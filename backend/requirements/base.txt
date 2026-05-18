@@ -64,3 +64,6 @@ drf-spectacular==0.27.2
 # Firebase Cloud Messaging (push notifications)
 # Set FIREBASE_ENABLED=False in .env to skip initialisation during development.
 firebase-admin==6.5.0
+
+# Twilio Programmable Messaging (OTP delivery via SMS and WhatsApp)
+twilio>=9.0.0,<10.0.0

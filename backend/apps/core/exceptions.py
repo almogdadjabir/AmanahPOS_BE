@@ -175,6 +175,17 @@ class OTPCooldownError(BusinessLogicError):
         self.retry_after = retry_after
 
 
+class OTPMaxAttemptsError(InvalidOTPError):
+    """Raised when max failed OTP attempts is reached — maps to INVALID_OTP (400)."""
+    default_detail = "Invalid OTP."
+
+
+class OTPDeliveryFailedError(BusinessLogicError):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = "Could not send verification code. Please try again."
+    default_code = "OTP_DELIVERY_FAILED"
+
+
 class BankakAccountRequiredError(BusinessLogicError):
     status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
     default_detail = "A Bankak account must be configured before using Bankak as a payment method."

@@ -7,15 +7,32 @@ from django.contrib.auth import authenticate
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.core.exceptions import InvalidOTPError, OTPExpiredError, BusinessLogicError
+from apps.core.exceptions import (
+    BusinessLogicError,
+    InvalidOTPError,
+    OTPCooldownError,
+    OTPDeliveryFailedError,
+    OTPExpiredError,
+    OTPMaxAttemptsError,
+)
 from apps.core.utils import (
-    generate_otp,
-    store_otp_in_redis,
-    verify_otp_from_redis,
-    get_otp_from_redis,
-    send_sms_otp,
+    delete_channel_otp,
     format_phone,
+    generate_otp,
+    get_channel_cooldown_remaining,
+    get_channel_otp_hash,
+    get_otp_attempts,
+    get_otp_from_redis,
+    increment_otp_attempts,
+    mask_phone,
+    reset_otp_attempts,
+    send_sms_otp,
+    set_channel_cooldown,
     set_otp_cooldown,
+    store_channel_otp,
+    store_otp_in_redis,
+    verify_channel_otp,
+    verify_otp_from_redis,
 )
 from .models import BankakAccount, CustomUser
 
@@ -130,6 +147,112 @@ def send_otp(phone: str) -> str:
     if not success:
         logger.warning("Failed to send OTP SMS to %s", phone)
     return otp
+
+
+def request_login_otp(phone: str, channel: str | None = None) -> None:
+    """
+    Issue a login OTP to an existing active user via the requested channel.
+
+    Silently no-ops for unknown or inactive phones — the caller always
+    receives the same response to prevent phone-number enumeration.
+
+    Raises:
+        OTPCooldownError:      Resend attempted within the cooldown window.
+        BusinessLogicError:    Channel not in OTP_ALLOWED_CHANNELS.
+        OTPDeliveryFailedError: Provider could not deliver (existing user only).
+    """
+    from django.conf import settings
+    from apps.accounts.otp.providers import get_otp_sender
+
+    phone = format_phone(phone)
+    channel = channel or settings.DEFAULT_OTP_CHANNEL
+    allowed = getattr(settings, "OTP_ALLOWED_CHANNELS", ["sms", "whatsapp"])
+
+    if channel not in allowed:
+        raise BusinessLogicError(
+            f"Channel '{channel}' is not supported. Allowed: {', '.join(allowed)}",
+            code="INVALID_CHANNEL",
+        )
+
+    remaining = get_channel_cooldown_remaining(phone, channel)
+    if remaining > 0:
+        raise OTPCooldownError(retry_after=remaining)
+
+    try:
+        user = CustomUser.objects.get(phone=phone)
+        if not user.is_active:
+            logger.info("Login OTP skipped — inactive user %s", mask_phone(phone))
+            return
+    except CustomUser.DoesNotExist:
+        logger.info("Login OTP skipped — unregistered phone %s", mask_phone(phone))
+        return
+
+    otp = generate_otp()
+    store_channel_otp(phone, otp, channel)
+    set_channel_cooldown(phone, channel)
+    reset_otp_attempts(phone, channel)
+
+    result = get_otp_sender().send_otp(phone, otp, channel)
+    if not result.success:
+        logger.error(
+            "OTP delivery failed: channel=%s phone=%s error=%s",
+            channel, mask_phone(phone), result.error,
+        )
+        raise OTPDeliveryFailedError()
+
+
+def verify_login_otp(phone: str, otp: str, channel: str | None = None) -> dict:
+    """
+    Verify a login OTP and return JWT tokens on success.
+
+    Returns:
+        dict with 'access', 'refresh', and 'user' keys.
+
+    Raises:
+        InvalidOTPError:      Wrong OTP, expired OTP, or non-existing/inactive user.
+        OTPMaxAttemptsError:  Too many wrong attempts (subclass of InvalidOTPError).
+    """
+    from django.conf import settings
+
+    phone = format_phone(phone)
+    channel = channel or settings.DEFAULT_OTP_CHANNEL
+    max_attempts = getattr(settings, "OTP_MAX_ATTEMPTS", 5)
+
+    # User must exist and be active (return same error to avoid enumeration)
+    try:
+        user = CustomUser.objects.get(phone=phone)
+        if not user.is_active:
+            raise InvalidOTPError()
+    except CustomUser.DoesNotExist:
+        raise InvalidOTPError()
+
+    # OTP must exist in Redis
+    if get_channel_otp_hash(phone, channel) is None:
+        raise InvalidOTPError()
+
+    # Lockout check (pre-comparison)
+    attempts = get_otp_attempts(phone, channel)
+    if attempts >= max_attempts:
+        delete_channel_otp(phone, channel)
+        raise OTPMaxAttemptsError()
+
+    # Compare submitted OTP against stored hash
+    if not verify_channel_otp(phone, otp, channel):
+        increment_otp_attempts(phone, channel)
+        raise InvalidOTPError()
+
+    # Success path
+    delete_channel_otp(phone, channel)
+    reset_otp_attempts(phone, channel)
+
+    user.is_verified = True
+    user.last_login_at = timezone.now()
+    user.save(update_fields=["is_verified", "last_login_at"])
+
+    tokens = get_tokens_for_user(user)
+    tokens["user"] = user
+    logger.info("User logged in via OTP: channel=%s phone=%s", channel, mask_phone(phone))
+    return tokens
 
 
 def verify_otp(phone: str, otp: str) -> CustomUser:

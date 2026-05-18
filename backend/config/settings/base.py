@@ -19,6 +19,11 @@ env = environ.Env(
     CORS_ALLOWED_ORIGINS=(list, ["http://localhost:3000"]),
     OTP_LENGTH=(int, 6),
     OTP_EXPIRY_SECONDS=(int, 300),
+    OTP_PROVIDER=(str, "stub"),
+    DEFAULT_OTP_CHANNEL=(str, "sms"),
+    OTP_ALLOWED_CHANNELS=(list, ["sms", "whatsapp"]),
+    OTP_MAX_ATTEMPTS=(int, 5),
+    OTP_RESEND_COOLDOWN_SECONDS=(int, 60),
     JWT_ACCESS_TOKEN_LIFETIME_MINUTES=(int, 60),
     JWT_REFRESH_TOKEN_LIFETIME_DAYS=(int, 30),
     GUNICORN_WORKERS=(int, 4),
@@ -330,9 +335,14 @@ if USE_S3:
 MAX_IMAGE_UPLOAD_MB = env.int("MAX_IMAGE_UPLOAD_MB", default=10)
 
 # ─── OTP Settings ─────────────────────────────────────────────────────────────
-OTP_LENGTH = env("OTP_LENGTH")
-OTP_EXPIRY_SECONDS = env("OTP_EXPIRY_SECONDS")
-OTP_REDIS_PREFIX = "otp"
+OTP_LENGTH                 = env("OTP_LENGTH")
+OTP_EXPIRY_SECONDS         = env("OTP_EXPIRY_SECONDS")
+OTP_REDIS_PREFIX           = "otp"
+OTP_PROVIDER               = env("OTP_PROVIDER")
+DEFAULT_OTP_CHANNEL        = env("DEFAULT_OTP_CHANNEL")
+OTP_ALLOWED_CHANNELS       = env("OTP_ALLOWED_CHANNELS")
+OTP_MAX_ATTEMPTS           = env("OTP_MAX_ATTEMPTS")
+OTP_RESEND_COOLDOWN_SECONDS = env("OTP_RESEND_COOLDOWN_SECONDS")
 # Single test-account bypass — unset TEST_PHONE to disable
 TEST_PHONE = env("TEST_PHONE", default="")
 TEST_OTP   = env("TEST_OTP",   default="222222")
@@ -341,9 +351,11 @@ TEST_OTP   = env("TEST_OTP",   default="222222")
 SMS_PROVIDER = env("SMS_PROVIDER", default="stub")
 SMS_API_KEY = env("SMS_API_KEY", default="")
 SMS_SENDER_ID = env("SMS_SENDER_ID", default="AmanaPOS")
-TWILIO_ACCOUNT_SID = env("TWILIO_ACCOUNT_SID", default="")
-TWILIO_AUTH_TOKEN = env("TWILIO_AUTH_TOKEN", default="")
-TWILIO_FROM_NUMBER = env("TWILIO_FROM_NUMBER", default="")
+TWILIO_ACCOUNT_SID    = env("TWILIO_ACCOUNT_SID", default="")
+TWILIO_AUTH_TOKEN     = env("TWILIO_AUTH_TOKEN", default="")
+TWILIO_FROM_NUMBER    = env("TWILIO_FROM_NUMBER", default="")    # legacy
+TWILIO_SMS_FROM       = env("TWILIO_SMS_FROM", default="")
+TWILIO_WHATSAPP_FROM  = env("TWILIO_WHATSAPP_FROM", default="")
 BUDGETSMS_USERNAME = env("BUDGETSMS_USERNAME", default="")
 BUDGETSMS_USERID = env("BUDGETSMS_USERID", default="")
 BUDGETSMS_HANDLE = env("BUDGETSMS_HANDLE", default="")

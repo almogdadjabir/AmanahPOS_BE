@@ -34,9 +34,11 @@ from .services import (
     login_with_password,
     register_user,
     remove_bankak_account,
+    request_login_otp,
     send_otp,
     set_bankak_account,
     set_user_password,
+    verify_login_otp,
     verify_otp,
     get_tokens_for_user,
 )
@@ -147,15 +149,21 @@ class LoginOTPRequestView(APIView):
     throttle_classes = [AuthRateThrottle]
 
     def post(self, request):
+        from django.conf import settings
+
         serializer = LoginOTPSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        phone = serializer.validated_data["phone"]
+        phone   = serializer.validated_data["phone"]
+        channel = serializer.validated_data.get("channel")
 
-        if not CustomUser.objects.filter(phone=phone).exists():
-            raise BusinessLogicError("No account found for this phone number.")
+        request_login_otp(phone=phone, channel=channel)
 
-        send_otp(phone)
-        return Response({"success": True, "message": "OTP sent to your phone."})
+        return Response({
+            "success":      True,
+            "message":      "If this phone number is registered, an OTP will be sent.",
+            "expires_in":   getattr(settings, "OTP_EXPIRY_SECONDS", 300),
+            "resend_after": getattr(settings, "OTP_RESEND_COOLDOWN_SECONDS", 60),
+        })
 
 
 class LoginOTPVerifyView(APIView):
@@ -174,7 +182,11 @@ class LoginOTPVerifyView(APIView):
             last_login_at__isnull=False,
         ).exists()
 
-        result = login_with_otp(phone=data["phone"], otp=data["otp"])
+        result = verify_login_otp(
+            phone=data["phone"],
+            otp=data["otp"],
+            channel=data.get("channel"),
+        )
         user = result.pop("user")
 
         # ── FCM token registration ────────────────────────────────────────────
