@@ -343,9 +343,6 @@ DEFAULT_OTP_CHANNEL        = env("DEFAULT_OTP_CHANNEL")
 OTP_ALLOWED_CHANNELS       = env("OTP_ALLOWED_CHANNELS")
 OTP_MAX_ATTEMPTS           = env("OTP_MAX_ATTEMPTS")
 OTP_RESEND_COOLDOWN_SECONDS = env("OTP_RESEND_COOLDOWN_SECONDS")
-# Single test-account bypass — unset TEST_PHONE to disable
-TEST_PHONE = env("TEST_PHONE", default="")
-TEST_OTP   = env("TEST_OTP",   default="222222")
 
 # ─── SMS Settings ─────────────────────────────────────────────────────────────
 SMS_PROVIDER = env("SMS_PROVIDER", default="stub")

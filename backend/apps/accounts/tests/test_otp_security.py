@@ -48,3 +48,30 @@ class TestLegacyEndpointsRemoved(TestCase):
             format="json",
         )
         self.assertEqual(resp.status_code, 404)
+
+
+# ─── Task 2: TEST_PHONE production guard ─────────────────────────────────────
+
+class TestTestPhoneProductionGuard(TestCase):
+    def test_test_phone_raises_when_debug_false(self):
+        """ImproperlyConfigured raised when TEST_PHONE set and DEBUG=False."""
+        from django.core.exceptions import ImproperlyConfigured
+        from apps.accounts.apps import AccountsConfig
+
+        with self.settings(DEBUG=False, TEST_PHONE="+249999999999"):
+            with self.assertRaises(ImproperlyConfigured):
+                AccountsConfig._check_test_phone_safety()
+
+    def test_test_phone_allowed_when_debug_true(self):
+        """TEST_PHONE is permitted in DEBUG mode (local dev only)."""
+        from apps.accounts.apps import AccountsConfig
+
+        with self.settings(DEBUG=True, TEST_PHONE="+249999999999"):
+            AccountsConfig._check_test_phone_safety()  # must not raise
+
+    def test_no_test_phone_is_always_fine(self):
+        """TEST_PHONE unset is always safe regardless of DEBUG."""
+        from apps.accounts.apps import AccountsConfig
+
+        with self.settings(DEBUG=False, TEST_PHONE=""):
+            AccountsConfig._check_test_phone_safety()  # must not raise
