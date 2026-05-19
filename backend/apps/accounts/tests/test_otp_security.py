@@ -104,3 +104,69 @@ class TestRedisFailureVisibility(TestCase):
         self.assertEqual(resp.status_code, 503)
         self.assertFalse(resp.data["success"])
         self.assertEqual(resp.data["error"]["code"], "OTP_DELIVERY_FAILED")
+
+
+# ─── Task 4: Brute-force protection ──────────────────────────────────────────
+
+from django.core.cache import cache as _django_cache
+from apps.core.utils import store_channel_otp, _channel_otp_key
+
+
+@override_settings(**{**OTP_SETTINGS, "OTP_MAX_ATTEMPTS": 3})
+class TestBruteForceProtection(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        _django_cache.clear()
+        self.user = make_active_user("+249912200012")
+
+    def test_lockout_after_max_wrong_attempts(self):
+        """After OTP_MAX_ATTEMPTS wrong guesses the OTP is deleted; even correct OTP fails."""
+        store_channel_otp("+249912200012", "111111", "sms")
+
+        for _ in range(3):
+            self.client.post(
+                "/api-public/v1/auth/login/otp/verify/",
+                {"phone": "+249912200012", "otp": "999999", "channel": "sms"},
+                format="json",
+            )
+
+        resp = self.client.post(
+            "/api-public/v1/auth/login/otp/verify/",
+            {"phone": "+249912200012", "otp": "111111", "channel": "sms"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.data["error"]["code"], "INVALID_OTP")
+
+    def test_wrong_otp_increments_attempts_counter(self):
+        """Each wrong OTP guess increments the attempt counter."""
+        from apps.core.utils import get_otp_attempts
+        store_channel_otp("+249912200012", "111111", "sms")
+
+        self.client.post(
+            "/api-public/v1/auth/login/otp/verify/",
+            {"phone": "+249912200012", "otp": "000000", "channel": "sms"},
+            format="json",
+        )
+        self.assertEqual(get_otp_attempts("+249912200012", "sms"), 1)
+
+    def test_correct_otp_resets_attempts(self):
+        """Successful OTP verification resets the attempts counter to 0."""
+        from apps.core.utils import get_otp_attempts
+        store_channel_otp("+249912200012", "111111", "sms")
+
+        resp = self.client.post(
+            "/api-public/v1/auth/login/otp/verify/",
+            {"phone": "+249912200012", "otp": "111111", "channel": "sms"},
+            format="json",
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(get_otp_attempts("+249912200012", "sms"), 0)
+
+    def test_otp_stored_as_hash_not_plaintext(self):
+        """OTP in Redis must be a 64-char HMAC-SHA256 hex hash, never raw digits."""
+        store_channel_otp("+249912200012", "111111", "sms")
+        stored = _django_cache.get(_channel_otp_key("sms", "+249912200012"))
+        self.assertIsNotNone(stored)
+        self.assertEqual(len(stored), 64)
+        self.assertNotRegex(stored, r"^\d{4,8}$")
