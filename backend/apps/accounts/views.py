@@ -160,7 +160,7 @@ class LoginOTPRequestView(APIView):
 
         return Response({
             "success":      True,
-            "message":      "If this phone number is registered, an OTP will be sent.",
+            "message":      "OTP sent successfully.",
             "expires_in":   getattr(settings, "OTP_EXPIRY_SECONDS", 300),
             "resend_after": getattr(settings, "OTP_RESEND_COOLDOWN_SECONDS", 60),
         })

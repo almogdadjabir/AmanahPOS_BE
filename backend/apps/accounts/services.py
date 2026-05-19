@@ -153,13 +153,11 @@ def request_login_otp(phone: str, channel: str | None = None) -> None:
     """
     Issue a login OTP to an existing active user via the requested channel.
 
-    Silently no-ops for unknown or inactive phones — the caller always
-    receives the same response to prevent phone-number enumeration.
-
     Raises:
+        BusinessLogicError:    Phone not registered or account inactive.
         OTPCooldownError:      Resend attempted within the cooldown window.
         BusinessLogicError:    Channel not in OTP_ALLOWED_CHANNELS.
-        OTPDeliveryFailedError: Provider could not deliver (existing user only).
+        OTPDeliveryFailedError: Provider could not deliver.
     """
     from django.conf import settings
     from apps.accounts.otp.providers import get_otp_sender
@@ -174,18 +172,23 @@ def request_login_otp(phone: str, channel: str | None = None) -> None:
             code="INVALID_CHANNEL",
         )
 
+    try:
+        user = CustomUser.objects.get(phone=phone)
+    except CustomUser.DoesNotExist:
+        raise BusinessLogicError(
+            "No account found for this phone number.",
+            code="PHONE_NOT_REGISTERED",
+        )
+
+    if not user.is_active:
+        raise BusinessLogicError(
+            "This account is inactive. Please contact support.",
+            code="ACCOUNT_INACTIVE",
+        )
+
     remaining = get_channel_cooldown_remaining(phone, channel)
     if remaining > 0:
         raise OTPCooldownError(retry_after=remaining)
-
-    try:
-        user = CustomUser.objects.get(phone=phone)
-        if not user.is_active:
-            logger.info("Login OTP skipped — inactive user %s", mask_phone(phone))
-            return
-    except CustomUser.DoesNotExist:
-        logger.info("Login OTP skipped — unregistered phone %s", mask_phone(phone))
-        return
 
     otp = generate_otp()
     store_channel_otp(phone, otp, channel)
