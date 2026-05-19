@@ -131,22 +131,22 @@ class TestUnregisteredAndInactive(TestCase):
         cache.clear()
 
     def test_5_unknown_phone_returns_error(self):
-        """Non-existing phone returns 400 PHONE_NOT_REGISTERED — no OTP generated."""
+        """Non-existing phone returns 422 PHONE_NOT_REGISTERED — no OTP generated."""
         resp = self.client.post(
             REQUEST_URL, {"phone": "+249912299999"}, format="json"
         )
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 422)
         self.assertFalse(resp.data["success"])
         self.assertEqual(resp.data["error"]["code"], "PHONE_NOT_REGISTERED")
         self.assertIsNone(cache.get(_channel_otp_key("sms", "+249912299999")))
 
     def test_6_inactive_user_returns_error(self):
-        """Inactive user returns 400 ACCOUNT_INACTIVE — no OTP generated."""
+        """Inactive user returns 422 ACCOUNT_INACTIVE — no OTP generated."""
         make_inactive_user("+249912200002")
         resp = self.client.post(
             REQUEST_URL, {"phone": "+249912200002"}, format="json"
         )
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 422)
         self.assertFalse(resp.data["success"])
         self.assertEqual(resp.data["error"]["code"], "ACCOUNT_INACTIVE")
         self.assertIsNone(cache.get(_channel_otp_key("sms", "+249912200002")))
@@ -291,7 +291,7 @@ class TestTwilioSender(TestCase):
         resp = self.client.post(
             REQUEST_URL, {"phone": "+249912299999", "channel": "whatsapp"}, format="json"
         )
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 422)
         mock_messages.create.assert_not_called()
 
     @patch("twilio.rest.Client")
@@ -304,7 +304,7 @@ class TestTwilioSender(TestCase):
         resp = self.client.post(
             REQUEST_URL, {"phone": "+249912200002", "channel": "whatsapp"}, format="json"
         )
-        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.status_code, 422)
         mock_messages.create.assert_not_called()
 
 

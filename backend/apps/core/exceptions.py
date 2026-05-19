@@ -87,6 +87,10 @@ def _get_error_code(exc: APIException) -> str:
         if isinstance(exc, exc_type):
             return code
 
+    # Instance-specific code (e.g. BusinessLogicError raised with code="PHONE_NOT_REGISTERED")
+    if hasattr(exc, "detail") and hasattr(exc.detail, "code") and exc.detail.code:
+        return str(exc.detail.code).upper()
+
     if hasattr(exc, "default_code") and exc.default_code:
         return exc.default_code.upper()
 
@@ -159,10 +163,6 @@ class InvalidOTPError(BusinessLogicError):
     default_code = "INVALID_OTP"
 
 
-class OTPExpiredError(BusinessLogicError):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = "OTP has expired. Please request a new one."
-    default_code = "OTP_EXPIRED"
 
 
 class OTPCooldownError(BusinessLogicError):
