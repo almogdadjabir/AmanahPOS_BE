@@ -10,4 +10,5 @@ urlpatterns = [
     path("offline-sync/", views.OfflineSyncView.as_view(), name="sale_offline_sync"),
     path("<uuid:pk>/", views.SaleDetailView.as_view(), name="sale_detail"),
     path("<uuid:pk>/cancel/", views.SaleCancelView.as_view(), name="sale_cancel"),
+    path("<uuid:pk>/refund/", views.SaleRefundView.as_view(), name="sale_refund"),
 ]

@@ -211,3 +211,100 @@ def _award_loyalty_points(customer, amount: Decimal) -> None:
         customer.loyalty_points = (customer.loyalty_points or 0) + points_earned
         customer.save(update_fields=["loyalty_points"])
         logger.debug("Awarded %d loyalty points to customer %s", points_earned, customer.id)
+
+
+@transaction.atomic
+def process_refund(sale: Sale, items: list[dict], notes: str = "", refunded_by=None) -> dict:
+    """
+    Process a full or partial customer return.
+
+    Returns dict with: refund_reference, refund_total, returned_items, sale
+    Raises BusinessLogicError for: cancelled/refunded sale, unknown product, excess quantity.
+    """
+    if sale.status in (SaleStatus.CANCELLED, SaleStatus.REFUNDED):
+        raise BusinessLogicError(
+            f"Cannot refund a sale with status '{sale.status}'.",
+            code="INVALID_SALE_STATUS",
+        )
+
+    sale_items_map: dict[str, "SaleItem"] = {
+        str(si.product_id): si
+        for si in sale.items.select_related("product").all()
+    }
+
+    for item_data in items:
+        pid = str(item_data["product_id"])
+        if pid not in sale_items_map:
+            raise BusinessLogicError(
+                f"Product {pid} was not part of sale {sale.receipt_number}.",
+                code="PRODUCT_NOT_IN_SALE",
+            )
+        original_qty = sale_items_map[pid].quantity
+        if Decimal(str(item_data["quantity"])) > original_qty:
+            raise BusinessLogicError(
+                f"Return quantity {item_data['quantity']} exceeds original quantity "
+                f"{original_qty} for product {pid}.",
+                code="QUANTITY_EXCEEDED",
+            )
+
+    prior_refunds = sale.notes.count("[REFUND]")
+    refund_n = prior_refunds + 1
+    refund_reference = f"{sale.receipt_number}-R{refund_n}"
+
+    is_restaurant = sale.tenant.business_type == BusinessType.RESTAURANT
+
+    refund_total = Decimal("0")
+    returned_items = []
+
+    for item_data in items:
+        pid = str(item_data["product_id"])
+        original_item = sale_items_map[pid]
+        qty = Decimal(str(item_data["quantity"]))
+        subtotal = original_item.unit_price * qty
+
+        refund_total += subtotal
+        returned_items.append({
+            "product_id": pid,
+            "product_name": original_item.product.name,
+            "quantity": qty,
+            "unit_price": original_item.unit_price,
+            "subtotal": subtotal,
+        })
+
+        if not is_restaurant:
+            has_stock_record = StockLevel.objects.filter(
+                product=original_item.product, shop=sale.shop
+            ).exists()
+            if original_item.product.track_inventory or has_stock_record:
+                add_stock(
+                    product=original_item.product,
+                    shop=sale.shop,
+                    quantity=qty,
+                    reference=refund_reference,
+                    notes=f"Return for {refund_reference}: {notes}",
+                    created_by=refunded_by,
+                    movement_type=MovementType.RETURN,
+                )
+
+    total_sold = sum(si.quantity for si in sale_items_map.values())
+    total_returned = sum(Decimal(str(i["quantity"])) for i in items)
+    new_status = (
+        SaleStatus.REFUNDED if total_returned >= total_sold
+        else SaleStatus.PARTIAL_REFUND
+    )
+
+    refund_note = f"[REFUND] {refund_reference}: {notes}".strip()
+    sale.notes = f"{sale.notes}\n{refund_note}".strip()
+    sale.status = new_status
+    sale.save(update_fields=["status", "notes", "updated_at"])
+
+    logger.info(
+        "Refund processed: %s | sale=%s | total=%s",
+        refund_reference, sale.receipt_number, refund_total,
+    )
+    return {
+        "refund_reference": refund_reference,
+        "refund_total": refund_total,
+        "returned_items": returned_items,
+        "sale": sale,
+    }

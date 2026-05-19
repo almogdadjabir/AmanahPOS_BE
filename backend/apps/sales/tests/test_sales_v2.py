@@ -174,3 +174,213 @@ class TestOfflineSyncReceiptNumber(TestCase):
         self.assertEqual(result["status"], "synced")
         self.assertIn("receipt_number", result)
         self.assertIsNotNone(result["receipt_number"])
+
+
+# ─── Task 4: refund endpoint ──────────────────────────────────────────────────
+
+class TestProcessRefund(TestCase):
+    def setUp(self):
+        self.owner = make_owner("+249900000004")
+        self.business = make_business(self.owner)
+        self.shop = make_shop(self.business)
+        self.product = make_product(self.business, price="600.00", track_inventory=True)
+        seed_stock(self.product, self.shop, qty=10)
+        self.client = make_auth_client(self.owner)
+
+        resp = create_sale_via_api(self.client, self.shop, self.product, qty=3)
+        self.sale_id = resp.data["data"]["id"]
+        self.receipt_number = resp.data["data"]["receipt_number"]
+        self.sale = Sale.objects.get(pk=self.sale_id)
+
+    def test_full_refund_sets_status_refunded(self):
+        from apps.sales.services import process_refund
+        result = process_refund(
+            sale=self.sale,
+            items=[{"product_id": str(self.product.id), "quantity": Decimal("3")}],
+            notes="Full return",
+            refunded_by=self.owner,
+        )
+        self.sale.refresh_from_db()
+        self.assertEqual(self.sale.status, SaleStatus.REFUNDED)
+        self.assertIn("-R1", result["refund_reference"])
+
+    def test_partial_refund_sets_status_partial_refund(self):
+        from apps.sales.services import process_refund
+        result = process_refund(
+            sale=self.sale,
+            items=[{"product_id": str(self.product.id), "quantity": Decimal("1")}],
+            notes="Partial",
+            refunded_by=self.owner,
+        )
+        self.sale.refresh_from_db()
+        self.assertEqual(self.sale.status, SaleStatus.PARTIAL_REFUND)
+        self.assertIn("-R1", result["refund_reference"])
+
+    def test_second_refund_uses_r2(self):
+        from apps.sales.services import process_refund
+        process_refund(
+            sale=self.sale,
+            items=[{"product_id": str(self.product.id), "quantity": Decimal("1")}],
+            notes="First partial",
+            refunded_by=self.owner,
+        )
+        self.sale.refresh_from_db()
+        result2 = process_refund(
+            sale=self.sale,
+            items=[{"product_id": str(self.product.id), "quantity": Decimal("1")}],
+            notes="Second partial",
+            refunded_by=self.owner,
+        )
+        self.assertIn("-R2", result2["refund_reference"])
+
+    def test_refund_restores_stock(self):
+        from apps.sales.services import process_refund
+        stock_before = StockLevel.objects.get(product=self.product, shop=self.shop).quantity
+        process_refund(
+            sale=self.sale,
+            items=[{"product_id": str(self.product.id), "quantity": Decimal("2")}],
+            notes="Return",
+            refunded_by=self.owner,
+        )
+        stock_after = StockLevel.objects.get(product=self.product, shop=self.shop).quantity
+        self.assertEqual(stock_after, stock_before + Decimal("2"))
+
+    def test_cannot_refund_cancelled_sale(self):
+        from apps.sales.services import process_refund
+        from apps.core.exceptions import BusinessLogicError
+        self.sale.status = SaleStatus.CANCELLED
+        self.sale.save()
+        with self.assertRaises(BusinessLogicError):
+            process_refund(
+                sale=self.sale,
+                items=[{"product_id": str(self.product.id), "quantity": Decimal("1")}],
+                notes="",
+                refunded_by=self.owner,
+            )
+
+    def test_cannot_refund_already_refunded_sale(self):
+        from apps.sales.services import process_refund
+        from apps.core.exceptions import BusinessLogicError
+        self.sale.status = SaleStatus.REFUNDED
+        self.sale.save()
+        with self.assertRaises(BusinessLogicError):
+            process_refund(
+                sale=self.sale,
+                items=[{"product_id": str(self.product.id), "quantity": Decimal("1")}],
+                notes="",
+                refunded_by=self.owner,
+            )
+
+    def test_unknown_product_raises_error(self):
+        from apps.sales.services import process_refund
+        from apps.core.exceptions import BusinessLogicError
+        with self.assertRaises(BusinessLogicError):
+            process_refund(
+                sale=self.sale,
+                items=[{"product_id": str(uuid.uuid4()), "quantity": Decimal("1")}],
+                notes="",
+                refunded_by=self.owner,
+            )
+
+    def test_quantity_exceeds_original_raises_error(self):
+        from apps.sales.services import process_refund
+        from apps.core.exceptions import BusinessLogicError
+        with self.assertRaises(BusinessLogicError):
+            process_refund(
+                sale=self.sale,
+                items=[{"product_id": str(self.product.id), "quantity": Decimal("99")}],
+                notes="",
+                refunded_by=self.owner,
+            )
+
+    def test_returned_items_in_result(self):
+        from apps.sales.services import process_refund
+        result = process_refund(
+            sale=self.sale,
+            items=[{"product_id": str(self.product.id), "quantity": Decimal("2")}],
+            notes="",
+            refunded_by=self.owner,
+        )
+        self.assertEqual(len(result["returned_items"]), 1)
+        item = result["returned_items"][0]
+        self.assertEqual(item["product_id"], str(self.product.id))
+        self.assertEqual(item["product_name"], self.product.name)
+        self.assertEqual(item["quantity"], Decimal("2"))
+        self.assertIn("unit_price", item)
+        self.assertIn("subtotal", item)
+
+
+class TestRefundView(TestCase):
+    def setUp(self):
+        self.owner = make_owner("+249900000005")
+        self.business = make_business(self.owner)
+        self.shop = make_shop(self.business)
+        self.product = make_product(self.business, price="600.00", track_inventory=True)
+        seed_stock(self.product, self.shop, qty=10)
+        self.client = make_auth_client(self.owner)
+
+        resp = create_sale_via_api(self.client, self.shop, self.product, qty=3)
+        self.sale_id = resp.data["data"]["id"]
+        self.receipt_number = resp.data["data"]["receipt_number"]
+
+    def _refund_url(self):
+        return f"/api/v1/sales/{self.sale_id}/refund/"
+
+    def test_full_refund_returns_200_with_correct_shape(self):
+        resp = self.client.post(self._refund_url(), {
+            "items": [{"product_id": str(self.product.id), "quantity": "3"}],
+            "notes": "Customer changed mind",
+        }, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.data["success"])
+        self.assertIn("refund_reference", resp.data)
+        self.assertIn("refund_total", resp.data)
+        self.assertIn("returned_items", resp.data)
+        self.assertIn("sale", resp.data)
+        self.assertIn("-R1", resp.data["refund_reference"])
+
+    def test_refund_sale_object_has_updated_status(self):
+        resp = self.client.post(self._refund_url(), {
+            "items": [{"product_id": str(self.product.id), "quantity": "3"}],
+        }, format="json")
+        self.assertEqual(resp.data["sale"]["status"], "refunded")
+
+    def test_partial_refund_response(self):
+        resp = self.client.post(self._refund_url(), {
+            "items": [{"product_id": str(self.product.id), "quantity": "1"}],
+        }, format="json")
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["sale"]["status"], "partial_refund")
+
+    def test_refund_cancelled_sale_returns_error(self):
+        sale = Sale.objects.get(pk=self.sale_id)
+        sale.status = SaleStatus.CANCELLED
+        sale.save()
+        resp = self.client.post(self._refund_url(), {
+            "items": [{"product_id": str(self.product.id), "quantity": "1"}],
+        }, format="json")
+        self.assertFalse(resp.data["success"])
+        self.assertIn(resp.status_code, [400, 422])
+
+    def test_refund_unknown_product_returns_error(self):
+        resp = self.client.post(self._refund_url(), {
+            "items": [{"product_id": str(uuid.uuid4()), "quantity": "1"}],
+        }, format="json")
+        self.assertIn(resp.status_code, [400, 422])
+
+    def test_refund_excess_quantity_returns_error(self):
+        resp = self.client.post(self._refund_url(), {
+            "items": [{"product_id": str(self.product.id), "quantity": "99"}],
+        }, format="json")
+        self.assertIn(resp.status_code, [400, 422])
+
+    def test_returned_items_shape(self):
+        resp = self.client.post(self._refund_url(), {
+            "items": [{"product_id": str(self.product.id), "quantity": "2"}],
+        }, format="json")
+        item = resp.data["returned_items"][0]
+        self.assertEqual(item["product_id"], str(self.product.id))
+        self.assertIn("product_name", item)
+        self.assertIn("quantity", item)
+        self.assertIn("unit_price", item)
+        self.assertIn("subtotal", item)

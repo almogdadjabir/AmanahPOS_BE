@@ -124,3 +124,13 @@ class OfflineSaleInputSerializer(serializers.Serializer):
 class OfflineSyncRequestSerializer(serializers.Serializer):
     """Top-level wrapper for the offline sync batch."""
     sales = OfflineSaleInputSerializer(many=True, min_length=1)
+
+
+class RefundItemSerializer(serializers.Serializer):
+    product_id = serializers.UUIDField()
+    quantity = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=Decimal("0.001"))
+
+
+class RefundRequestSerializer(serializers.Serializer):
+    items = RefundItemSerializer(many=True, min_length=1)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")

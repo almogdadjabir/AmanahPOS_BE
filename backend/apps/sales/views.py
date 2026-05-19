@@ -20,9 +20,10 @@ from .serializers import (
     CancelSaleSerializer,
     CreateSaleSerializer,
     OfflineSyncRequestSerializer,
+    RefundRequestSerializer,
     SaleSerializer,
 )
-from .services import cancel_sale, create_sale
+from .services import cancel_sale, create_sale, process_refund
 
 logger = logging.getLogger(__name__)
 
@@ -659,3 +660,55 @@ class DashboardSummaryView(APIView):
 
         cache.set(cache_key, response_data, 60)
         return Response(response_data)
+
+
+class SaleRefundView(APIView):
+    """
+    POST /api/v1/sales/<id>/refund/
+    Process a full or partial customer return.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            raise BusinessLogicError("No active business found.")
+
+        try:
+            sale = Sale.objects.select_related(
+                "tenant", "shop"
+            ).prefetch_related("items__product").get(pk=pk, tenant=tenant)
+        except Sale.DoesNotExist:
+            raise NotFound("Sale not found.")
+
+        serializer = RefundRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        result = process_refund(
+            sale=sale,
+            items=data["items"],
+            notes=data.get("notes", ""),
+            refunded_by=request.user,
+        )
+
+        sale_data = Sale.objects.select_related(
+            "shop", "cashier", "customer"
+        ).prefetch_related("items__product").get(pk=sale.pk)
+
+        return Response({
+            "success": True,
+            "refund_reference": result["refund_reference"],
+            "refund_total": str(result["refund_total"]),
+            "returned_items": [
+                {
+                    "product_id": item["product_id"],
+                    "product_name": item["product_name"],
+                    "quantity": str(item["quantity"]),
+                    "unit_price": str(item["unit_price"]),
+                    "subtotal": str(item["subtotal"]),
+                }
+                for item in result["returned_items"]
+            ],
+            "sale": SaleSerializer(sale_data).data,
+        })
