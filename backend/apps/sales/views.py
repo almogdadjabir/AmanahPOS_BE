@@ -69,6 +69,20 @@ class SaleListCreateView(APIView):
         if date_to:
             qs = qs.filter(created_at__date__lte=date_to)
 
+        # Unified search: receipt_number, customer name, customer phone
+        search_q = request.query_params.get("search")
+        if search_q:
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(receipt_number__icontains=search_q) |
+                Q(customer__name__icontains=search_q) |
+                Q(customer__phone__icontains=search_q)
+            )
+
+        payment_method = request.query_params.get("payment_method")
+        if payment_method:
+            qs = qs.filter(payment_method=payment_method)
+
         paginator = StandardPagination()
         page = paginator.paginate_queryset(qs, request)
         serializer = SaleSerializer(page, many=True)

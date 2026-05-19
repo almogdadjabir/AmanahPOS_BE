@@ -80,3 +80,54 @@ class TestSaleCreateReceiptNumber(TestCase):
         self.assertEqual(resp.status_code, 201)
         self.assertIn("receipt_number", resp.data["data"])
         self.assertIsNotNone(resp.data["data"]["receipt_number"])
+
+
+# ─── Task 2: sale list search ─────────────────────────────────────────────────
+
+class TestSaleListSearch(TestCase):
+    def setUp(self):
+        from apps.customers.models import Customer
+        self.owner = make_owner("+249900000002")
+        self.business = make_business(self.owner)
+        self.shop = make_shop(self.business)
+        self.product = make_product(self.business)
+        seed_stock(self.product, self.shop, 50)
+        self.client = make_auth_client(self.owner)
+        self.customer = Customer.objects.create(
+            tenant=self.business, name="Ali Mohamed", phone="+249911111111"
+        )
+        # Create 2 sales: one with customer, one without
+        resp1 = self.client.post("/api/v1/sales/", {
+            "shop": str(self.shop.id),
+            "items": [{"product_id": str(self.product.id), "quantity": "1"}],
+            "payment_method": "cash",
+            "customer": str(self.customer.id),
+        }, format="json")
+        self.sale1_receipt = resp1.data["data"]["receipt_number"]
+
+        resp2 = self.client.post("/api/v1/sales/", {
+            "shop": str(self.shop.id),
+            "items": [{"product_id": str(self.product.id), "quantity": "1"}],
+            "payment_method": "credit",
+        }, format="json")
+        self.sale2_receipt = resp2.data["data"]["receipt_number"]
+
+    def test_search_by_receipt_number(self):
+        resp = self.client.get(f"/api/v1/sales/?search={self.sale1_receipt}")
+        self.assertEqual(resp.status_code, 200)
+        receipts = [s["receipt_number"] for s in resp.data["results"]]
+        self.assertIn(self.sale1_receipt, receipts)
+
+    def test_search_by_customer_name(self):
+        resp = self.client.get("/api/v1/sales/?search=Ali")
+        self.assertEqual(resp.status_code, 200)
+        self.assertGreaterEqual(len(resp.data["results"]), 1)
+        receipts = [s["receipt_number"] for s in resp.data["results"]]
+        self.assertIn(self.sale1_receipt, receipts)
+        self.assertNotIn(self.sale2_receipt, receipts)
+
+    def test_filter_by_payment_method(self):
+        resp = self.client.get("/api/v1/sales/?payment_method=credit")
+        self.assertEqual(resp.status_code, 200)
+        for sale in resp.data["results"]:
+            self.assertEqual(sale["payment_method"], "credit")
