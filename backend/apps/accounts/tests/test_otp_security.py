@@ -75,3 +75,32 @@ class TestTestPhoneProductionGuard(TestCase):
 
         with self.settings(DEBUG=False, TEST_PHONE=""):
             AccountsConfig._check_test_phone_safety()  # must not raise
+
+
+# ─── Task 3: Redis failure visibility ────────────────────────────────────────
+
+from unittest.mock import patch as _patch
+
+@override_settings(**OTP_SETTINGS)
+class TestRedisFailureVisibility(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        make_active_user("+249912200011")
+
+    def test_otp_request_returns_503_when_redis_unavailable(self):
+        """
+        If Redis raises during OTP store, the endpoint must return 503
+        (OTP_DELIVERY_FAILED) rather than silently 200 with a broken OTP.
+        """
+        with _patch("apps.core.utils.cache") as mock_cache:
+            mock_cache.get.return_value = None  # cooldown/attempts checks return nothing
+            mock_cache.ttl.return_value = None   # no cooldown TTL active
+            mock_cache.set.side_effect = Exception("Redis connection refused")
+            resp = self.client.post(
+                "/api-public/v1/auth/login/otp/",
+                {"phone": "+249912200011", "channel": "sms"},
+                format="json",
+            )
+        self.assertEqual(resp.status_code, 503)
+        self.assertFalse(resp.data["success"])
+        self.assertEqual(resp.data["error"]["code"], "OTP_DELIVERY_FAILED")

@@ -59,8 +59,14 @@ def _hash_otp(phone: str, otp: str) -> str:
 
 def store_channel_otp(phone: str, otp: str, channel: str, expiry_seconds: int | None = None) -> None:
     """Store HMAC-hashed OTP under otp:{channel}:{phone}."""
+    from apps.core.exceptions import OTPDeliveryFailedError
     expiry = expiry_seconds or getattr(settings, "OTP_EXPIRY_SECONDS", 300)
-    cache.set(_channel_otp_key(channel, phone), _hash_otp(phone, otp), timeout=expiry)
+    key = _channel_otp_key(channel, phone)
+    try:
+        cache.set(key, _hash_otp(phone, otp), timeout=expiry)
+    except Exception as exc:
+        logger.error("Redis unavailable — OTP store failed for %s: %s", mask_phone(phone), exc)
+        raise OTPDeliveryFailedError()
     logger.debug("Hashed OTP stored for channel=%s (expires=%ds)", channel, expiry)
 
 
