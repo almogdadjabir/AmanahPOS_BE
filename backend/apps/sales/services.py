@@ -221,6 +221,9 @@ def process_refund(sale: Sale, items: list[dict], notes: str = "", refunded_by=N
     Returns dict with: refund_reference, refund_total, returned_items, sale
     Raises BusinessLogicError for: cancelled/refunded sale, unknown product, excess quantity.
     """
+    # Re-fetch with row lock inside the atomic transaction to prevent concurrent refunds
+    sale = Sale.objects.select_for_update().get(pk=sale.pk)
+
     if sale.status in (SaleStatus.CANCELLED, SaleStatus.REFUNDED):
         raise BusinessLogicError(
             f"Cannot refund a sale with status '{sale.status}'.",
