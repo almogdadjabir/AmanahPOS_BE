@@ -12,7 +12,6 @@ from apps.core.exceptions import (
     InvalidOTPError,
     OTPCooldownError,
     OTPDeliveryFailedError,
-    OTPExpiredError,
     OTPMaxAttemptsError,
 )
 from apps.core.utils import (
@@ -22,17 +21,12 @@ from apps.core.utils import (
     get_channel_cooldown_remaining,
     get_channel_otp_hash,
     get_otp_attempts,
-    get_otp_from_redis,
     increment_otp_attempts,
     mask_phone,
     reset_otp_attempts,
-    send_sms_otp,
     set_channel_cooldown,
-    set_otp_cooldown,
     store_channel_otp,
-    store_otp_in_redis,
     verify_channel_otp,
-    verify_otp_from_redis,
 )
 from .models import BankakAccount, CustomUser
 
@@ -119,34 +113,6 @@ def remove_bankak_account(owner: CustomUser) -> None:
     """Soft-deactivate the owner's default Bankak account."""
     BankakAccount.objects.filter(owner=owner, is_active=True).update(is_active=False, is_default=False)
     logger.info("Bankak account removed for owner %s", owner.phone)
-
-
-def send_otp(phone: str) -> str:
-    """
-    Generate, store, and send OTP. Sets a 60-second resend cooldown.
-
-    Returns the generated OTP (useful in tests / stub mode).
-    """
-    from django.conf import settings
-    phone = format_phone(phone)
-
-    # Single test-account bypass — active only when TEST_PHONE is set in env.
-    # Remove TEST_PHONE from .env.prod to disable permanently.
-    test_phone = getattr(settings, "TEST_PHONE", "")
-    if test_phone and phone == test_phone:
-        otp = getattr(settings, "TEST_OTP", "222222")
-        store_otp_in_redis(phone, otp)
-        set_otp_cooldown(phone)
-        logger.info("[TEST ACCOUNT] Skipped SMS for test phone")
-        return otp
-
-    otp = generate_otp(length=getattr(settings, "OTP_LENGTH", 6))
-    store_otp_in_redis(phone, otp)
-    set_otp_cooldown(phone)
-    success = send_sms_otp(phone, otp)
-    if not success:
-        logger.warning("Failed to send OTP SMS to %s", phone)
-    return otp
 
 
 def request_login_otp(phone: str, channel: str | None = None) -> None:
@@ -255,73 +221,6 @@ def verify_login_otp(phone: str, otp: str, channel: str | None = None) -> dict:
     tokens = get_tokens_for_user(user)
     tokens["user"] = user
     logger.info("User logged in via OTP: channel=%s phone=%s", channel, mask_phone(phone))
-    return tokens
-
-
-def verify_otp(phone: str, otp: str) -> CustomUser:
-    """
-    Verify the OTP for a phone number and mark the user as verified.
-
-    Args:
-        phone: E.164-formatted phone number.
-        otp: The OTP code submitted by the user.
-
-    Returns:
-        The verified CustomUser.
-
-    Raises:
-        InvalidOTPError: If OTP is incorrect or expired.
-        CustomUser.DoesNotExist: If no user found for this phone.
-    """
-    phone = format_phone(phone)
-
-    stored = get_otp_from_redis(phone)
-    if stored is None:
-        raise OTPExpiredError()
-
-    if not verify_otp_from_redis(phone, otp):
-        raise InvalidOTPError()
-
-    user = CustomUser.objects.get(phone=phone)
-    user.verify_phone()
-    logger.info("User %s verified via OTP", phone)
-    return user
-
-
-def login_with_otp(phone: str, otp: str) -> dict:
-    """
-    Verify OTP and return JWT tokens if successful.
-
-    Returns:
-        dict with 'access', 'refresh', and 'user' keys.
-
-    Raises:
-        InvalidOTPError, OTPExpiredError, CustomUser.DoesNotExist
-    """
-    phone = format_phone(phone)
-
-    stored = get_otp_from_redis(phone)
-    if stored is None:
-        raise OTPExpiredError()
-
-    if not verify_otp_from_redis(phone, otp):
-        raise InvalidOTPError()
-
-    try:
-        user = CustomUser.objects.get(phone=phone)
-    except CustomUser.DoesNotExist:
-        raise BusinessLogicError("No account found for this phone number.")
-
-    if not user.is_active:
-        raise BusinessLogicError("This account has been deactivated.")
-
-    user.is_verified = True
-    user.last_login_at = timezone.now()
-    user.save(update_fields=["is_verified", "last_login_at"])
-
-    tokens = get_tokens_for_user(user)
-    tokens["user"] = user
-    logger.info("User %s logged in via OTP", phone)
     return tokens
 
 

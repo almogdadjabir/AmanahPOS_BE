@@ -31,69 +31,6 @@ def generate_otp(length: int | None = None) -> str:
     return "".join(str(secrets.randbelow(10)) for _ in range(length))
 
 
-def store_otp_in_redis(phone: str, otp: str, expiry_seconds: int | None = None) -> None:
-    """
-    Store OTP in Redis with a TTL. Key format: otp:{phone}
-    """
-    expiry = expiry_seconds or getattr(settings, "OTP_EXPIRY_SECONDS", 300)
-    prefix = getattr(settings, "OTP_REDIS_PREFIX", "otp")
-    key = f"{prefix}:{phone}"
-    cache.set(key, otp, timeout=expiry)
-    logger.debug("OTP stored in Redis for %s (expires in %ds)", phone, expiry)
-
-
-def get_otp_from_redis(phone: str) -> str | None:
-    """
-    Retrieve the stored OTP for a phone number from Redis.
-    Returns None if not found or expired.
-    """
-    prefix = getattr(settings, "OTP_REDIS_PREFIX", "otp")
-    key = f"{prefix}:{phone}"
-    return cache.get(key)
-
-
-def delete_otp_from_redis(phone: str) -> None:
-    """
-    Delete the OTP for a phone number from Redis (after successful verification).
-    """
-    prefix = getattr(settings, "OTP_REDIS_PREFIX", "otp")
-    key = f"{prefix}:{phone}"
-    cache.delete(key)
-
-
-def set_otp_cooldown(phone: str, seconds: int | None = None) -> None:
-    """Mark that an OTP was just sent so rapid re-sends are blocked."""
-    ttl = seconds or getattr(settings, "OTP_COOLDOWN_SECONDS", 60)
-    cache.set(f"otp:cooldown:{phone}", 1, timeout=ttl)
-
-
-def get_otp_cooldown_remaining(phone: str) -> int:
-    """Return seconds remaining on the cooldown, 0 if no cooldown is active."""
-    key = f"otp:cooldown:{phone}"
-    if hasattr(cache, "ttl"):
-        ttl = cache.ttl(key)
-        return max(0, ttl) if ttl else 0
-    return 0 if cache.get(key) is None else 60
-
-
-def verify_otp_from_redis(phone: str, otp: str) -> bool:
-    """
-    Verify the OTP for a given phone number.
-    Returns True if correct, False otherwise.
-    Deletes OTP from Redis on successful verification.
-    """
-    stored_otp = get_otp_from_redis(phone)
-    if stored_otp is None:
-        logger.info("OTP verification failed for %s: OTP not found or expired", phone)
-        return False
-    if stored_otp != otp:
-        logger.info("OTP verification failed for %s: incorrect OTP", phone)
-        return False
-    delete_otp_from_redis(phone)
-    logger.info("OTP verified successfully for %s", phone)
-    return True
-
-
 # ─── Per-channel hashed OTP ──────────────────────────────────────────────────
 #
 # Redis key scheme:

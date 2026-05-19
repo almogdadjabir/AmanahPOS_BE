@@ -19,9 +19,7 @@ from .serializers import (
     LoginOTPSerializer,
     LoginOTPVerifySerializer,
     LoginPasswordSerializer,
-    OTPVerifySerializer,
     RegisterSerializer,
-    ResendOTPSerializer,
     SetPasswordSerializer,
     UserProfileSerializer,
     StaffUserSerializer,
@@ -30,16 +28,13 @@ from .serializers import (
 )
 from .services import (
     get_default_bankak_account,
-    login_with_otp,
     login_with_password,
     register_user,
     remove_bankak_account,
     request_login_otp,
-    send_otp,
     set_bankak_account,
     set_user_password,
     verify_login_otp,
-    verify_otp,
     get_tokens_for_user,
 )
 
@@ -88,58 +83,6 @@ class RegisterView(APIView):
                 },
             },
             status=status.HTTP_201_CREATED,
-        )
-
-
-class OTPVerifyView(APIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
-    throttle_classes = [OTPRateThrottle]
-
-    def post(self, request):
-        serializer = OTPVerifySerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        user = verify_otp(phone=data["phone"], otp=data["otp"])
-        tokens = get_tokens_for_user(user)
-
-        return Response(
-            {
-                "success": True,
-                "message": "Phone verified successfully.",
-                "data": {
-                    "access": tokens["access"],
-                    "refresh": tokens["refresh"],
-                    "user": UserProfileSerializer(user).data,
-                },
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
-class ResendOTPView(APIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]
-    throttle_classes = [OTPRateThrottle]
-
-    def post(self, request):
-        serializer = ResendOTPSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        phone = serializer.validated_data["phone"]
-
-        # Ensure user exists
-        if not CustomUser.objects.filter(phone=phone).exists():
-            raise BusinessLogicError("No account found for this phone number.")
-
-        send_otp(phone)
-
-        return Response(
-            {
-                "success": True,
-                "message": "OTP resent to your phone.",
-            },
-            status=status.HTTP_200_OK,
         )
 
 
