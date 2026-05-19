@@ -131,3 +131,46 @@ class TestSaleListSearch(TestCase):
         self.assertEqual(resp.status_code, 200)
         for sale in resp.data["results"]:
             self.assertEqual(sale["payment_method"], "credit")
+
+
+# ─── Task 3: offline sync receipt_number ─────────────────────────────────────
+
+class TestOfflineSyncReceiptNumber(TestCase):
+    def setUp(self):
+        self.owner = make_owner("+249900000003")
+        self.business = make_business(self.owner)
+        self.shop = make_shop(self.business)
+        self.product = make_product(self.business)
+        seed_stock(self.product, self.shop, 50)
+        self.client = make_auth_client(self.owner)
+
+    def test_offline_sync_result_includes_receipt_number(self):
+        payload = {"sales": [{
+            "client_sale_id": str(uuid.uuid4()),
+            "shop": str(self.shop.id),
+            "items": [{"product_id": str(self.product.id), "quantity": "1"}],
+            "payment_method": "cash",
+        }]}
+        resp = self.client.post("/api/v1/sales/offline-sync/", payload, format="json")
+        self.assertEqual(resp.status_code, 200)
+        result = resp.data["results"][0]
+        self.assertEqual(result["status"], "synced")
+        self.assertIn("receipt_number", result)
+        self.assertIsNotNone(result["receipt_number"])
+
+    def test_idempotent_sync_also_includes_receipt_number(self):
+        client_id = str(uuid.uuid4())
+        payload = {"sales": [{
+            "client_sale_id": client_id,
+            "shop": str(self.shop.id),
+            "items": [{"product_id": str(self.product.id), "quantity": "1"}],
+            "payment_method": "cash",
+        }]}
+        # First sync
+        self.client.post("/api/v1/sales/offline-sync/", payload, format="json")
+        # Second sync (idempotent)
+        resp = self.client.post("/api/v1/sales/offline-sync/", payload, format="json")
+        result = resp.data["results"][0]
+        self.assertEqual(result["status"], "synced")
+        self.assertIn("receipt_number", result)
+        self.assertIsNotNone(result["receipt_number"])

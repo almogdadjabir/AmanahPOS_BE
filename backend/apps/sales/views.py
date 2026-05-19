@@ -324,6 +324,7 @@ def _sync_one_sale(request, tenant, sale_data: dict, synced_at) -> dict:
             "client_sale_id": client_sale_id,
             "status": "synced",
             "server_sale_id": str(existing.id),
+            "receipt_number": existing.receipt_number,
             "message": "Already synced.",
         }
 
@@ -372,6 +373,7 @@ def _sync_one_sale(request, tenant, sale_data: dict, synced_at) -> dict:
             "client_sale_id": client_sale_id,
             "status": "synced",
             "server_sale_id": str(sale.id),
+            "receipt_number": sale.receipt_number,
             "message": None,
         }
     except Exception as exc:
