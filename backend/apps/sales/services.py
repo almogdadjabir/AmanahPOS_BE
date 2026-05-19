@@ -232,6 +232,23 @@ def process_refund(sale: Sale, items: list[dict], notes: str = "", refunded_by=N
         for si in sale.items.select_related("product").all()
     }
 
+    # Sum already-returned qty per product from prior refund stock movements
+    from apps.inventory.models import StockMovement
+    from django.db.models import Sum
+    already_returned: dict[str, Decimal] = {}
+    prior_movements = (
+        StockMovement.objects
+        .filter(
+            shop=sale.shop,
+            movement_type=MovementType.RETURN,
+            reference__startswith=f"{sale.receipt_number}-R",
+        )
+        .values("product_id")
+        .annotate(total=Sum("quantity"))
+    )
+    for row in prior_movements:
+        already_returned[str(row["product_id"])] = row["total"]
+
     for item_data in items:
         pid = str(item_data["product_id"])
         if pid not in sale_items_map:
@@ -240,10 +257,12 @@ def process_refund(sale: Sale, items: list[dict], notes: str = "", refunded_by=N
                 code="PRODUCT_NOT_IN_SALE",
             )
         original_qty = sale_items_map[pid].quantity
-        if Decimal(str(item_data["quantity"])) > original_qty:
+        returned_so_far = already_returned.get(pid, Decimal("0"))
+        remaining_qty = original_qty - returned_so_far
+        if Decimal(str(item_data["quantity"])) > remaining_qty:
             raise BusinessLogicError(
-                f"Return quantity {item_data['quantity']} exceeds original quantity "
-                f"{original_qty} for product {pid}.",
+                f"Return quantity {item_data['quantity']} exceeds remaining returnable quantity "
+                f"{remaining_qty} for product {pid}.",
                 code="QUANTITY_EXCEEDED",
             )
 

@@ -309,6 +309,27 @@ class TestProcessRefund(TestCase):
         self.assertIn("unit_price", item)
         self.assertIn("subtotal", item)
 
+    def test_cannot_over_refund_across_partial_refunds(self):
+        from apps.sales.services import process_refund
+        from apps.core.exceptions import BusinessLogicError
+        # First partial refund: return 2 of 3
+        process_refund(
+            sale=self.sale,
+            items=[{"product_id": str(self.product.id), "quantity": Decimal("2")}],
+            notes="First partial",
+            refunded_by=self.owner,
+        )
+        self.sale.refresh_from_db()
+        # Second refund: try to return 2 more, but only 1 remains
+        with self.assertRaises(BusinessLogicError) as ctx:
+            process_refund(
+                sale=self.sale,
+                items=[{"product_id": str(self.product.id), "quantity": Decimal("2")}],
+                notes="Over-refund attempt",
+                refunded_by=self.owner,
+            )
+        self.assertEqual(ctx.exception.detail.code, "QUANTITY_EXCEEDED")
+
 
 class TestRefundView(TestCase):
     def setUp(self):

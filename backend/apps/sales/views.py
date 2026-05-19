@@ -677,7 +677,7 @@ class SaleRefundView(APIView):
         try:
             sale = Sale.objects.select_related(
                 "tenant", "shop"
-            ).prefetch_related("items__product").get(pk=pk, tenant=tenant)
+            ).prefetch_related("items__product").select_for_update().get(pk=pk, tenant=tenant)
         except Sale.DoesNotExist:
             raise NotFound("Sale not found.")
 
