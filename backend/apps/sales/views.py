@@ -4,6 +4,7 @@ Views for the sales app.
 import logging
 from decimal import Decimal
 
+from django.db.models import Q
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -69,10 +70,9 @@ class SaleListCreateView(APIView):
         if date_to:
             qs = qs.filter(created_at__date__lte=date_to)
 
-        # Unified search: receipt_number, customer name, customer phone
-        search_q = request.query_params.get("search")
+        # ?search= covers receipt_number, customer name/phone; ?receipt= is kept for backwards compatibility
+        search_q = request.query_params.get("search", "").strip()
         if search_q:
-            from django.db.models import Q
             qs = qs.filter(
                 Q(receipt_number__icontains=search_q) |
                 Q(customer__name__icontains=search_q) |
