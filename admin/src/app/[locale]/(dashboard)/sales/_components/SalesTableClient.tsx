@@ -75,7 +75,7 @@ export default function SalesTableClient({ sales, canRefund }: Props) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-border-soft">
           <p className="text-[13px] font-bold text-text-primary">{t('recentTitle')}</p>
           <span className="text-[11px] text-text-hint">
-            {sales.length} {t('noData')}
+            {sales.length} {sales.length === 1 ? t('sale') : t('sales')}
           </span>
         </div>
 

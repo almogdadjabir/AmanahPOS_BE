@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Drawer from '@/components/ds/Drawer';
 import Avatar from '@/components/ui/Avatar';
@@ -65,6 +66,7 @@ interface QtyEntry {
 
 function DrawerContent({ sale, canRefund, onClose }: Props) {
   const t = useTranslations('sales');
+  const router = useRouter();
 
   const [mode, setMode]   = useState<Mode>('view');
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +108,7 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
       setMode('refund');
     } else {
       onClose();
+      router.refresh();
     }
   }
 
