@@ -3,12 +3,12 @@ import { getTranslations } from 'next-intl/server';
 import { apiGet } from '@/lib/api';
 import { withUserCache } from '@/lib/serverCache';
 import { CACHE_TAGS } from '@/lib/cacheTags';
-import { fetchBusiness } from '@/services/owner';
+import { fetchBusiness, fetchUserProfile } from '@/services/owner';
 import { ShopSwitcherBar } from '@/components/ShopSwitcherBar';
+import SalesTableClient from './_components/SalesTableClient';
 
 export const dynamic = 'force-dynamic';
 import type { ApiList, ApiResponse, Sale, SalesSummary, SalesShopBreakdown } from '@/types/api';
-import Avatar from '@/components/ui/Avatar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SectionError } from '@/components/SectionError';
 import { TableSkeleton, ChartSkeleton } from '@/components/ds/Skeleton';
@@ -63,7 +63,7 @@ const _todaySummary = cache(async (today: string, shopId: string | undefined) =>
 const _recentSales = cache(async (shopId: string | undefined) =>
   withUserCache(
     (tok) => apiGet<ApiList<Sale>>('/api/v1/sales/', {
-      status: 'completed', limit: 15, page: 1, shop: shopId,
+      limit: 15, page: 1, shop: shopId,
     }, { token: tok }),
     [CACHE_TAGS.sales, 'sp-recent', shopId ?? ''],
     15,
@@ -103,14 +103,6 @@ const METHOD_TEXT: Record<string, string> = {
   split:          'text-slate-500',
   credit:         'text-rose-500',
 };
-const STATUS_STYLE: Record<string, string> = {
-  completed:      'bg-success/10 text-success',
-  pending:        'bg-warning/10 text-warning',
-  cancelled:      'bg-danger/10 text-danger',
-  refunded:       'bg-info/10 text-info',
-  partial_refund: 'bg-orange-100 text-orange-600',
-};
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function SalesPage({
@@ -202,7 +194,7 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
   const bankakAcct  = bankakSales.find(s => s.bankak_account_snapshot)?.bankak_account_snapshot ?? null;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
       {/* Today */}
       <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
@@ -252,6 +244,27 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
           {bankakAcct && (
             <span className="font-mono text-success/80 ml-1.5">· {bankakAcct}</span>
           )}
+        </p>
+      </div>
+
+      {/* Today's refunds */}
+      <div className="bg-white rounded-2xl border border-orange-100 shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+        <p className="text-[10px] font-black tracking-[.18em] uppercase text-orange-500 mb-3">
+          {t('refunds.todayTitle')}
+        </p>
+        <p className="text-[32px] font-black text-text-primary leading-none tabular-nums">
+          {fmtMoney(parseFloat(todayData?.total_refunds ?? '0'))}
+          <span className="text-[14px] font-semibold text-text-hint ml-1.5">SDG</span>
+        </p>
+        <p className="text-[12px] text-text-hint mt-2">
+          {(todayData?.refund_count ?? 0) === 0
+            ? t('refunds.noRefunds')
+            : `${todayData?.refund_count} ${
+                todayData?.refund_count === 1
+                  ? t('refunds.count')
+                  : t('refunds.counts')
+              }`
+          }
         </p>
       </div>
     </div>
@@ -343,77 +356,14 @@ async function SalesChartSection({ shopId }: { shopId?: string }) {
 // ── Section: recent transactions ──────────────────────────────────────────────
 
 async function SalesRecentSection({ shopId }: { shopId?: string }) {
-  const t = await getTranslations('sales');
-  const recentRes = await _recentSales(shopId);
+  const [recentRes, profileRes] = await Promise.all([
+    _recentSales(shopId),
+    fetchUserProfile(),
+  ]);
   const recent = recentRes?.results ?? [];
+  const canRefund = profileRes?.data?.role === 'owner' || profileRes?.data?.is_staff === true;
 
-  return (
-    <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-border-soft">
-        <p className="text-[13px] font-bold text-text-primary">{t('recentTitle')}</p>
-        <span className="text-[11px] text-text-hint">{recent.length} {t('noData')}</span>
-      </div>
-
-      {recent.length === 0 ? (
-        <div className="px-5 py-12 text-center">
-          <p className="text-[13px] text-text-hint">{t('noTransactions')}</p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border-soft">
-                {[t('columns.receipt'), t('columns.cashier'), t('columns.method'), t('columns.status'), t('columns.items'), t('columns.amount'), t('columns.date')].map(h => (
-                  <th key={h} className="text-start px-4 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-text-hint last:text-end whitespace-nowrap">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {recent.map(sale => {
-                const date = new Date(sale.created_at).toLocaleDateString('en-US', {
-                  month: 'short', day: 'numeric',
-                });
-                return (
-                  <tr key={sale.id} className="border-b border-border-soft/60 hover:bg-surface-soft transition-colors last:border-0">
-                    <td className="px-4 py-3 font-mono text-[11px] text-text-hint whitespace-nowrap">
-                      {sale.receipt_number}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <Avatar name={sale.cashier_name} size={22} />
-                        <span className="text-[12px] text-text-primary whitespace-nowrap">{sale.cashier_name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${METHOD_TEXT[sale.payment_method] ?? 'text-text-secondary'}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${METHOD_COLOR[sale.payment_method] ?? 'bg-slate-300'}`} />
-                        {METHOD_LABEL[sale.payment_method] ?? sale.payment_method}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[sale.status] ?? 'bg-surface-muted text-text-hint'}`}>
-                        {sale.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-[12px] text-text-secondary">{sale.item_count}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-[13px] font-bold text-text-primary tabular-nums">
-                        {fmtMoney(parseFloat(sale.net_amount))}
-                        <span className="text-[10px] font-normal text-text-hint ml-1">SDG</span>
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-[11px] text-text-hint text-end whitespace-nowrap">{date}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
+  return <SalesTableClient sales={recent} canRefund={canRefund} />;
 }
 
 // ── Section: per-shop revenue breakdown ──────────────────────────────────────
@@ -507,8 +457,8 @@ function ShopBreakdownSkeleton() {
 
 function SalesKpiSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {Array.from({ length: 3 }).map((_, i) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="bg-white rounded-2xl border border-border-soft p-5 space-y-3 animate-pulse">
           <div className="h-2.5 w-16 rounded bg-muted" />
           <div className="h-8 w-28 rounded bg-muted" />
