@@ -634,6 +634,26 @@
       "items": "الأصناف",
       "amount": "المبلغ",
       "date": "التاريخ"
+    },
+    "drawer": {
+      "title": "تفاصيل البيع",
+      "cashier": "الكاشير",
+      "method": "طريقة الدفع",
+      "items": "العناصر",
+      "unitPrice": "سعر الوحدة",
+      "qty": "الكمية",
+      "subtotal": "المجموع الفرعي",
+      "refundBtn": "استرداد عناصر",
+      "confirmRefund": "تأكيد الاسترداد",
+      "cancel": "إلغاء",
+      "qtyLabel": "إرجاع",
+      "refundTotal": "إجمالي الاسترداد"
+    },
+    "refunds": {
+      "todayTitle": "مردودات اليوم",
+      "count": "مرتجع",
+      "counts": "مرتجعات",
+      "noRefunds": "لا مردودات اليوم"
     }
   },
   "inventory": {

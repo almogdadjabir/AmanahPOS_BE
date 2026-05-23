@@ -634,6 +634,26 @@
       "items": "Items",
       "amount": "Amount",
       "date": "Date"
+    },
+    "drawer": {
+      "title": "Sale Detail",
+      "cashier": "Cashier",
+      "method": "Payment Method",
+      "items": "Items",
+      "unitPrice": "Unit price",
+      "qty": "Qty",
+      "subtotal": "Subtotal",
+      "refundBtn": "Refund Items",
+      "confirmRefund": "Confirm Refund",
+      "cancel": "Cancel",
+      "qtyLabel": "Return",
+      "refundTotal": "Refund total"
+    },
+    "refunds": {
+      "todayTitle": "Today's Refunds",
+      "count": "refund",
+      "counts": "refunds",
+      "noRefunds": "No refunds today"
     }
   },
   "inventory": {
