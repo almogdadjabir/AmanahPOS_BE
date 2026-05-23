@@ -274,7 +274,7 @@ class SalesSummaryView(APIView):
                 }
                 for row in payment_breakdown
             ],
-            "refund_count":  refund_summary["refund_count"]  or 0,
+            "refund_count": refund_summary["refund_count"] or 0,
             "total_refunds": str(refund_summary["total_refunds"] or 0),
         }
 

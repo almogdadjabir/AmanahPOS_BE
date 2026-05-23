@@ -442,7 +442,7 @@ class TestSalesSummaryRefundFields(TestCase):
         return sale
 
     def test_refund_fields_present_with_zero_refunds(self):
-        self._direct_sale("completed")
+        self._direct_sale(SaleStatus.COMPLETED)
         resp = self.client.get("/api/v1/sales/summary/")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()["data"]
@@ -452,9 +452,9 @@ class TestSalesSummaryRefundFields(TestCase):
         self.assertEqual(data["total_refunds"], "0")
 
     def test_refund_fields_count_refunded_and_partial(self):
-        self._direct_sale("completed")
-        self._direct_sale("refunded")
-        self._direct_sale("partial_refund")
+        self._direct_sale(SaleStatus.COMPLETED)
+        self._direct_sale(SaleStatus.REFUNDED)
+        self._direct_sale(SaleStatus.PARTIAL_REFUND)
         resp = self.client.get("/api/v1/sales/summary/")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()["data"]
