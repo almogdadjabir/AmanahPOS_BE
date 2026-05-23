@@ -64,6 +64,20 @@ export interface SalesSummary {
   total_discount: string;
   total_tax: string;
   avg_sale_value: string;
+  refund_count: number;
+  total_refunds: string;
+}
+
+export interface RefundResult {
+  refund_reference: string;
+  refund_total: string;
+  returned_items: {
+    product_id: string;
+    product_name: string;
+    quantity: string;
+    unit_price: string;
+    subtotal: string;
+  }[];
 }
 
 export interface SalesShopBreakdown {
