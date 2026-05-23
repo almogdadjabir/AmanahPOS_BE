@@ -405,3 +405,58 @@ class TestRefundView(TestCase):
         self.assertIn("quantity", item)
         self.assertIn("unit_price", item)
         self.assertIn("subtotal", item)
+
+
+class TestSalesSummaryRefundFields(TestCase):
+    """GET /api/v1/sales/summary/ must include refund_count and total_refunds."""
+
+    def setUp(self):
+        self.owner   = make_owner("+249900000099")
+        self.biz     = make_business(self.owner)
+        self.shop    = make_shop(self.biz)
+        self.product = make_product(self.biz)
+        seed_stock(self.product, self.shop, qty=20)
+        self.client  = make_auth_client(self.owner)
+
+    def _direct_sale(self, status="completed"):
+        sale = Sale.objects.create(
+            tenant=self.biz,
+            shop=self.shop,
+            cashier=self.owner,
+            receipt_number=f"REC-{uuid.uuid4().hex[:8]}",
+            total_amount="600.00",
+            net_amount="600.00",
+            discount_amount="0",
+            tax_amount="0",
+            payment_method="cash",
+            status=status,
+        )
+        SaleItem.objects.create(
+            sale=sale,
+            product=self.product,
+            quantity="1",
+            unit_price="600.00",
+            discount="0",
+            subtotal="600.00",
+        )
+        return sale
+
+    def test_refund_fields_present_with_zero_refunds(self):
+        self._direct_sale("completed")
+        resp = self.client.get("/api/v1/sales/summary/")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()["data"]
+        self.assertIn("refund_count",  data)
+        self.assertIn("total_refunds", data)
+        self.assertEqual(data["refund_count"], 0)
+        self.assertEqual(data["total_refunds"], "0")
+
+    def test_refund_fields_count_refunded_and_partial(self):
+        self._direct_sale("completed")
+        self._direct_sale("refunded")
+        self._direct_sale("partial_refund")
+        resp = self.client.get("/api/v1/sales/summary/")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()["data"]
+        self.assertEqual(data["refund_count"], 2)
+        self.assertAlmostEqual(float(data["total_refunds"]), 1200.0, places=1)

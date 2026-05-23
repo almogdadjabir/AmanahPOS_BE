@@ -232,6 +232,23 @@ class SalesSummaryView(APIView):
             bankak_revenue=Sum("net_amount", filter=Q(payment_method=PaymentMethod.BANKAK)),
         )
 
+        # ── Refund aggregates (same date/shop window, different statuses) ─────
+        refund_qs = Sale.objects.filter(
+            tenant=tenant,
+            status__in=[SaleStatus.REFUNDED, SaleStatus.PARTIAL_REFUND],
+        )
+        if shop_id:
+            refund_qs = refund_qs.filter(shop_id=shop_id)
+        if date_from:
+            refund_qs = refund_qs.filter(created_at__date__gte=date_from)
+        if date_to:
+            refund_qs = refund_qs.filter(created_at__date__lte=date_to)
+
+        refund_summary = refund_qs.aggregate(
+            refund_count=Count("id"),
+            total_refunds=Sum("net_amount"),
+        )
+
         # Per-method breakdown (all methods present in this period)
         payment_breakdown = list(
             qs.values("payment_method")
@@ -257,6 +274,8 @@ class SalesSummaryView(APIView):
                 }
                 for row in payment_breakdown
             ],
+            "refund_count":  refund_summary["refund_count"]  or 0,
+            "total_refunds": str(refund_summary["total_refunds"] or 0),
         }
 
         if request.query_params.get("breakdown") == "shops":
