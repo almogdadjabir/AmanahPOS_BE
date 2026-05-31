@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Search, X, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -74,7 +75,8 @@ function UserSearch({ value, onChange }: { value: UserOption | null; onChange: (
 }
 
 export default function SendDrawer({ onClose }: { onClose?: () => void }) {
-  const t = useTranslations('notifications');
+  const t      = useTranslations('notifications');
+  const router = useRouter();
 
   const [mode,        setMode]        = useState<Mode>('push');
   const [user,        setUser]        = useState<UserOption | null>(null);
@@ -122,6 +124,10 @@ export default function SendDrawer({ onClose }: { onClose?: () => void }) {
         );
         setResult({ ok: true, text: t('smsSent') });
       }
+      // Refresh the logs table so the new delivery row appears immediately,
+      // then close the drawer after a short pause so the user sees the confirmation.
+      router.refresh();
+      setTimeout(() => onClose?.(), 1500);
     } catch (err: unknown) {
       const msg = (err as { body?: { message?: string }; message?: string })?.body?.message
         ?? (err as { message?: string })?.message ?? 'Failed to send.';
