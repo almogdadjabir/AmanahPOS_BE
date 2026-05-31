@@ -11,6 +11,7 @@ import {
   toggleAdminTemplate,
 } from '../../actions';
 import type { NotificationTemplate } from '@/types/api';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 const CHANNEL_COLORS: Record<string, string> = {
   push: 'bg-blue-100 text-blue-700',
@@ -68,40 +69,40 @@ export default function TemplatesList() {
 
       {/* Table */}
       <div className="rounded-xl border border-border overflow-hidden bg-card">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted/50">
-              <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('templateName')}</th>
-              <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden md:table-cell">{t('templateKey')}</th>
-              <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">{t('templateChannel')}</th>
-              <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">{t('templateCategory')}</th>
-              <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('templateEnabled')}</th>
-              <th className="px-4 py-3" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
+        <Table className="w-full text-sm">
+          <TableHeader>
+            <TableRow className="border-b border-border bg-muted/50">
+              <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('templateName')}</TableHead>
+              <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden md:table-cell">{t('templateKey')}</TableHead>
+              <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">{t('templateChannel')}</TableHead>
+              <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">{t('templateCategory')}</TableHead>
+              <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('templateEnabled')}</TableHead>
+              <TableHead className="px-4 py-3" />
+            </TableRow>
+          </TableHeader>
+          <TableBody className="divide-y divide-border">
             {loading && (
-              <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">Loading…</td></tr>
+              <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">Loading…</TableCell></TableRow>
             )}
             {!loading && templates.length === 0 && (
-              <tr>
-                <td colSpan={6} className="text-center py-12 text-muted-foreground">
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
                   <p className="font-semibold">{t('noTemplates')}</p>
                   <p className="text-xs mt-1">{t('createFirst')}</p>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             )}
             {templates.map((tmpl) => (
-              <tr key={tmpl.id} className="hover:bg-muted/30 transition-colors">
-                <td className="px-4 py-3 font-medium text-foreground">{tmpl.name}</td>
-                <td className="px-4 py-3 font-mono text-xs text-muted-foreground hidden md:table-cell">{tmpl.key}</td>
-                <td className="px-4 py-3 hidden lg:table-cell">
+              <TableRow key={tmpl.id} className="hover:bg-muted/30 transition-colors">
+                <TableCell className="px-4 py-3 font-medium text-foreground">{tmpl.name}</TableCell>
+                <TableCell className="px-4 py-3 font-mono text-xs text-muted-foreground hidden md:table-cell">{tmpl.key}</TableCell>
+                <TableCell className="px-4 py-3 hidden lg:table-cell">
                   <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide', CHANNEL_COLORS[tmpl.channel] ?? 'bg-muted text-muted-foreground')}>
                     {tmpl.channel}
                   </span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell capitalize">{tmpl.category}</td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="px-4 py-3 text-muted-foreground hidden lg:table-cell capitalize">{tmpl.category}</TableCell>
+                <TableCell className="px-4 py-3">
                   <button
                     onClick={() => handleToggle(tmpl.id)}
                     className={cn('flex items-center gap-1.5 text-xs font-semibold transition-colors', tmpl.is_enabled ? 'text-green-600' : 'text-muted-foreground')}
@@ -111,8 +112,8 @@ export default function TemplatesList() {
                       : <><ToggleLeft  size={16} />{t('templateDisabled')}</>
                     }
                   </button>
-                </td>
-                <td className="px-4 py-3">
+                </TableCell>
+                <TableCell className="px-4 py-3">
                   <div className="flex items-center gap-2 justify-end">
                     <button
                       onClick={() => router.push(`/notifications/templates/${tmpl.id}/edit`)}
@@ -127,11 +128,11 @@ export default function TemplatesList() {
                       <Trash2 size={14} />
                     </button>
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Pagination */}

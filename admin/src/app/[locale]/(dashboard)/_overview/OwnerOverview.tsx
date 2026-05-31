@@ -7,6 +7,7 @@ import StatCard from '@/components/ds/StatCard';
 import EmptyState from '@/components/ds/EmptyState';
 import { Badge } from '@/components/ui/badge';
 import Avatar from '@/components/ui/Avatar';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 interface Props {
   businessType?: BusinessType;
@@ -79,11 +80,11 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
       <div className={`grid grid-cols-1 gap-4 ${!isRestaurant ? 'lg:grid-cols-3' : ''}`}>
 
         {/* Revenue chart */}
-        <div className={`bg-white rounded-xl border border-border-soft shadow-card p-4 ${!isRestaurant ? 'lg:col-span-2' : ''}`}>
+        <div className={`bg-white rounded-xl border border-border shadow-card p-4 ${!isRestaurant ? 'lg:col-span-2' : ''}`}>
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-[13px] font-semibold text-text-primary">{t('owner.dailyRevenue')}</p>
-              <p className="text-xs text-text-hint mt-0.5">
+              <p className="text-[13px] font-semibold text-foreground">{t('owner.dailyRevenue')}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {t('owner.last30Days')}
                 {selectedShop && (
                   <span className="ml-1.5 text-primary font-semibold">· {t('owner.filtered')}</span>
@@ -91,8 +92,8 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
               </p>
             </div>
             <div className="text-end">
-              <p className="text-lg font-bold text-text-primary">{formatCurrency(monthRevenue)}</p>
-              <p className="text-[11px] text-text-hint">{monthSales} transactions</p>
+              <p className="text-lg font-bold text-foreground">{formatCurrency(monthRevenue)}</p>
+              <p className="text-[11px] text-muted-foreground">{monthSales} transactions</p>
             </div>
           </div>
           {chartData.every(d => d.revenue === 0)
@@ -108,11 +109,11 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
 
         {/* Low stock — shops only */}
         {!isRestaurant && (
-          <div className="bg-white rounded-xl border border-border-soft shadow-card p-4 flex flex-col">
+          <div className="bg-white rounded-xl border border-border shadow-card p-4 flex flex-col">
             <div className="flex items-start justify-between mb-3">
               <div>
-                <p className="text-[13px] font-semibold text-text-primary">{t('owner.lowStockTitle')}</p>
-                <p className="text-xs text-text-hint mt-0.5">{t('owner.lowStockSub')}</p>
+                <p className="text-[13px] font-semibold text-foreground">{t('owner.lowStockTitle')}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{t('owner.lowStockSub')}</p>
               </div>
               {lowStockCount > 0 && <Badge dot variant="danger">{lowStockCount}</Badge>}
             </div>
@@ -122,8 +123,8 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
                 <div className="w-10 h-10 rounded-full bg-success-light text-success flex items-center justify-center mb-3">
                   <CheckIcon />
                 </div>
-                <p className="text-[13px] font-medium text-text-primary">{t('owner.allStocked')}</p>
-                <p className="text-xs text-text-hint mt-1">{t('owner.allStockedDesc')}</p>
+                <p className="text-[13px] font-medium text-foreground">{t('owner.allStocked')}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t('owner.allStockedDesc')}</p>
               </div>
             ) : (
               <div className="flex-1 space-y-2 overflow-y-auto">
@@ -135,11 +136,11 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
       </div>
 
       {/* ── Recent sales ──────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-border-soft shadow-card overflow-hidden">
-        <div className="px-4 py-3 border-b border-border-soft flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-border shadow-card overflow-hidden">
+        <div className="px-4 py-3 border-b border-border flex items-center justify-between">
           <div>
-            <p className="text-[13px] font-semibold text-text-primary">{t('owner.recentSales')}</p>
-            <p className="text-xs text-text-hint mt-0.5">{t('owner.latestTxns')}</p>
+            <p className="text-[13px] font-semibold text-foreground">{t('owner.recentSales')}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{t('owner.latestTxns')}</p>
           </div>
           <a href="sales" className="text-xs font-semibold text-primary hover:underline">{t('owner.viewAll')}</a>
         </div>
@@ -152,20 +153,20 @@ export default async function OwnerOverview({ businessType, selectedShop }: Prop
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border-soft">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow className="border-b border-border">
                   {[t('owner.receipt'), t('owner.cashier'), 'Method', t('owner.items'), 'Amount', 'Time'].map(h => (
-                    <th key={h} className="text-start px-4 py-2.5 text-[11px] font-semibold text-text-hint uppercase tracking-wider last:text-end">
+                    <TableHead key={h} className="text-start px-4 py-2.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider last:text-end">
                       {h}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-soft">
+                </TableRow>
+              </TableHeader>
+              <TableBody className="divide-y divide-border-soft">
                 {recentSales.map(sale => <SaleRow key={sale.id} sale={sale} />)}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
@@ -196,7 +197,7 @@ async function SubscriptionBanner({ sub }: { sub: Subscription }) {
             ? `${t('owner.subExpired')} · ${sub.plan.name}`
             : `${t('owner.subExpiringSoon')} ${sub.days_remaining} ${t('owner.days')}`}
         </p>
-        <p className="text-xs text-text-secondary mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           {expired ? t('owner.renewExpired') : `${t('owner.planLabel')}: ${sub.plan.name} — ${t('owner.considerRenewing')}`}
         </p>
       </div>
@@ -214,32 +215,32 @@ function SaleRow({ sale }: { sale: Sale }) {
     mobile_wallet: 'Mobile', loyalty_points: 'Points', split: 'Split', credit: 'Credit',
   };
   return (
-    <tr className="hover:bg-surface-soft transition-colors">
-      <td className="px-4 py-3 font-mono text-xs text-text-hint">{sale.receipt_number}</td>
-      <td className="px-4 py-3">
+    <TableRow className="hover:bg-muted/40 transition-colors">
+      <TableCell className="px-4 py-3 font-mono text-xs text-muted-foreground">{sale.receipt_number}</TableCell>
+      <TableCell className="px-4 py-3">
         <div className="flex items-center gap-2">
           <Avatar name={sale.cashier_name} size={24} />
-          <span className="text-[13px] text-text-primary">{sale.cashier_name}</span>
+          <span className="text-[13px] text-foreground">{sale.cashier_name}</span>
         </div>
-      </td>
-      <td className="px-4 py-3">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-muted text-[11px] font-medium text-text-secondary">
+      </TableCell>
+      <TableCell className="px-4 py-3">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted text-[11px] font-medium text-muted-foreground">
           {methods[sale.payment_method] ?? sale.payment_method}
         </span>
-      </td>
-      <td className="px-4 py-3 text-[13px] text-text-secondary">{sale.item_count}</td>
-      <td className="px-4 py-3 font-semibold text-text-primary text-[13px]">{formatCurrency(parseFloat(sale.net_amount))}</td>
-      <td className="px-4 py-3 text-xs text-text-hint text-end">{time}</td>
-    </tr>
+      </TableCell>
+      <TableCell className="px-4 py-3 text-[13px] text-muted-foreground">{sale.item_count}</TableCell>
+      <TableCell className="px-4 py-3 font-semibold text-foreground text-[13px]">{formatCurrency(parseFloat(sale.net_amount))}</TableCell>
+      <TableCell className="px-4 py-3 text-xs text-muted-foreground text-end">{time}</TableCell>
+    </TableRow>
   );
 }
 
 function LowStockRow({ item }: { item: StockLevel }) {
   return (
-    <div className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-surface-soft">
+    <div className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-muted/40">
       <div className="min-w-0">
-        <p className="text-[13px] font-medium text-text-primary truncate">{item.product_name}</p>
-        <p className="text-[11px] text-text-hint mt-0.5">{item.shop_name}</p>
+        <p className="text-[13px] font-medium text-foreground truncate">{item.product_name}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">{item.shop_name}</p>
       </div>
       <Badge dot variant={item.is_out_of_stock ? 'danger' : 'warning'} className="shrink-0">
         {item.is_out_of_stock ? 'Out' : item.quantity}

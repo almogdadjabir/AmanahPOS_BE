@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import Avatar from '@/components/ui/Avatar';
 import SaleDrawer from './SaleDrawer';
 import type { Sale } from '@/types/api';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 // ── Constants (mirrors existing sales/page.tsx constants) ─────────────────────
 
@@ -71,23 +72,23 @@ export default function SalesTableClient({ sales, canRefund }: Props) {
         />
       )}
 
-      <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-soft">
-          <p className="text-[13px] font-bold text-text-primary">{t('recentTitle')}</p>
-          <span className="text-[11px] text-text-hint">
+      <div className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <p className="text-[13px] font-bold text-foreground">{t('recentTitle')}</p>
+          <span className="text-[11px] text-muted-foreground">
             {sales.length} {sales.length === 1 ? t('sale') : t('sales')}
           </span>
         </div>
 
         {sales.length === 0 ? (
           <div className="px-5 py-12 text-center">
-            <p className="text-[13px] text-text-hint">{t('noTransactions')}</p>
+            <p className="text-[13px] text-muted-foreground">{t('noTransactions')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border-soft">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow className="border-b border-border">
                   {[
                     t('columns.receipt'),
                     t('columns.cashier'),
@@ -97,65 +98,65 @@ export default function SalesTableClient({ sales, canRefund }: Props) {
                     t('columns.amount'),
                     t('columns.date'),
                   ].map(h => (
-                    <th
+                    <TableHead
                       key={h}
-                      className="text-start px-4 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-text-hint last:text-end whitespace-nowrap"
+                      className="text-start px-4 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground last:text-end whitespace-nowrap"
                     >
                       {h}
-                    </th>
+                    </TableHead>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {sales.map(sale => {
                   const date = new Date(sale.created_at).toLocaleDateString('en-US', {
                     month: 'short', day: 'numeric',
                   });
                   return (
-                    <tr
+                    <TableRow
                       key={sale.id}
                       onClick={() => setSelectedSale(sale)}
-                      className="border-b border-border-soft/60 hover:bg-surface-soft transition-colors last:border-0 cursor-pointer"
+                      className="border-b border-border/60 hover:bg-muted/40 transition-colors last:border-0 cursor-pointer"
                     >
-                      <td className="px-4 py-3 font-mono text-[11px] text-text-hint whitespace-nowrap">
+                      <TableCell className="px-4 py-3 font-mono text-[11px] text-muted-foreground whitespace-nowrap">
                         {sale.receipt_number}
-                      </td>
-                      <td className="px-4 py-3">
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <Avatar name={sale.cashier_name} size={22} />
-                          <span className="text-[12px] text-text-primary whitespace-nowrap">
+                          <span className="text-[12px] text-foreground whitespace-nowrap">
                             {sale.cashier_name}
                           </span>
                         </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${METHOD_TEXT[sale.payment_method] ?? 'text-text-secondary'}`}>
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${METHOD_TEXT[sale.payment_method] ?? 'text-muted-foreground'}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${METHOD_COLOR[sale.payment_method] ?? 'bg-slate-300'}`} />
                           {METHOD_LABEL[sale.payment_method] ?? sale.payment_method}
                         </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[sale.status] ?? 'bg-surface-muted text-text-hint'}`}>
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_STYLE[sale.status] ?? 'bg-muted text-muted-foreground'}`}>
                           {sale.status.replace('_', ' ')}
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-[12px] text-text-secondary">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-[12px] text-muted-foreground">
                         {sale.item_count}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-[13px] font-bold text-text-primary tabular-nums">
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <span className="text-[13px] font-bold text-foreground tabular-nums">
                           {fmtMoney(parseFloat(sale.net_amount))}
-                          <span className="text-[10px] font-normal text-text-hint ms-1">SDG</span>
+                          <span className="text-[10px] font-normal text-muted-foreground ms-1">SDG</span>
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-[11px] text-text-hint text-end whitespace-nowrap">
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-[11px] text-muted-foreground text-end whitespace-nowrap">
                         {date}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

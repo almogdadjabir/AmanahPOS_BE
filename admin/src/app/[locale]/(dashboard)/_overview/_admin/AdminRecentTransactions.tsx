@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import Avatar from '@/components/ui/Avatar';
 import type { AdminRecentTransaction } from '@/types/api';
 import type { AdminStats } from './types';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 const METHOD_LABEL: Record<string, string> = {
   cash: 'Cash', bankak: 'Bankak', card: 'Card',
@@ -70,25 +71,25 @@ export default async function AdminRecentTransactions({ stats }: Props) {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border/60">
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow className="border-b border-border/60">
                 {headers.map(h => (
-                  <th
+                  <TableHead
                     key={h}
                     className="text-start px-4 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground last:text-end whitespace-nowrap"
                   >
                     {h}
-                  </th>
+                  </TableHead>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {txs.map(tx => (
                 <TxRow key={tx.id} tx={tx} />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
@@ -102,11 +103,11 @@ function TxRow({ tx }: { tx: AdminRecentTransaction }) {
   const amount = fmtMoney(parseFloat(tx.net_amount));
 
   return (
-    <tr className="border-b border-border/40 last:border-0 hover:bg-muted/40 transition-colors">
-      <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground whitespace-nowrap">
+    <TableRow className="border-b border-border/40 last:border-0 hover:bg-muted/40 transition-colors">
+      <TableCell className="px-4 py-3 font-mono text-[11px] text-muted-foreground whitespace-nowrap">
         {tx.receipt_number}
-      </td>
-      <td className="px-4 py-3">
+      </TableCell>
+      <TableCell className="px-4 py-3">
         <div className="flex items-center gap-2">
           <Avatar name={tx.business_name} size={22} />
           <div className="min-w-0">
@@ -116,29 +117,29 @@ function TxRow({ tx }: { tx: AdminRecentTransaction }) {
             <p className="text-[10px] text-muted-foreground truncate">{tx.shop_name}</p>
           </div>
         </div>
-      </td>
-      <td className="px-4 py-3">
+      </TableCell>
+      <TableCell className="px-4 py-3">
         <span className="text-[12px] text-foreground">{tx.cashier_name}</span>
-      </td>
-      <td className="px-4 py-3">
+      </TableCell>
+      <TableCell className="px-4 py-3">
         <span className={`inline-flex items-center gap-1 px-2 py-[3px] rounded-full text-[10px] font-bold ${
           METHOD_COLOR[tx.payment_method] ?? 'bg-muted text-muted-foreground'
         }`}>
           {METHOD_LABEL[tx.payment_method] ?? tx.payment_method}
         </span>
-      </td>
-      <td className="px-4 py-3">
+      </TableCell>
+      <TableCell className="px-4 py-3">
         <span className="text-[13px] font-bold text-foreground tabular-nums">
           {amount}
           <span className="text-[10px] font-normal text-muted-foreground ml-1">SDG</span>
         </span>
-      </td>
-      <td className="px-4 py-3 text-[11px] text-muted-foreground text-end whitespace-nowrap">
+      </TableCell>
+      <TableCell className="px-4 py-3 text-[11px] text-muted-foreground text-end whitespace-nowrap">
         <span className={`text-[10px] font-semibold mr-2 ${STATUS_COLOR[tx.status] ?? ''}`}>
           {tx.status}
         </span>
         {time}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
