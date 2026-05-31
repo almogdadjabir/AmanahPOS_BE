@@ -1,9 +1,16 @@
-import { Nunito_Sans, Tajawal } from 'next/font/google';
+import { Geist, Geist_Mono, Tajawal } from 'next/font/google';
 
-export const nunitoSans = Nunito_Sans({
+export const geist = Geist({
   subsets: ['latin'],
-  variable: '--font-nunito',
-  weight: ['400', '600', '700', '800', '900'],
+  variable: '--font-geist',
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
+
+export const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  weight: ['400', '500'],
   display: 'swap',
 });
 

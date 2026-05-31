@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
-import { nunitoSans, tajawal } from '@/lib/fonts';
+import { geist, geistMono, tajawal } from '@/lib/fonts';
 import '@/styles/globals.css';
 
 type Props = { children: React.ReactNode; params: Promise<{ locale: string }> };
@@ -26,7 +26,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   const dir = locale === 'ar' ? 'rtl' : 'ltr';
 
   return (
-    <html lang={locale} dir={dir} className={`${nunitoSans.variable} ${tajawal.variable}`}>
+    <html lang={locale} dir={dir} className={`${geist.variable} ${geistMono.variable} ${tajawal.variable}`}>
       <body suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           {children}

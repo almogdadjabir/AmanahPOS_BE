@@ -10,7 +10,7 @@ import type { UserProfile, BusinessType } from '@/types/api';
 import {
   LayoutGrid, Users, Store, CreditCard, Server,
   Receipt, Package, BarChart2, UserCheck, CreditCard as SubIcon,
-  LogOut, History, Bell, Sparkles,
+  LogOut, History, Bell, Sparkles, ChevronRight,
 } from 'lucide-react';
 
 const ADMIN_NAV = [
@@ -52,16 +52,19 @@ export default function Sidebar({ profile, businessType, isOpen, onClose }: Prop
 
   return (
     <>
+      {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-20 lg:hidden"
+          className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-20 lg:hidden"
           onClick={onClose}
         />
       )}
 
+      {/* ── Sidebar shell — light, hairline border ───────────────────────── */}
       <aside className={cn(
         'fixed inset-y-0 start-0 z-30 w-[220px] flex flex-col',
-        'bg-sidebar',
+        // Premium light: white bg, single hairline on the end edge
+        'bg-card border-e border-border',
         'transition-transform duration-200 ease-in-out',
         'lg:translate-x-0 lg:static lg:z-auto',
         isOpen  ? 'translate-x-0' : '-translate-x-full',
@@ -71,27 +74,27 @@ export default function Sidebar({ profile, businessType, isOpen, onClose }: Prop
       )}>
 
         {/* ── Brand ──────────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2.5 px-4 h-14 shrink-0 border-b border-white/[0.07]">
+        <div className="flex items-center gap-2.5 px-4 h-[60px] shrink-0 border-b border-border">
           <Logo size={28} />
           <div>
-            <div className="text-white text-[13px] font-bold leading-tight">
+            <div className="text-[13.5px] font-semibold text-foreground tracking-[-.015em] leading-tight">
               {isAdmin ? 'AmanaPOS' : (profile.full_name || 'AmanaPOS')}
             </div>
-            <div className="text-[10px] font-semibold leading-none mt-0.5 text-primary-light/50">
+            <div className="text-[10px] font-medium leading-none mt-0.5 text-muted-foreground">
               {isAdmin ? tNav('platformAdmin') : tNav('adminBadge')}
             </div>
           </div>
         </div>
 
         {/* ── Section label ──────────────────────────────────────────────── */}
-        <div className="px-4 pt-5 pb-1.5">
-          <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/20">
+        <div className="px-3 pt-4 pb-1.5">
+          <p className="text-[10px] font-semibold uppercase tracking-[.09em] text-icon-rest px-2 mb-1.5">
             {isAdmin ? tNav('platformLabel') : tNav('businessLabel')}
           </p>
         </div>
 
         {/* ── Navigation ─────────────────────────────────────────────────── */}
-        <nav className="flex-1 overflow-y-auto px-2 py-1 space-y-px">
+        <nav className="flex-1 overflow-y-auto px-2 space-y-px pb-2">
           {navItems.map(({ key, href, Icon }) => {
             const active = isActive(href);
             return (
@@ -100,43 +103,46 @@ export default function Sidebar({ profile, businessType, isOpen, onClose }: Prop
                 href={href}
                 onClick={onClose}
                 className={cn(
-                  'group flex items-center gap-2.5 px-3 py-[9px] rounded-lg text-[13px] font-medium',
-                  'transition-all duration-150 border-s-2',
+                  'group flex items-center gap-2.5 px-2.5 py-[7px] rounded-md text-[13px]',
+                  'transition-[background,color] duration-140',
                   active
-                    ? 'bg-white/[0.09] text-white border-primary'
-                    : 'text-white/50 hover:bg-white/[0.05] hover:text-white/80 border-transparent',
+                    // Active: teal tint bg, primary-700 text, teal icons — no border-s
+                    ? 'bg-primary-tint text-primary-700 font-medium [&_svg]:text-primary'
+                    // Rest: muted text, icon-rest icons
+                    : 'text-muted-foreground font-[450] hover:bg-muted hover:text-foreground [&_svg]:text-icon-rest hover:[&_svg]:text-muted-foreground',
                 )}
               >
-                <Icon
-                  size={15}
-                  className={cn(
-                    'shrink-0 transition-colors',
-                    active ? 'text-primary-light' : 'text-white/30 group-hover:text-white/60',
-                  )}
-                />
+                <Icon size={16} className="shrink-0 transition-colors" />
                 <span className="flex-1 truncate">{tNav(key as Parameters<typeof tNav>[0])}</span>
                 {key === 'inventory' && isPremiumInventory && (
-                  <Sparkles size={10} style={{ color: '#D97706' }} className="shrink-0" />
+                  <Sparkles size={10} className="shrink-0 text-amber-500" />
                 )}
               </Link>
             );
           })}
         </nav>
 
-        {/* ── User + Logout ───────────────────────────────────────────────── */}
-        <div className="px-2 pb-3 pt-1 border-t border-white/[0.07]">
-          <div className="px-3 py-2.5 mt-1 mb-1">
-            <p className="text-[12px] font-semibold text-white/70 truncate">
-              {profile.full_name || profile.phone}
-            </p>
-            <p className="text-[10px] text-white/30 mt-0.5">{profile.phone}</p>
+        {/* ── User row + logout ───────────────────────────────────────────── */}
+        <div className="px-2 pb-3 pt-2 border-t border-border">
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md mb-0.5 transition-colors hover:bg-muted cursor-default">
+            {/* Initials avatar */}
+            <div className="w-[30px] h-[30px] rounded-lg bg-muted flex items-center justify-center font-semibold text-[11.5px] text-muted-foreground shrink-0">
+              {(profile.full_name || profile.phone).slice(0, 2).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[12.5px] font-medium text-foreground truncate leading-tight">
+                {profile.full_name || profile.phone}
+              </p>
+              <p className="text-[10.5px] text-muted-foreground mt-px">{profile.phone}</p>
+            </div>
+            <ChevronRight size={13} className="text-icon-rest shrink-0" />
           </div>
           <form action={logoutAction}>
             <button
               type="submit"
-              className="w-full flex items-center gap-2.5 px-3 py-[9px] rounded-lg text-[13px] font-medium text-white/40 hover:bg-white/[0.06] hover:text-white/70 transition-all"
+              className="w-full flex items-center gap-2.5 px-2.5 py-[7px] rounded-md text-[13px] font-[450] text-muted-foreground hover:bg-muted hover:text-foreground transition-colors [&_svg]:text-icon-rest"
             >
-              <LogOut size={15} className="shrink-0 text-white/25" />
+              <LogOut size={15} className="shrink-0" />
               {tNav('logout')}
             </button>
           </form>

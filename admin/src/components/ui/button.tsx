@@ -4,23 +4,29 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
+  // Base — Geist font, precise size, micro-press, teal focus ring
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-[13px] font-medium tracking-[-.01em] transition-[background,border-color,box-shadow,transform,opacity] duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-[15px]',
   {
     variants: {
       variant: {
-        default:     'bg-primary text-primary-foreground hover:bg-primary/90',
-        secondary:   'bg-secondary text-secondary-foreground border border-border hover:bg-muted',
-        outline:     'border border-input bg-background hover:bg-muted hover:text-foreground',
-        destructive: 'bg-destructive text-white hover:bg-destructive/90',
-        ghost:       'hover:bg-muted hover:text-foreground',
-        link:        'text-primary underline-offset-4 hover:underline',
+        // Teal + color-matched shadow, darkens on hover, presses on active
+        default:     'bg-primary text-primary-foreground shadow-teal hover:bg-primary-600 active:shadow-xs',
+        // White card with subtle edge, lifts on hover
+        secondary:   'bg-card text-foreground border border-input shadow-xs hover:bg-muted hover:border-border-strong',
+        // Transparent with border, same lift
+        outline:     'border border-input bg-card shadow-xs hover:bg-muted hover:border-border-strong [&_svg]:text-muted-foreground',
+        // Danger — red with subtle shadow
+        destructive: 'bg-danger text-white shadow-xs hover:bg-danger-hover active:shadow-none',
+        // No background, just text color shift
+        ghost:       'text-foreground hover:bg-muted [&_svg]:text-icon-rest hover:[&_svg]:text-muted-foreground',
+        link:        'text-primary underline-offset-4 hover:underline p-0 h-auto shadow-none',
       },
       size: {
-        default:   'h-9 px-4 py-2',
-        sm:        'h-8 rounded-md px-3 text-xs',
-        lg:        'h-10 rounded-md px-6',
+        default:   'h-9 px-3.5',
+        sm:        'h-8 px-3 text-[12.5px]',
+        lg:        'h-10 px-5 text-[13.5px]',
         icon:      'h-9 w-9',
-        'icon-sm': 'h-7 w-7',
+        'icon-sm': 'h-8 w-8',
       },
     },
     defaultVariants: {
