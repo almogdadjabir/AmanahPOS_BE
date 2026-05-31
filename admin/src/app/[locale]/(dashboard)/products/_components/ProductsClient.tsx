@@ -84,8 +84,8 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-[22px] font-black text-text-primary tracking-tight leading-tight">Products</h1>
-          <p className="text-[13px] text-text-hint mt-0.5">
+          <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">Products</h1>
+          <p className="text-[13px] text-muted-foreground mt-0.5">
             {categories.length} {categories.length === 1 ? 'category' : 'categories'} · {allProducts.length} products total
           </p>
         </div>
@@ -105,12 +105,12 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
       </div>
 
       {/* ── Main panel ────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] overflow-hidden flex min-h-[520px]">
+      <div className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] overflow-hidden flex min-h-[520px]">
 
         {/* ── Categories sidebar ─────────────────────────────────────────── */}
-        <div className="w-[200px] shrink-0 border-r border-border-soft hidden sm:flex flex-col">
-          <div className="px-3 py-3 border-b border-border-soft">
-            <p className="text-[10px] font-black tracking-[.18em] uppercase text-text-hint">Categories</p>
+        <div className="w-[200px] shrink-0 border-r border-border hidden sm:flex flex-col">
+          <div className="px-3 py-3 border-b border-border">
+            <p className="text-[10px] font-black tracking-[.18em] uppercase text-muted-foreground">Categories</p>
           </div>
 
           <div className="flex-1 overflow-y-auto py-1.5">
@@ -121,7 +121,7 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
                 'w-full flex items-center justify-between px-3 py-2 text-start transition-colors group relative',
                 !activeCatId
                   ? 'bg-primary/[0.07]'
-                  : 'hover:bg-surface-soft',
+                  : 'hover:bg-muted/40',
               )}
             >
               {!activeCatId && (
@@ -129,13 +129,13 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
               )}
               <span className={cn(
                 'text-[12px] font-semibold truncate',
-                !activeCatId ? 'text-primary' : 'text-text-secondary group-hover:text-text-primary',
+                !activeCatId ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
               )}>
                 All Products
               </span>
               <span className={cn(
                 'text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ml-1',
-                !activeCatId ? 'bg-primary/20 text-primary' : 'bg-surface-soft text-text-hint',
+                !activeCatId ? 'bg-primary/20 text-primary' : 'bg-muted/40 text-muted-foreground',
               )}>
                 {allProducts.length}
               </span>
@@ -150,7 +150,7 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
                   'w-full flex items-center justify-between px-3 py-2 text-start transition-colors group relative',
                   activeCatId === cat.id
                     ? 'bg-primary/[0.07]'
-                    : 'hover:bg-surface-soft',
+                    : 'hover:bg-muted/40',
                 )}
               >
                 {activeCatId === cat.id && (
@@ -158,13 +158,13 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
                 )}
                 <span className={cn(
                   'text-[12px] font-semibold truncate',
-                  activeCatId === cat.id ? 'text-primary' : 'text-text-secondary group-hover:text-text-primary',
+                  activeCatId === cat.id ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground',
                 )}>
                   {cat.name}
                 </span>
                 <span className={cn(
                   'text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ml-1',
-                  activeCatId === cat.id ? 'bg-primary/20 text-primary' : 'bg-surface-soft text-text-hint',
+                  activeCatId === cat.id ? 'bg-primary/20 text-primary' : 'bg-muted/40 text-muted-foreground',
                 )}>
                   {productCountFor(cat.id)}
                 </span>
@@ -172,15 +172,15 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
             ))}
 
             {categories.length === 0 && (
-              <p className="px-3 py-3 text-[11px] text-text-hint/60 italic">No categories yet</p>
+              <p className="px-3 py-3 text-[11px] text-muted-foreground/60 italic">No categories yet</p>
             )}
           </div>
 
           {/* Sidebar footer */}
-          <div className="border-t border-border-soft p-2">
+          <div className="border-t border-border p-2">
             <button
               onClick={() => setCatCreate(true)}
-              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold text-text-hint hover:text-primary hover:bg-primary/5 transition-colors"
+              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors"
             >
               <FolderPlus size={13} />
               New category
@@ -189,14 +189,14 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
               <>
                 <button
                   onClick={() => setCatEdit(activeCategory)}
-                  className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold text-text-hint hover:text-text-secondary hover:bg-surface-soft transition-colors"
+                  className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-muted-foreground hover:bg-muted/40 transition-colors"
                 >
                   <Pencil size={12} />
                   Edit &ldquo;{activeCategory.name}&rdquo;
                 </button>
                 <button
                   onClick={() => setCatDelete(activeCategory)}
-                  className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold text-text-hint hover:text-danger hover:bg-danger/5 transition-colors"
+                  className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-danger hover:bg-danger/5 transition-colors"
                 >
                   <Trash2 size={12} />
                   Delete category
@@ -210,33 +210,33 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
         <div className="flex-1 flex flex-col min-w-0">
 
           {/* Toolbar */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-border-soft">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
             <div className="relative flex-1">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-hint pointer-events-none" />
+              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder={activeCategory ? `Search in ${activeCategory.name}…` : 'Search products by name, SKU, barcode…'}
-                className="w-full h-8 pl-8 pr-7 rounded-lg border border-border-soft bg-surface-soft/50 text-[12px] text-text-primary placeholder:text-text-hint focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-white transition-all"
+                className="w-full h-8 pl-8 pr-7 rounded-lg border border-border bg-muted/40/50 text-[12px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-white transition-all"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-hint hover:text-text-secondary"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-muted-foreground"
                 >
                   <X size={12} />
                 </button>
               )}
             </div>
-            <span className="text-[11px] text-text-hint shrink-0">
+            <span className="text-[11px] text-muted-foreground shrink-0">
               {displayedProducts.length} result{displayedProducts.length !== 1 ? 's' : ''}
             </span>
             {/* Mobile: category filter */}
             <select
               value={activeCatId ?? ''}
               onChange={e => setActiveCatId(e.target.value || null)}
-              className="sm:hidden h-8 px-2 rounded-lg border border-border-soft bg-white text-[12px] text-text-secondary focus:outline-none"
+              className="sm:hidden h-8 px-2 rounded-lg border border-border bg-white text-[12px] text-muted-foreground focus:outline-none"
             >
               <option value="">All</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -246,17 +246,17 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
           {/* Table */}
           {displayedProducts.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-16 px-6 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-surface-soft flex items-center justify-center mb-4">
+              <div className="w-14 h-14 rounded-xl bg-muted/40 flex items-center justify-center mb-4">
                 {search ? (
-                  <Search size={22} className="text-text-hint/40" />
+                  <Search size={22} className="text-muted-foreground/40" />
                 ) : (
-                  <Package size={22} className="text-text-hint/40" />
+                  <Package size={22} className="text-muted-foreground/40" />
                 )}
               </div>
-              <p className="text-[14px] font-bold text-text-primary">
+              <p className="text-[14px] font-bold text-foreground">
                 {search ? 'No products found' : activeCategory ? `No products in ${activeCategory.name}` : 'No products yet'}
               </p>
-              <p className="text-[12px] text-text-hint mt-1">
+              <p className="text-[12px] text-muted-foreground mt-1">
                 {search ? 'Try a different search term.' : 'Add your first product to get started.'}
               </p>
               {!search && (
@@ -272,22 +272,22 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
             <div className="flex-1 overflow-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-border-soft bg-surface-soft/30">
-                    <th className="text-start px-4 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-text-hint w-[40%]">
+                  <tr className="border-b border-border bg-muted/40/30">
+                    <th className="text-start px-4 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground w-[40%]">
                       Product
                     </th>
                     {!activeCatId && (
-                      <th className="text-start px-3 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-text-hint hidden md:table-cell">
+                      <th className="text-start px-3 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground hidden md:table-cell">
                         Category
                       </th>
                     )}
-                    <th className="text-start px-3 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-text-hint hidden sm:table-cell">
+                    <th className="text-start px-3 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground hidden sm:table-cell">
                       Price
                     </th>
-                    <th className="text-start px-3 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-text-hint hidden lg:table-cell">
+                    <th className="text-start px-3 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground hidden lg:table-cell">
                       Stock
                     </th>
-                    <th className="text-start px-3 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-text-hint hidden sm:table-cell">
+                    <th className="text-start px-3 py-2.5 text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground hidden sm:table-cell">
                       Status
                     </th>
                     <th className="w-[60px]" />
@@ -313,9 +313,9 @@ export default function ProductsClient({ initialCategories, initialProducts }: P
 
       {/* ── Refreshing spinner ─────────────────────────────────────────────── */}
       {isRefreshing && (
-        <div className="fixed bottom-6 right-6 z-[80] flex items-center gap-2 bg-white border border-border-soft rounded-xl px-4 py-2.5 shadow-card-md pointer-events-none">
+        <div className="fixed bottom-6 right-6 z-[80] flex items-center gap-2 bg-white border border-border rounded-xl px-4 py-2.5 shadow-card-md pointer-events-none">
           <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="text-[12px] font-semibold text-text-secondary">Refreshing…</span>
+          <span className="text-[12px] font-semibold text-muted-foreground">Refreshing…</span>
         </div>
       )}
 
@@ -397,34 +397,34 @@ function ProductTableRow({
 
   return (
     <tr
-      className="group border-b border-border-soft/50 last:border-0 hover:bg-surface-soft/40 transition-colors"
+      className="group border-b border-border/50 last:border-0 hover:bg-muted/40/40 transition-colors"
       style={{ animationDelay: `${index * 20}ms` }}
     >
       {/* Product name + thumbnail */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-surface-soft border border-border-soft/60 overflow-hidden shrink-0 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-muted/40 border border-border/60 overflow-hidden shrink-0 flex items-center justify-center">
             {product.thumbnail_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={product.thumbnail_url} alt={product.name} className="w-full h-full object-cover" />
             ) : (
-              <Package size={14} className="text-text-hint/50" />
+              <Package size={14} className="text-muted-foreground/50" />
             )}
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-text-primary truncate leading-tight">{product.name}</p>
+            <p className="text-[13px] font-semibold text-foreground truncate leading-tight">{product.name}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               {product.sku && (
-                <span className="font-mono text-[10px] text-text-hint">{product.sku}</span>
+                <span className="font-mono text-[10px] text-muted-foreground">{product.sku}</span>
               )}
               {product.sku && product.barcode && (
-                <span className="text-text-hint/40 text-[10px]">·</span>
+                <span className="text-muted-foreground/40 text-[10px]">·</span>
               )}
               {product.barcode && (
-                <span className="font-mono text-[10px] text-text-hint/60">{product.barcode}</span>
+                <span className="font-mono text-[10px] text-muted-foreground/60">{product.barcode}</span>
               )}
               {product.unit && (
-                <span className="text-[10px] text-text-hint/50">/ {product.unit}</span>
+                <span className="text-[10px] text-muted-foreground/50">/ {product.unit}</span>
               )}
             </div>
           </div>
@@ -435,24 +435,24 @@ function ProductTableRow({
       {showCategory && (
         <td className="px-3 py-3 hidden md:table-cell">
           {product.category_name ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-text-secondary bg-surface-soft rounded-md px-2 py-0.5">
-              <Tag size={9} className="text-text-hint/60" />
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground bg-muted/40 rounded-md px-2 py-0.5">
+              <Tag size={9} className="text-muted-foreground/60" />
               {product.category_name}
             </span>
           ) : (
-            <span className="text-[11px] text-text-hint/40 italic">—</span>
+            <span className="text-[11px] text-muted-foreground/40 italic">—</span>
           )}
         </td>
       )}
 
       {/* Price */}
       <td className="px-3 py-3 hidden sm:table-cell">
-        <p className="text-[13px] font-bold text-text-primary tabular-nums">
+        <p className="text-[13px] font-bold text-foreground tabular-nums">
           {parseFloat(product.price).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}{' '}
-          <span className="text-[10px] font-normal text-text-hint">SDG</span>
+          <span className="text-[10px] font-normal text-muted-foreground">SDG</span>
         </p>
         {product.cost_price && parseFloat(product.cost_price) > 0 && (
-          <p className="text-[10px] text-text-hint tabular-nums mt-0.5">
+          <p className="text-[10px] text-muted-foreground tabular-nums mt-0.5">
             cost {parseFloat(product.cost_price).toFixed(0)}
           </p>
         )}
@@ -470,7 +470,7 @@ function ProductTableRow({
             {isOut ? 'Out of stock' : isLow ? `Low · ${stock}` : stock}
           </span>
         ) : (
-          <span className="text-[11px] text-text-hint/40">—</span>
+          <span className="text-[11px] text-muted-foreground/40">—</span>
         )}
       </td>
 
@@ -480,7 +480,7 @@ function ProductTableRow({
           'inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded-full',
           product.is_active
             ? 'bg-success/10 text-success'
-            : 'bg-text-hint/10 text-text-hint',
+            : 'bg-text-hint/10 text-muted-foreground',
         )}>
           {product.is_active ? 'Active' : 'Inactive'}
         </span>
@@ -491,13 +491,13 @@ function ProductTableRow({
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity justify-end">
           <button
             onClick={onEdit}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-text-hint hover:text-text-primary hover:bg-surface-soft transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
           >
             <Pencil size={13} />
           </button>
           <button
             onClick={onDelete}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-text-hint hover:text-danger hover:bg-danger/8 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-danger hover:bg-danger/8 transition-colors"
           >
             <Trash2 size={13} />
           </button>
@@ -529,11 +529,11 @@ function SlideDrawer({
     <div className="fixed inset-0 z-50 flex">
       <div className="absolute inset-0 bg-black/25 backdrop-blur-[2px]" onClick={onClose} />
       <div className="relative ml-auto w-full max-w-[480px] h-full bg-white shadow-2xl flex flex-col animate-in slide-in-from-right-full duration-250">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border-soft shrink-0">
-          <p className="text-[15px] font-black text-text-primary">{title}</p>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+          <p className="text-[15px] font-black text-foreground">{title}</p>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-text-hint hover:text-text-primary hover:bg-surface-soft transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
           >
             <X size={15} />
           </button>
@@ -579,12 +579,12 @@ function CategoryForm({
       {error && <ErrorAlert message={error} />}
 
       <div>
-        <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-[.12em] mb-2">
+        <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-[.12em] mb-2">
           Category Image
         </label>
         <div
           onClick={() => fileRef.current?.click()}
-          className="relative w-full h-[130px] rounded-xl border-2 border-dashed border-border-soft hover:border-primary/40 bg-surface-soft hover:bg-primary/[0.02] cursor-pointer transition-all flex flex-col items-center justify-center gap-2 overflow-hidden"
+          className="relative w-full h-[130px] rounded-xl border-2 border-dashed border-border hover:border-primary/40 bg-muted/40 hover:bg-primary/[0.02] cursor-pointer transition-all flex flex-col items-center justify-center gap-2 overflow-hidden"
         >
           {imagePreview ? (
             <>
@@ -596,9 +596,9 @@ function CategoryForm({
             </>
           ) : (
             <>
-              <ImageIcon size={22} className="text-text-hint/50" />
-              <p className="text-[12px] text-text-hint">Click to upload</p>
-              <p className="text-[10px] text-text-hint/60">JPEG, PNG, WebP · max 10 MB</p>
+              <ImageIcon size={22} className="text-muted-foreground/50" />
+              <p className="text-[12px] text-muted-foreground">Click to upload</p>
+              <p className="text-[10px] text-muted-foreground/60">JPEG, PNG, WebP · max 10 MB</p>
             </>
           )}
         </div>
@@ -646,7 +646,7 @@ function CategoryForm({
         />
       </FormField>
 
-      <div className="flex justify-end gap-2 pt-3 border-t border-border-soft">
+      <div className="flex justify-end gap-2 pt-3 border-t border-border">
         <Button variant="secondary" size="sm" type="button" onClick={onClose}>Cancel</Button>
         <Button size="sm" type="submit" disabled={isPending}>
           {isPending ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Save changes' : 'Create category')}
@@ -701,12 +701,12 @@ function ProductForm({
 
       {/* Image */}
       <div>
-        <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-[.12em] mb-2">
+        <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-[.12em] mb-2">
           Product Image
         </label>
         <div
           onClick={() => fileRef.current?.click()}
-          className="relative w-full h-[110px] rounded-xl border-2 border-dashed border-border-soft hover:border-primary/40 bg-surface-soft hover:bg-primary/[0.02] cursor-pointer transition-all flex flex-col items-center justify-center gap-2 overflow-hidden"
+          className="relative w-full h-[110px] rounded-xl border-2 border-dashed border-border hover:border-primary/40 bg-muted/40 hover:bg-primary/[0.02] cursor-pointer transition-all flex flex-col items-center justify-center gap-2 overflow-hidden"
         >
           {imagePreview ? (
             <>
@@ -718,8 +718,8 @@ function ProductForm({
             </>
           ) : (
             <>
-              <ImageIcon size={18} className="text-text-hint/50" />
-              <p className="text-[11px] text-text-hint">Upload image</p>
+              <ImageIcon size={18} className="text-muted-foreground/50" />
+              <p className="text-[11px] text-muted-foreground">Upload image</p>
             </>
           )}
         </div>
@@ -773,7 +773,7 @@ function ProductForm({
       <div className="grid grid-cols-2 gap-3">
         <FormField label="Price (SDG)" required>
           <div className="relative">
-            <DollarSign size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-hint" />
+            <DollarSign size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               name="price"
               type="number"
@@ -788,7 +788,7 @@ function ProductForm({
         </FormField>
         <FormField label="Cost (SDG)">
           <div className="relative">
-            <DollarSign size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-hint" />
+            <DollarSign size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               name="cost_price"
               type="number"
@@ -814,7 +814,7 @@ function ProductForm({
         </FormField>
         <FormField label="Barcode">
           <div className="relative">
-            <Barcode size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-hint" />
+            <Barcode size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               name="barcode"
               type="text"
@@ -837,7 +837,7 @@ function ProductForm({
       </FormField>
 
       {/* Toggles */}
-      <div className="space-y-3 rounded-xl border border-border-soft p-4 bg-surface-soft/30">
+      <div className="space-y-3 rounded-xl border border-border p-4 bg-muted/40/30">
         <ToggleRow
           label="Active"
           description="Visible in POS"
@@ -854,7 +854,7 @@ function ProductForm({
         {trackInv && (
           <FormField label="Min stock level" hint="Alert below this number">
             <div className="relative">
-              <Layers size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-hint" />
+              <Layers size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 name="min_stock_level"
                 type="number"
@@ -867,7 +867,7 @@ function ProductForm({
         )}
       </div>
 
-      <div className="flex justify-end gap-2 pt-3 border-t border-border-soft">
+      <div className="flex justify-end gap-2 pt-3 border-t border-border">
         <Button variant="secondary" size="sm" type="button" onClick={onClose}>Cancel</Button>
         <Button size="sm" type="submit" disabled={isPending}>
           {isPending ? (isEdit ? 'Saving…' : 'Adding…') : (isEdit ? 'Save changes' : 'Add product')}
@@ -961,12 +961,12 @@ function FormField({
 }) {
   return (
     <div>
-      <label className="block text-[11px] font-bold text-text-secondary uppercase tracking-[.12em] mb-1.5">
+      <label className="block text-[11px] font-bold text-muted-foreground uppercase tracking-[.12em] mb-1.5">
         {label}
         {required && <span className="text-danger ml-0.5">*</span>}
       </label>
       {children}
-      {hint && <p className="text-[11px] text-text-hint mt-1">{hint}</p>}
+      {hint && <p className="text-[11px] text-muted-foreground mt-1">{hint}</p>}
     </div>
   );
 }
@@ -982,8 +982,8 @@ function ToggleRow({
   return (
     <div className="flex items-center justify-between gap-3">
       <div>
-        <p className="text-[12px] font-bold text-text-primary">{label}</p>
-        <p className="text-[11px] text-text-hint">{description}</p>
+        <p className="text-[12px] font-bold text-foreground">{label}</p>
+        <p className="text-[11px] text-muted-foreground">{description}</p>
       </div>
       <button
         type="button"
@@ -993,7 +993,7 @@ function ToggleRow({
       >
         {value
           ? <ToggleRight size={26} className="text-primary" />
-          : <ToggleLeft  size={26} className="text-text-hint/40" />
+          : <ToggleLeft  size={26} className="text-muted-foreground/40" />
         }
       </button>
     </div>
@@ -1010,4 +1010,4 @@ function ErrorAlert({ message }: { message: string }) {
 }
 
 const inputCls =
-  'w-full h-9 px-3 rounded-lg border border-border-soft bg-white text-[13px] text-text-primary placeholder:text-text-hint focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all';
+  'w-full h-9 px-3 rounded-lg border border-border bg-white text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all';

@@ -88,7 +88,7 @@ export default function SystemHealthCards({
             <div
               key={item.label}
               className={cn(
-                "system-card-in group overflow-hidden rounded-2xl border bg-card shadow-[0_1px_4px_0_rgb(0_0_0/.05)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-card",
+                "system-card-in group overflow-hidden rounded-xl border bg-card shadow-[0_1px_4px_0_rgb(0_0_0/.05)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-card",
                 item.ok ? "border-success/15" : "border-danger/20",
               )}
               style={{ animationDelay: `${index * 70}ms` }}

@@ -44,18 +44,18 @@ export default function PhoneNumberField({
 }: Props) {
   return (
     <div>
-      <label className="block text-[12px] font-semibold text-text-secondary mb-1.5">
+      <label className="block text-[12px] font-semibold text-muted-foreground mb-1.5">
         {label}
         {required && <span className="text-danger ml-0.5">*</span>}
       </label>
 
-      <div className="flex h-9 rounded-lg border border-border-soft overflow-hidden bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+      <div className="flex h-9 rounded-lg border border-border overflow-hidden bg-white focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all">
         <select
           name={countryCodeName}
           defaultValue={defaultCountryCode}
           disabled={disabled}
           dir="ltr"
-          className="h-full min-w-[98px] px-2 bg-surface-soft border-e border-border-soft text-[13px] font-semibold text-text-secondary focus:outline-none disabled:opacity-60"
+          className="h-full min-w-[98px] px-2 bg-muted/40 border-e border-border text-[13px] font-semibold text-muted-foreground focus:outline-none disabled:opacity-60"
         >
           {countryCodes.map((country) => (
             <option key={country.code} value={country.code}>
@@ -76,11 +76,11 @@ export default function PhoneNumberField({
           required={required}
           pattern="[0-9]{7,15}"
           placeholder={placeholder}
-          className="flex-1 h-full px-3 bg-white text-left text-[13px] text-text-primary placeholder:text-text-hint focus:outline-none disabled:opacity-60"
+          className="flex-1 h-full px-3 bg-white text-left text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none disabled:opacity-60"
         />
       </div>
 
-      {hint && <p className="text-[11px] text-text-hint mt-1">{hint}</p>}
+      {hint && <p className="text-[11px] text-muted-foreground mt-1">{hint}</p>}
     </div>
   );
 }

@@ -33,16 +33,16 @@ export default function OwnerProfileCard({ owner }: Props) {
     : null;
 
   return (
-    <div className="bg-white rounded-xl border border-border-soft shadow-card p-5">
+    <div className="bg-white rounded-xl border border-border shadow-card p-5">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex items-start gap-4">
           <Avatar name={ownerName} size={52} />
 
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[17px] font-bold text-text-primary leading-tight">
+              <h1 className="text-[17px] font-bold text-foreground leading-tight">
                 {owner.full_name || (
-                  <span className="text-text-hint italic">No name set</span>
+                  <span className="text-muted-foreground italic">No name set</span>
                 )}
               </h1>
 
@@ -78,7 +78,7 @@ export default function OwnerProfileCard({ owner }: Props) {
         </div>
       </div>
 
-      <div className="mt-5 pt-4 border-t border-border-soft grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="mt-5 pt-4 border-t border-border grid grid-cols-2 sm:grid-cols-4 gap-4">
         <OwnerStatChip
           label="Businesses"
           value={String(owner.business_count)}
@@ -96,13 +96,13 @@ export default function OwnerProfileCard({ owner }: Props) {
         <OwnerStatChip
           label="Verified"
           value={owner.is_verified ? "Yes" : "No"}
-          accent={owner.is_verified ? "text-success" : "text-text-hint"}
+          accent={owner.is_verified ? "text-success" : "text-muted-foreground"}
         />
 
         <OwnerStatChip
           label="Has password"
           value={owner.has_password ? "Set" : "OTP only"}
-          accent={owner.has_password ? "text-text-primary" : "text-text-hint"}
+          accent={owner.has_password ? "text-foreground" : "text-muted-foreground"}
         />
       </div>
     </div>
@@ -120,11 +120,11 @@ function MetaItem({
 }) {
   return (
     <span
-      className={`flex items-center gap-1.5 text-[12px] text-text-secondary ${
+      className={`flex items-center gap-1.5 text-[12px] text-muted-foreground ${
         mono ? "font-mono" : ""
       }`}
     >
-      <span className="text-text-hint">{icon}</span>
+      <span className="text-muted-foreground">{icon}</span>
       {label}
     </span>
   );

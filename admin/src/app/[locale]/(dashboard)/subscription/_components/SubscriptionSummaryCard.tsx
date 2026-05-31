@@ -58,7 +58,7 @@ export default function SubscriptionHeroCard({ sub, status }: Props) {
   const isGood = status === 'active' || status === 'expiring_soon';
 
   return (
-    <div className="relative rounded-2xl border border-border bg-card shadow-card overflow-hidden mb-5">
+    <div className="relative rounded-xl border border-border bg-card shadow-card overflow-hidden mb-5">
       {/* Top accent line */}
       <div className={`h-[3px] w-full ${ACCENT_CLASSES[status]}`} />
 
@@ -181,10 +181,10 @@ export default function SubscriptionHeroCard({ sub, status }: Props) {
 
 export function NoSubscriptionCard() {
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden mb-5">
+    <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden mb-5">
       <div className="h-[3px] bg-gradient-to-r from-muted-foreground/30 to-transparent" />
       <div className="p-10 flex flex-col items-center text-center">
-        <span className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+        <span className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
           <Sparkles size={22} className="text-muted-foreground/60" />
         </span>
         <h3 className="text-lg font-bold text-foreground mb-2">No active subscription</h3>

@@ -38,7 +38,7 @@ export default function SubscriptionFeatures({ features }: { features: Record<st
   const off = entries.filter(e => !e.enabled);
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-card p-5 h-full">
+    <div className="rounded-xl border border-border bg-card shadow-card p-5 h-full">
       <p className="text-[10.5px] font-black uppercase tracking-[0.14em] text-muted-foreground/60 mb-4">
         Plan Features
       </p>

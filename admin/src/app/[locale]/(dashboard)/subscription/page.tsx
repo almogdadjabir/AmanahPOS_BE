@@ -25,7 +25,7 @@ async function SubscriptionContent() {
 
   if (!subResult.ok) {
     return (
-      <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-5 py-8 text-center mb-5">
+      <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-5 py-8 text-center mb-5">
         <p className="text-sm font-bold text-destructive">Failed to load subscription</p>
         <p className="text-xs text-destructive/70 mt-1">{subResult.error}</p>
       </div>

@@ -134,8 +134,8 @@ export default async function SalesPage({
       <div>
         <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
           <div>
-            <h1 className="text-[22px] font-black text-text-primary tracking-tight leading-tight">{t('title')}</h1>
-            <p className="text-[13px] text-text-hint mt-0.5">{todayDate}</p>
+            <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">{t('title')}</h1>
+            <p className="text-[13px] text-muted-foreground mt-0.5">{todayDate}</p>
           </div>
         </div>
         <Suspense fallback={null}>
@@ -201,13 +201,13 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
       {/* Today */}
-      <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[10px] font-black tracking-[.18em] uppercase text-text-hint mb-3">{t('today')}</p>
-        <p className="text-[32px] font-black text-text-primary leading-none tabular-nums">
+      <div className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+        <p className="text-[10px] font-black tracking-[.18em] uppercase text-muted-foreground mb-3">{t('today')}</p>
+        <p className="text-[32px] font-black text-foreground leading-none tabular-nums">
           {fmtMoney(parseFloat(todayData?.total_revenue ?? '0'))}
-          <span className="text-[14px] font-semibold text-text-hint ml-1.5">SDG</span>
+          <span className="text-[14px] font-semibold text-muted-foreground ml-1.5">SDG</span>
         </p>
-        <p className="text-[12px] text-text-hint mt-2">
+        <p className="text-[12px] text-muted-foreground mt-2">
           {todayData?.total_sales ?? 0} {todayData?.total_sales === 1 ? 'sale' : 'sales'}
           {parseFloat(todayData?.total_discount ?? '0') > 0 && (
             <span className="text-danger/70 ml-2">
@@ -218,20 +218,20 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
       </div>
 
       {/* This month */}
-      <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[10px] font-black tracking-[.18em] uppercase text-text-hint mb-3">{t('thisMonth')}</p>
-        <p className="text-[32px] font-black text-text-primary leading-none tabular-nums">
+      <div className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+        <p className="text-[10px] font-black tracking-[.18em] uppercase text-muted-foreground mb-3">{t('thisMonth')}</p>
+        <p className="text-[32px] font-black text-foreground leading-none tabular-nums">
           {fmtMoney(parseFloat(monthData?.total_revenue ?? '0'))}
-          <span className="text-[14px] font-semibold text-text-hint ml-1.5">SDG</span>
+          <span className="text-[14px] font-semibold text-muted-foreground ml-1.5">SDG</span>
         </p>
-        <p className="text-[12px] text-text-hint mt-2">
+        <p className="text-[12px] text-muted-foreground mt-2">
           {monthData?.total_sales ?? 0} sales ·{' '}
           avg {fmtMoney(parseFloat(monthData?.avg_sale_value ?? '0'))} SDG
         </p>
       </div>
 
       {/* Bankak */}
-      <div className="relative overflow-hidden bg-white rounded-2xl border border-success/20 shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+      <div className="relative overflow-hidden bg-card rounded-xl border border-success/20 shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
         <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-success/5 -translate-y-6 translate-x-6 pointer-events-none" />
         <div className="flex items-center justify-between mb-3">
           <p className="text-[10px] font-black tracking-[.18em] uppercase text-success">{t('bankakBalance')}</p>
@@ -239,11 +239,11 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
             {t('thisWeek')}
           </span>
         </div>
-        <p className="text-[32px] font-black text-text-primary leading-none tabular-nums">
+        <p className="text-[32px] font-black text-foreground leading-none tabular-nums">
           {fmtMoney(bankakTotal)}
-          <span className="text-[14px] font-semibold text-text-hint ml-1.5">SDG</span>
+          <span className="text-[14px] font-semibold text-muted-foreground ml-1.5">SDG</span>
         </p>
-        <p className="text-[12px] text-text-hint mt-2">
+        <p className="text-[12px] text-muted-foreground mt-2">
           {bankakSales.length} Bankak {bankakSales.length === 1 ? 'payment' : 'payments'}
           {bankakAcct && (
             <span className="font-mono text-success/80 ml-1.5">· {bankakAcct}</span>
@@ -252,15 +252,15 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
       </div>
 
       {/* Today's refunds */}
-      <div className="bg-white rounded-2xl border border-orange-100 shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+      <div className="bg-card rounded-xl border border-orange-100 shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
         <p className="text-[10px] font-black tracking-[.18em] uppercase text-orange-500 mb-3">
           {t('refunds.todayTitle')}
         </p>
-        <p className="text-[32px] font-black text-text-primary leading-none tabular-nums">
+        <p className="text-[32px] font-black text-foreground leading-none tabular-nums">
           {fmtMoney(parseFloat(todayData?.total_refunds ?? '0'))}
-          <span className="text-[14px] font-semibold text-text-hint ml-1.5">SDG</span>
+          <span className="text-[14px] font-semibold text-muted-foreground ml-1.5">SDG</span>
         </p>
-        <p className="text-[12px] text-text-hint mt-2">
+        <p className="text-[12px] text-muted-foreground mt-2">
           {(todayData?.refund_count ?? 0) === 0
             ? t('refunds.noRefunds')
             : `${todayData?.refund_count} ${
@@ -308,19 +308,19 @@ async function SalesChartSection({ shopId }: { shopId?: string }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-      <div className="lg:col-span-3 bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+      <div className="lg:col-span-3 bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[13px] font-bold text-text-primary">{t('revenueTitle')}</p>
-          <p className="text-[11px] text-text-hint">SDG</p>
+          <p className="text-[13px] font-bold text-foreground">{t('revenueTitle')}</p>
+          <p className="text-[11px] text-muted-foreground">SDG</p>
         </div>
         <SalesBarChart data={chartData} />
       </div>
 
-      <div className="lg:col-span-2 bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[13px] font-bold text-text-primary mb-5">{t('byMethod')}</p>
+      <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+        <p className="text-[13px] font-bold text-foreground mb-5">{t('byMethod')}</p>
 
         {pmGroups.length === 0 ? (
-          <p className="text-[12px] text-text-hint">{t('noData')}</p>
+          <p className="text-[12px] text-muted-foreground">{t('noData')}</p>
         ) : (
           <>
             <div className="flex h-2 rounded-full overflow-hidden mb-5 gap-px">
@@ -337,14 +337,14 @@ async function SalesChartSection({ shopId }: { shopId?: string }) {
                 <div key={g.method} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${METHOD_COLOR[g.method] ?? 'bg-slate-300'}`} />
-                    <span className="text-[12px] text-text-secondary font-medium">
+                    <span className="text-[12px] text-muted-foreground font-medium">
                       {METHOD_LABEL[g.method] ?? g.method}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-text-hint">{g.pct.toFixed(0)}%</span>
-                    <span className={`text-[12px] font-bold tabular-nums ${METHOD_TEXT[g.method] ?? 'text-text-primary'}`}>
-                      {fmtMoney(g.amount)} <span className="font-normal text-text-hint text-[10px]">SDG</span>
+                    <span className="text-[11px] text-muted-foreground">{g.pct.toFixed(0)}%</span>
+                    <span className={`text-[12px] font-bold tabular-nums ${METHOD_TEXT[g.method] ?? 'text-foreground'}`}>
+                      {fmtMoney(g.amount)} <span className="font-normal text-muted-foreground text-[10px]">SDG</span>
                     </span>
                   </div>
                 </div>
@@ -391,13 +391,13 @@ async function SalesByShopSection({ shopId }: { shopId?: string }) {
   const maxTotal = Math.max(...breakdown.map(r => parseFloat(r.total) || 0)) || 1;
 
   return (
-    <div className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+    <div className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="text-[13px] font-bold text-text-primary">{t('revenueByShop')}</p>
-          <p className="text-[11px] text-text-hint mt-0.5">{t('thisMonthSDG')}</p>
+          <p className="text-[13px] font-bold text-foreground">{t('revenueByShop')}</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{t('thisMonthSDG')}</p>
         </div>
-        <span className="text-[10px] font-bold text-text-hint bg-surface-soft border border-border-soft px-2.5 py-1 rounded-full">
+        <span className="text-[10px] font-bold text-muted-foreground bg-muted/40 border border-border px-2.5 py-1 rounded-full">
           {breakdown.length} shops
         </span>
       </div>
@@ -414,19 +414,19 @@ async function SalesByShopSection({ shopId }: { shopId?: string }) {
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className={`w-2 h-2 rounded-full shrink-0 ${color}`} />
-                  <span className="text-[12px] font-semibold text-text-primary truncate">
+                  <span className="text-[12px] font-semibold text-foreground truncate">
                     {row.shop_name}
                   </span>
-                  <span className="text-[11px] text-text-hint shrink-0">
+                  <span className="text-[11px] text-muted-foreground shrink-0">
                     {row.count} {row.count === 1 ? 'sale' : 'sales'}
                   </span>
                 </div>
-                <span className="text-[13px] font-bold tabular-nums text-text-primary ml-3 shrink-0">
+                <span className="text-[13px] font-bold tabular-nums text-foreground ml-3 shrink-0">
                   {fmtMoney(amount)}
-                  <span className="text-[10px] font-normal text-text-hint ml-1">SDG</span>
+                  <span className="text-[10px] font-normal text-muted-foreground ml-1">SDG</span>
                 </span>
               </div>
-              <div className="h-1.5 rounded-full bg-surface-soft overflow-hidden">
+              <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden">
                 <div
                   className={`h-full rounded-full ${color} opacity-70 transition-all`}
                   style={{ width: `${pct}%` }}
@@ -444,7 +444,7 @@ async function SalesByShopSection({ shopId }: { shopId?: string }) {
 
 function ShopBreakdownSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-border-soft p-5 space-y-4 animate-pulse">
+    <div className="bg-card rounded-xl border border-border p-5 space-y-4 animate-pulse">
       <div className="flex justify-between">
         <div className="space-y-1.5">
           <div className="h-3 w-32 rounded bg-muted" />
@@ -469,7 +469,7 @@ function SalesKpiSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="bg-white rounded-2xl border border-border-soft p-5 space-y-3 animate-pulse">
+        <div key={i} className="bg-card rounded-xl border border-border p-5 space-y-3 animate-pulse">
           <div className="h-2.5 w-16 rounded bg-muted" />
           <div className="h-8 w-28 rounded bg-muted" />
           <div className="h-2.5 w-24 rounded bg-muted" />

@@ -35,7 +35,7 @@ export default function SystemHealthPayload({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_4px_0_rgb(0_0_0/.05)]">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_4px_0_rgb(0_0_0/.05)]">
       <div className="flex flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">

@@ -105,7 +105,7 @@ function UnlimitedCard({ icon, label, current }: { icon: React.ReactNode; label:
 
 export default function SubscriptionUsage({ usage, plan }: Props) {
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-card p-5">
+    <div className="rounded-xl border border-border bg-card shadow-card p-5">
       <p className="text-[10.5px] font-black uppercase tracking-[0.14em] text-muted-foreground/60 mb-4">
         Usage &amp; Limits
       </p>
@@ -153,7 +153,7 @@ export default function SubscriptionUsage({ usage, plan }: Props) {
 
 export function UsageUnavailable({ plan }: { plan: Plan }) {
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-card p-5">
+    <div className="rounded-xl border border-border bg-card shadow-card p-5">
       <p className="text-[10.5px] font-black uppercase tracking-[0.14em] text-muted-foreground/60 mb-4">
         Plan Limits
       </p>

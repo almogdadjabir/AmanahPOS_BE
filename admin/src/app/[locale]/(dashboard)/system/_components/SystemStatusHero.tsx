@@ -49,7 +49,7 @@ export default function SystemStatusHero({ health }: { health: SystemHealth }) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border bg-card px-5 py-5 shadow-card sm:px-7 sm:py-6",
+        "relative overflow-hidden rounded-xl border bg-card px-5 py-5 shadow-card sm:px-7 sm:py-6",
         sysOk ? "border-success/15" : "border-danger/20",
       )}
     >
@@ -122,7 +122,7 @@ export default function SystemStatusHero({ health }: { health: SystemHealth }) {
           </div>
         </div>
 
-        <div className="hidden shrink-0 rounded-2xl border border-border bg-muted/20 px-5 py-4 text-center lg:block">
+        <div className="hidden shrink-0 rounded-xl border border-border bg-muted/20 px-5 py-4 text-center lg:block">
           <div className="mb-2 flex items-center justify-center gap-1.5 text-muted-foreground">
             <Clock3 size={13} />
             <p className="text-[10px] font-black uppercase tracking-[0.18em]">

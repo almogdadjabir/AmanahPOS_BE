@@ -33,7 +33,7 @@ export function BentoTile({ span = 1, rowSpan = 1, children, className }: BentoT
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl bg-card border border-border p-5 flex flex-col shadow-card',
+        'relative overflow-hidden rounded-xl bg-card border border-border p-5 flex flex-col shadow-card',
         className,
       )}
       style={{ gridColumn: `span ${span}`, gridRow: `span ${rowSpan}` }}

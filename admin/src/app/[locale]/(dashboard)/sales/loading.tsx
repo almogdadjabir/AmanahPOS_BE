@@ -18,7 +18,7 @@ export default function SalesLoading() {
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-border-soft shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5 space-y-3">
+          <div key={i} className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5 space-y-3">
             <Bone className="h-2.5 w-16" />
             <Bone className="h-8 w-28" />
             <Bone className="h-3 w-20" />
@@ -31,7 +31,7 @@ export default function SalesLoading() {
         <div className="lg:col-span-3">
           <ChartSkeleton />
         </div>
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-border-soft p-5 space-y-4">
+        <div className="lg:col-span-2 bg-card rounded-xl border border-border p-5 space-y-4">
           <Bone className="h-3.5 w-24" />
           <Bone className="h-2 w-full rounded-full" />
           <div className="space-y-2.5">

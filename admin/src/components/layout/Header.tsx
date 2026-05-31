@@ -31,7 +31,7 @@ export default function Header({
     <header className="sticky top-0 z-10 h-14 bg-white shadow-header flex items-center gap-3 px-4 shrink-0">
       <button
         onClick={onMenuClick}
-        className="lg:hidden p-2 -ms-1 rounded-md text-text-hint hover:bg-surface-muted hover:text-text-secondary transition-colors"
+        className="lg:hidden p-2 -ms-1 rounded-md text-muted-foreground hover:bg-muted hover:text-muted-foreground transition-colors"
         aria-label="Menu"
       >
         <svg
@@ -49,7 +49,7 @@ export default function Header({
         </svg>
       </button>
 
-      <h1 className="flex-1 text-[15px] font-semibold text-text-primary">
+      <h1 className="flex-1 text-[15px] font-semibold text-foreground">
         {title}
       </h1>
 
@@ -57,7 +57,7 @@ export default function Header({
         <button
           onClick={switchLocale}
           disabled={isPending}
-          className="h-8 px-3 rounded-md border border-border-soft bg-white text-xs font-semibold text-text-secondary hover:bg-surface-muted hover:border-border-muted hover:text-text-primary transition-all disabled:opacity-40"
+          className="h-8 px-3 rounded-md border border-border bg-white text-xs font-semibold text-muted-foreground hover:bg-muted hover:border-border hover:text-foreground transition-all disabled:opacity-40"
         >
           {t("switchLocale")}
         </button>
@@ -66,7 +66,7 @@ export default function Header({
 
         <div className="flex items-center gap-2 cursor-default select-none">
           <Avatar name={userName} size={30} />
-          <span className="hidden sm:block text-[13px] font-medium text-text-secondary">
+          <span className="hidden sm:block text-[13px] font-medium text-muted-foreground">
             {userName}
           </span>
         </div>

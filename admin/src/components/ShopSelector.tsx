@@ -32,7 +32,7 @@ export default function ShopSelector({ shops, selectedShopId }: Props) {
 
   return (
     <div className={`flex items-center gap-1.5 flex-wrap transition-opacity ${isPending ? 'opacity-60' : ''}`}>
-      <span className="text-[11px] font-semibold text-text-hint uppercase tracking-[.12em] mr-1">
+      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[.12em] mr-1">
         Shop
       </span>
       {all.map(shop => (
@@ -44,7 +44,7 @@ export default function ShopSelector({ shops, selectedShopId }: Props) {
             'h-7 px-3 rounded-full text-[11px] font-semibold border transition-all',
             active === shop.id
               ? 'bg-primary text-white border-primary shadow-sm'
-              : 'bg-white text-text-secondary border-border-soft hover:border-primary/40 hover:text-primary',
+              : 'bg-white text-muted-foreground border-border hover:border-primary/40 hover:text-primary',
             isPending ? 'cursor-wait' : '',
           ].join(' ')}
         >

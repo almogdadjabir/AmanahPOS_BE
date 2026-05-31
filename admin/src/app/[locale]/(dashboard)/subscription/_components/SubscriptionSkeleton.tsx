@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export function SubscriptionSummarySkeleton() {
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden mb-5">
+    <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden mb-5">
       <div className="h-[3px] bg-muted animate-pulse" />
       <div className="p-6 space-y-6">
         {/* Plan name */}
@@ -32,7 +32,7 @@ export function SubscriptionBodySkeleton() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
       {/* Usage skeleton — 2/3 */}
-      <div className="lg:col-span-2 rounded-2xl border border-border bg-card shadow-card p-5">
+      <div className="lg:col-span-2 rounded-xl border border-border bg-card shadow-card p-5">
         <Skeleton className="h-2.5 w-28 mb-4" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -45,7 +45,7 @@ export function SubscriptionBodySkeleton() {
         </div>
       </div>
       {/* Features skeleton — 1/3 */}
-      <div className="lg:col-span-1 rounded-2xl border border-border bg-card shadow-card p-5">
+      <div className="lg:col-span-1 rounded-xl border border-border bg-card shadow-card p-5">
         <Skeleton className="h-2.5 w-24 mb-4" />
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (

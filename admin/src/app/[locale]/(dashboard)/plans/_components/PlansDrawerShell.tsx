@@ -138,7 +138,7 @@ function CreatePlanContent({
       {error && <ErrorBox message={error} className="mb-4" />}
 
       <form action={dispatch} className="space-y-5">
-        <div className="rounded-2xl border border-border bg-muted/20 p-4">
+        <div className="rounded-xl border border-border bg-muted/20 p-4">
           <div className="mb-4 flex items-start gap-3">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-success/10 text-success">
               <Package size={17} />
@@ -178,7 +178,7 @@ function CreatePlanContent({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <SectionTitle
             icon={<DollarSign size={15} />}
             title={t("create.sections.pricing")}
@@ -225,7 +225,7 @@ function CreatePlanContent({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <SectionTitle
             icon={<Store size={15} />}
             title={t("create.sections.limits")}
@@ -265,7 +265,7 @@ function CreatePlanContent({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <SectionTitle
             icon={<Sparkles size={15} />}
             title={t("fields.features")}
@@ -358,7 +358,7 @@ function PlanDetailContent({
   if (errorMsg || !plan) {
     return (
       <div className="p-5">
-        <div className="rounded-2xl border border-destructive/20 bg-destructive/5 px-4 py-8 text-center">
+        <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-8 text-center">
           <p className="text-sm font-semibold text-destructive">
             {t("details.loadFailed")}
           </p>
@@ -406,7 +406,7 @@ function PlanDetailContent({
           <div className="-mt-11 flex items-end gap-4">
             <div
               className={cn(
-                "flex size-20 shrink-0 items-center justify-center rounded-2xl ring-4 ring-card",
+                "flex size-20 shrink-0 items-center justify-center rounded-xl ring-4 ring-card",
                 plan.is_active ? "bg-success/10" : "bg-muted",
               )}
             >
@@ -573,7 +573,7 @@ function EditPlanInline({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-start transition-colors hover:bg-muted/40"
+        className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-start transition-colors hover:bg-muted/40"
       >
         <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-success/10">
           <Edit2 size={14} className="text-success" />
@@ -590,7 +590,7 @@ function EditPlanInline({
       </button>
 
       {open && (
-        <div className="mt-2 rounded-2xl border border-border bg-muted/20 p-4">
+        <div className="mt-2 rounded-xl border border-border bg-muted/20 p-4">
           {error && <ErrorBox message={error} className="mb-3" />}
 
           <form action={dispatch} className="space-y-4">
@@ -758,7 +758,7 @@ function TogglePlanInline({
         type="button"
         onClick={() => setConfirmOpen(true)}
         className={cn(
-          "flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-start transition-colors",
+          "flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-start transition-colors",
           isActivating
             ? "border-success/20 bg-success/5 hover:bg-success/10"
             : "border-warning/20 bg-warning/5 hover:bg-warning/10",
@@ -958,7 +958,7 @@ function StatBox({
   bg: string;
 }) {
   return (
-    <div className={cn("rounded-2xl p-3 text-center", bg)}>
+    <div className={cn("rounded-xl p-3 text-center", bg)}>
       <p
         className={cn(
           "text-[24px] font-black leading-none tabular-nums",
@@ -1015,7 +1015,7 @@ function FeaturePreview({ features }: { features: Record<string, unknown> }) {
   }
 
   return (
-    <div className="mt-3 rounded-2xl border border-border bg-muted/20 p-3">
+    <div className="mt-3 rounded-xl border border-border bg-muted/20 p-3">
       <p className="mb-2 text-[10px] font-black uppercase tracking-[0.07em] text-muted-foreground">
         {t("fields.features")}
       </p>
@@ -1046,7 +1046,7 @@ function DetailSkeleton() {
 
       <div className="border-b border-border px-5 pb-4">
         <div className="-mt-11 flex items-end gap-4">
-          <Skeleton className="size-20 rounded-2xl" />
+          <Skeleton className="size-20 rounded-xl" />
           <div className="flex-1 space-y-2 pb-2">
             <Skeleton className="h-5 w-44" />
             <Skeleton className="h-3 w-28" />
@@ -1063,7 +1063,7 @@ function DetailSkeleton() {
       <div className="border-b border-border px-5 py-4">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           {[1, 2, 3].map((item) => (
-            <Skeleton key={item} className="h-20 rounded-2xl" />
+            <Skeleton key={item} className="h-20 rounded-xl" />
           ))}
         </div>
       </div>

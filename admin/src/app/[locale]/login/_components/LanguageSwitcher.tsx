@@ -19,7 +19,7 @@ export default function LanguageSwitcher() {
     <button
       type="button"
       onClick={switchLanguage}
-      className="absolute top-5 end-5 h-9 px-3 rounded-xl border border-border-soft bg-white text-xs font-bold text-text-secondary hover:text-text-primary hover:bg-surface-soft transition-all"
+      className="absolute top-5 end-5 h-9 px-3 rounded-xl border border-border bg-white text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all"
     >
       {locale === "ar" ? "English" : "العربية"}
     </button>

@@ -7,17 +7,17 @@ export default function CreateOwnerHeader({ locale }: Props) {
     <div className="flex items-center gap-3 mb-6">
       <a
         href={`/${locale}/owners`}
-        className="flex items-center justify-center w-8 h-8 rounded-lg border border-border-soft bg-white hover:bg-surface-soft transition-colors text-text-hint"
+        className="flex items-center justify-center w-8 h-8 rounded-lg border border-border bg-white hover:bg-muted/40 transition-colors text-muted-foreground"
       >
         <BackIcon />
       </a>
 
       <div>
-        <h1 className="text-[17px] font-semibold text-text-primary">
+        <h1 className="text-[17px] font-semibold text-foreground">
           Create Owner
         </h1>
 
-        <p className="text-xs text-text-hint mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           Register a new business owner account
         </p>
       </div>

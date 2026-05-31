@@ -119,10 +119,10 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
           <div className="flex items-center gap-3 min-w-0">
             <Avatar name={sale.cashier_name} size={40} />
             <div className="min-w-0">
-              <p className="text-[14px] font-bold text-text-primary leading-tight truncate">
+              <p className="text-[14px] font-bold text-foreground leading-tight truncate">
                 {sale.cashier_name}
               </p>
-              <p className="text-[11px] text-text-hint mt-0.5">{t('drawer.cashier')}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{t('drawer.cashier')}</p>
             </div>
           </div>
           <span
@@ -141,11 +141,11 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
           { label: t('columns.date'),  value: new Date(sale.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) },
           { label: 'Shop',             value: sale.shop_name },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-surface-soft rounded-xl px-3 py-3">
-            <p className="text-[9px] font-black tracking-[.13em] uppercase text-text-hint mb-1.5">
+          <div key={label} className="bg-muted/40 rounded-xl px-3 py-3">
+            <p className="text-[9px] font-black tracking-[.13em] uppercase text-muted-foreground mb-1.5">
               {label}
             </p>
-            <p className="text-[12px] font-semibold text-text-primary leading-tight truncate">
+            <p className="text-[12px] font-semibold text-foreground leading-tight truncate">
               {value}
             </p>
           </div>
@@ -153,11 +153,11 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
       </div>
 
       {/* ── Dashed tear line ──────────────────────────────────────────── */}
-      <div className="mx-5 border-t border-dashed border-border-soft" />
+      <div className="mx-5 border-t border-dashed border-border" />
 
       {/* ── Items ─────────────────────────────────────────────────────── */}
       <div className="px-5 pt-5 pb-3 flex-1">
-        <p className="text-[9px] font-black tracking-[.16em] uppercase text-text-hint mb-4">
+        <p className="text-[9px] font-black tracking-[.16em] uppercase text-muted-foreground mb-4">
           {t('drawer.items')} · {sale.item_count}
         </p>
 
@@ -168,16 +168,16 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
               <div
                 key={item.id}
                 className={`py-3 flex items-start justify-between gap-4 ${
-                  idx < sale.items.length - 1 ? 'border-b border-border-soft/50' : ''
+                  idx < sale.items.length - 1 ? 'border-b border-border/50' : ''
                 }`}
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-medium text-text-primary truncate">{item.product_name}</p>
-                  <p className="text-[11px] text-text-hint mt-1 font-mono tracking-tight">
+                  <p className="text-[13px] font-medium text-foreground truncate">{item.product_name}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1 font-mono tracking-tight">
                     {fmt(parseFloat(item.unit_price))} × {parseFloat(item.quantity).toFixed(0)}
                   </p>
                 </div>
-                <p className="text-[13px] font-bold text-text-primary tabular-nums font-mono shrink-0 pt-0.5">
+                <p className="text-[13px] font-bold text-foreground tabular-nums font-mono shrink-0 pt-0.5">
                   {fmt(parseFloat(item.subtotal))}
                 </p>
               </div>
@@ -192,31 +192,31 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
               return (
                 <div
                   key={entry.product}
-                  className={`rounded-2xl border transition-all duration-200 ${
+                  className={`rounded-xl border transition-all duration-200 ${
                     excluded
-                      ? 'border-border-soft/40 bg-surface-soft/40'
-                      : 'border-border-soft bg-surface-soft'
+                      ? 'border-border/40 bg-muted/40/40'
+                      : 'border-border bg-muted/40'
                   } ${isPending ? 'opacity-60 pointer-events-none' : ''}`}
                 >
                   <div className="px-4 py-3.5 flex items-center gap-3">
                     <div className="flex-1 min-w-0">
                       <p className={`text-[13px] font-semibold leading-tight truncate transition-all duration-150 ${
-                        excluded ? 'line-through text-text-hint' : 'text-text-primary'
+                        excluded ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}>
                         {entry.product_name}
                       </p>
-                      <p className="text-[11px] text-text-hint mt-1 font-mono">
+                      <p className="text-[11px] text-muted-foreground mt-1 font-mono">
                         {fmt(parseFloat(entry.unit_price))} · max {entry.max}
                       </p>
                     </div>
 
                     {/* ±  stepper */}
-                    <div className="shrink-0 flex items-center border border-border-soft rounded-xl overflow-hidden bg-white shadow-[0_1px_2px_0_rgb(0_0_0/.04)]">
+                    <div className="shrink-0 flex items-center border border-border rounded-xl overflow-hidden bg-white shadow-[0_1px_2px_0_rgb(0_0_0/.04)]">
                       <button
                         onClick={() => step(idx, -1)}
                         disabled={entry.qty === 0}
                         aria-label="decrease"
-                        className="w-9 h-10 flex items-center justify-center text-[20px] font-light text-text-secondary hover:bg-surface-soft active:bg-surface-soft/80 disabled:opacity-25 transition-colors select-none"
+                        className="w-9 h-10 flex items-center justify-center text-[20px] font-light text-muted-foreground hover:bg-muted/40 active:bg-muted/40/80 disabled:opacity-25 transition-colors select-none"
                       >
                         −
                       </button>
@@ -227,13 +227,13 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
                         max={entry.max}
                         value={entry.qty}
                         onChange={e => setDirect(idx, e.target.value)}
-                        className="w-10 h-10 text-center text-[14px] font-bold text-text-primary bg-transparent border-x border-border-soft focus:outline-none tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                        className="w-10 h-10 text-center text-[14px] font-bold text-foreground bg-transparent border-x border-border focus:outline-none tabular-nums [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                       />
                       <button
                         onClick={() => step(idx, +1)}
                         disabled={entry.qty === entry.max}
                         aria-label="increase"
-                        className="w-9 h-10 flex items-center justify-center text-[20px] font-light text-text-secondary hover:bg-surface-soft active:bg-surface-soft/80 disabled:opacity-25 transition-colors select-none"
+                        className="w-9 h-10 flex items-center justify-center text-[20px] font-light text-muted-foreground hover:bg-muted/40 active:bg-muted/40/80 disabled:opacity-25 transition-colors select-none"
                       >
                         +
                       </button>
@@ -242,9 +242,9 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
 
                   {/* per-item subtotal when selected */}
                   {!excluded && (
-                    <div className="px-4 pb-3 flex items-center justify-between border-t border-border-soft/40 pt-2.5">
-                      <p className="text-[10px] text-text-hint">{t('drawer.subtotal')}</p>
-                      <p className="text-[12px] font-bold text-text-primary tabular-nums font-mono">
+                    <div className="px-4 pb-3 flex items-center justify-between border-t border-border/40 pt-2.5">
+                      <p className="text-[10px] text-muted-foreground">{t('drawer.subtotal')}</p>
+                      <p className="text-[12px] font-bold text-foreground tabular-nums font-mono">
                         {fmt(lineTotal)} SDG
                       </p>
                     </div>
@@ -257,15 +257,15 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
       </div>
 
       {/* ── Dashed tear line ──────────────────────────────────────────── */}
-      <div className="mx-5 border-t border-dashed border-border-soft" />
+      <div className="mx-5 border-t border-dashed border-border" />
 
       {/* ── Total card ────────────────────────────────────────────────── */}
       <div className="px-5 pt-5 pb-4">
-        <div className={`rounded-2xl px-5 py-4 flex items-end justify-between transition-colors duration-200 ${
-          isRefundMode ? 'bg-orange-50 border border-orange-100' : 'bg-surface-soft'
+        <div className={`rounded-xl px-5 py-4 flex items-end justify-between transition-colors duration-200 ${
+          isRefundMode ? 'bg-orange-50 border border-orange-100' : 'bg-muted/40'
         }`}>
           <div>
-            <p className="text-[10px] font-black tracking-[.14em] uppercase text-text-hint mb-1">
+            <p className="text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground mb-1">
               {isRefundMode ? t('drawer.refundTotal') : t('columns.amount')}
             </p>
             {isRefundMode && (
@@ -276,18 +276,18 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
           </div>
           <div className="text-end">
             <p className={`text-[30px] font-black tabular-nums leading-none font-mono transition-colors duration-200 ${
-              isRefundMode ? 'text-orange-600' : 'text-text-primary'
+              isRefundMode ? 'text-orange-600' : 'text-foreground'
             }`}>
               {isRefundMode ? fmt(refundTotal) : fmt(parseFloat(sale.net_amount))}
             </p>
-            <p className="text-[11px] text-text-hint mt-0.5">SDG</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">SDG</p>
           </div>
         </div>
       </div>
 
       {/* ── Error banner ──────────────────────────────────────────────── */}
       {error && (
-        <div className="mx-5 mb-4 flex items-start gap-3 bg-red-50 border border-red-100 rounded-2xl px-4 py-3.5">
+        <div className="mx-5 mb-4 flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl px-4 py-3.5">
           <span className="text-red-400 text-[15px] leading-none shrink-0 mt-0.5">⚠</span>
           <p className="text-[12px] text-red-600 leading-snug">{error}</p>
         </div>
@@ -298,7 +298,7 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
         {mode === 'view' && canInitRefund && (
           <button
             onClick={() => setMode('refund')}
-            className="w-full bg-orange-500 hover:bg-orange-600 active:scale-[.98] text-white font-bold text-[14px] py-4 rounded-2xl transition-all duration-150 shadow-sm shadow-orange-200/60"
+            className="w-full bg-orange-500 hover:bg-orange-600 active:scale-[.98] text-white font-bold text-[14px] py-4 rounded-xl transition-all duration-150 shadow-sm shadow-orange-200/60"
           >
             {t('drawer.refundBtn')}
           </button>
@@ -309,7 +309,7 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
             <button
               onClick={handleConfirm}
               disabled={!hasItems || isPending}
-              className="w-full bg-red-500 hover:bg-red-600 active:scale-[.98] text-white font-bold text-[14px] py-4 rounded-2xl transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-red-200/60 flex items-center justify-center gap-2.5"
+              className="w-full bg-red-500 hover:bg-red-600 active:scale-[.98] text-white font-bold text-[14px] py-4 rounded-xl transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm shadow-red-200/60 flex items-center justify-center gap-2.5"
             >
               {isPending ? (
                 <>
@@ -324,7 +324,7 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
             <button
               onClick={() => { setMode('view'); setError(null); }}
               disabled={isPending}
-              className="w-full border border-border-soft text-text-secondary font-semibold text-[13px] py-3.5 rounded-2xl hover:bg-surface-soft transition-colors disabled:opacity-40"
+              className="w-full border border-border text-muted-foreground font-semibold text-[13px] py-3.5 rounded-xl hover:bg-muted/40 transition-colors disabled:opacity-40"
             >
               {t('drawer.cancel')}
             </button>

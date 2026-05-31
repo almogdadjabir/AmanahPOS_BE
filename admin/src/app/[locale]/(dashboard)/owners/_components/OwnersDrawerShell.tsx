@@ -348,7 +348,7 @@ function EditOwnerInline({ owner, onSuccess }: { owner: AdminOwnerDetail; onSucc
       {open && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
-          <div className="relative bg-card rounded-2xl shadow-card-lg border border-border w-full max-w-sm p-6 space-y-4">
+          <div className="relative bg-card rounded-xl shadow-card-lg border border-border w-full max-w-sm p-6 space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-[15px] font-bold text-foreground">Edit Owner</p>
               <button

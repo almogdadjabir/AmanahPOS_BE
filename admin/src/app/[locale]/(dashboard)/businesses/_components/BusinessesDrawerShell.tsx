@@ -1076,7 +1076,7 @@ function EditBusinessInline({
             onClick={() => setOpen(false)}
           />
 
-          <div className="relative bg-card rounded-2xl shadow-card-lg border border-border w-full max-w-sm p-6 space-y-4">
+          <div className="relative bg-card rounded-xl shadow-card-lg border border-border w-full max-w-sm p-6 space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-[15px] font-bold text-foreground">
                 {t("edit.title")}

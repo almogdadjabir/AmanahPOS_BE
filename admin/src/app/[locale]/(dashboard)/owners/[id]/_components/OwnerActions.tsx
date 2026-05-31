@@ -77,7 +77,7 @@ export function EditOwnerForm({ owner }: { owner: AdminOwnerDetail }) {
       {!open ? null : (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
-          <div className="relative bg-card rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+          <div className="relative bg-card rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-[15px] font-bold text-foreground">Edit Owner</p>
               <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors">

@@ -18,7 +18,7 @@ export default async function SystemPage() {
       <div className="space-y-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-info/10 text-info ring-1 ring-info/15 [&_svg]:size-5">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-info/10 text-info ring-1 ring-info/15 [&_svg]:size-5">
               <Activity />
             </span>
 

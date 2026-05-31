@@ -5,7 +5,7 @@ export default async function PremiumLockedInventoryCard() {
   const t = await getTranslations('inventory');
   return (
     <div
-      className="relative overflow-hidden rounded-2xl mb-5"
+      className="relative overflow-hidden rounded-xl mb-5"
       style={{
         background:  'linear-gradient(135deg, rgba(120,53,15,0.16) 0%, rgba(180,83,9,0.09) 55%, rgba(217,119,6,0.04) 100%)',
         border:      '1px solid rgba(217,119,6,0.22)',

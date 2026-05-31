@@ -28,9 +28,9 @@ export default async function OwnerDetailPage({ params }: Props) {
         <OwnerProfileCard owner={owner} />
 
         <div>
-          <p className="text-[13px] font-semibold text-text-primary mb-3">
+          <p className="text-[13px] font-semibold text-foreground mb-3">
             Businesses
-            <span className="ml-2 text-[11px] font-normal text-text-hint">
+            <span className="ml-2 text-[11px] font-normal text-muted-foreground">
               ({owner.business_count})
             </span>
           </p>

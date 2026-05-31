@@ -129,7 +129,7 @@ function PlanCard({
   return (
     <div
       className={cn(
-        "group relative rounded-2xl border bg-card shadow-card overflow-hidden transition-shadow hover:shadow-md",
+        "group relative rounded-xl border bg-card shadow-card overflow-hidden transition-shadow hover:shadow-md",
         plan.is_active ? "border-border" : "border-border/40 opacity-60",
       )}
     >

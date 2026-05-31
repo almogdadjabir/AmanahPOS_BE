@@ -5,7 +5,7 @@ import EmptyState from '@/components/ds/EmptyState';
 export default function OwnerBusinesses({ businesses }: { businesses: AdminOwnerBusiness[] }) {
   if (businesses.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-border-soft shadow-card">
+      <div className="bg-white rounded-xl border border-border shadow-card">
         <EmptyState
           icon={<StoreIcon />}
           title="No businesses yet"
@@ -28,9 +28,9 @@ function BusinessCard({ biz }: { biz: AdminOwnerBusiness }) {
   });
 
   return (
-    <div className="bg-white rounded-xl border border-border-soft shadow-card overflow-hidden">
+    <div className="bg-white rounded-xl border border-border shadow-card overflow-hidden">
       {/* Business header */}
-      <div className="px-4 py-3.5 flex items-start justify-between gap-3 border-b border-border-soft">
+      <div className="px-4 py-3.5 flex items-start justify-between gap-3 border-b border-border">
         <div className="flex items-center gap-3 min-w-0">
           {/* Avatar */}
           <div className="w-9 h-9 rounded-lg bg-primary-soft flex items-center justify-center shrink-0">
@@ -39,15 +39,15 @@ function BusinessCard({ biz }: { biz: AdminOwnerBusiness }) {
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-bold text-text-primary truncate">{biz.name}</p>
-            <p className="text-[11px] font-mono text-text-hint mt-0.5">{biz.slug}</p>
+            <p className="text-[13px] font-bold text-foreground truncate">{biz.name}</p>
+            <p className="text-[11px] font-mono text-muted-foreground mt-0.5">{biz.slug}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Badge dot variant={biz.is_active ? 'success' : 'danger'}>
             {biz.is_active ? 'Active' : 'Inactive'}
           </Badge>
-          <span className="text-[11px] text-text-hint">{created}</span>
+          <span className="text-[11px] text-muted-foreground">{created}</span>
         </div>
       </div>
 
@@ -55,7 +55,7 @@ function BusinessCard({ biz }: { biz: AdminOwnerBusiness }) {
       <div className="px-4 py-3 flex items-center gap-6 flex-wrap">
         {/* Subscription */}
         <div>
-          <p className="text-[10px] font-semibold text-text-hint uppercase tracking-wide mb-1">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
             Subscription
           </p>
           {biz.active_subscription ? (
@@ -74,18 +74,18 @@ function BusinessCard({ biz }: { biz: AdminOwnerBusiness }) {
 
         {/* Shops count */}
         <div>
-          <p className="text-[10px] font-semibold text-text-hint uppercase tracking-wide mb-1">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">
             Active shops
           </p>
-          <p className="text-[13px] font-bold text-text-primary">{biz.shop_count}</p>
+          <p className="text-[13px] font-bold text-foreground">{biz.shop_count}</p>
         </div>
       </div>
 
       {/* Shops list */}
       {biz.shops.length > 0 && (
-        <div className="border-t border-border-soft">
-          <div className="px-4 py-2 bg-surface-soft">
-            <p className="text-[10px] font-semibold text-text-hint uppercase tracking-wider">
+        <div className="border-t border-border">
+          <div className="px-4 py-2 bg-muted/40">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
               Shops ({biz.shops.length})
             </p>
           </div>
@@ -93,13 +93,13 @@ function BusinessCard({ biz }: { biz: AdminOwnerBusiness }) {
             {biz.shops.map(shop => (
               <div key={shop.id} className="px-4 py-2.5 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-md bg-surface-muted flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 rounded-md bg-muted flex items-center justify-center shrink-0">
                     <ShopIcon />
                   </div>
                   <div>
-                    <p className="text-[12px] font-semibold text-text-primary">{shop.name}</p>
+                    <p className="text-[12px] font-semibold text-foreground">{shop.name}</p>
                     {shop.address && (
-                      <p className="text-[11px] text-text-hint truncate max-w-[200px]">{shop.address}</p>
+                      <p className="text-[11px] text-muted-foreground truncate max-w-[200px]">{shop.address}</p>
                     )}
                   </div>
                 </div>

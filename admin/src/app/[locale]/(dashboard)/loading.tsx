@@ -14,7 +14,7 @@ export default function DashboardLoading() {
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2"><ChartSkeleton /></div>
-        <div className="bg-white rounded-xl border border-border-soft shadow-card p-4 space-y-3">
+        <div className="bg-white rounded-xl border border-border shadow-card p-4 space-y-3">
           <div className="flex justify-between">
             <Bone className="h-3.5 w-24" />
             <Bone className="h-5 w-10 rounded-full" />

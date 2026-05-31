@@ -13,7 +13,7 @@ export default function OwnerDetailLoading() {
       </div>
 
       {/* Profile card */}
-      <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+      <div className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
         {/* Banner */}
         <div className="h-[90px] bg-gradient-to-br from-muted/80 to-muted/40 animate-pulse" />
 

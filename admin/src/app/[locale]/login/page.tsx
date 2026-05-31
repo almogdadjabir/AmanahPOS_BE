@@ -48,7 +48,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-[0_4px_40px_rgba(15,23,42,0.07)] px-7 py-7">
+        <div className="bg-card rounded-xl border border-[#E2E8F0] shadow-[0_4px_40px_rgba(15,23,42,0.07)] px-7 py-7">
           <h1 className="text-[22px] font-black tracking-tight text-foreground">{t('headline')}</h1>
           <p className="mt-1.5 text-sm font-medium text-muted-foreground">{t('subheadline')}</p>
 

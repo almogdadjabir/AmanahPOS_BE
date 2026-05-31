@@ -87,7 +87,7 @@ export function CardGridSkeleton({ cards = 6 }: { cards?: number }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {Array.from({ length: cards }).map((_, i) => (
-        <div key={i} className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+        <div key={i} className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
           <div className="h-1 w-full bg-muted" />
           <div className="p-5 space-y-3">
             <div className="flex items-start gap-3">

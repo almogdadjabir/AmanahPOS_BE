@@ -9,11 +9,11 @@ export default function DashboardError({
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-danger-light text-danger flex items-center justify-center mb-4">
+      <div className="w-14 h-14 rounded-xl bg-danger-light text-danger flex items-center justify-center mb-4">
         <AlertIcon />
       </div>
-      <p className="text-[15px] font-bold text-text-primary mb-1">Something went wrong</p>
-      <p className="text-sm text-text-hint max-w-sm leading-relaxed">
+      <p className="text-[15px] font-bold text-foreground mb-1">Something went wrong</p>
+      <p className="text-sm text-muted-foreground max-w-sm leading-relaxed">
         {error.message || 'An unexpected error occurred. Try refreshing the page.'}
       </p>
       <button
