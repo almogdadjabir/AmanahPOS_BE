@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { BusinessType } from "@/types/api";
 import AppShell from "@/components/layout/AppShell";
+import { Toaster } from "@/components/ui/toaster";
 
 export default async function DashboardLayout({
   children,
@@ -34,6 +35,7 @@ export default async function DashboardLayout({
   return (
     <AppShell profile={profile} businessType={businessType}>
       {children}
+      <Toaster />
     </AppShell>
   );
 }

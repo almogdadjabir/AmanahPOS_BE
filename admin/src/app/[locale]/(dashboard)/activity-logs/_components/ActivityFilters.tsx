@@ -4,6 +4,9 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { X } from 'lucide-react';
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select';
 import type { ActivityAction, ActivityEntityType } from '@/types/api';
 
 export default function ActivityFilters() {
@@ -87,26 +90,28 @@ export default function ActivityFilters() {
       />
 
       {/* Action filter */}
-      <select
-        value={action}
-        onChange={(e) => update('action', e.target.value)}
-        className={selectCls}
-      >
-        {ACTIONS.map((a) => (
-          <option key={a.value} value={a.value}>{a.label}</option>
-        ))}
-      </select>
+      <Select value={action} onValueChange={(v) => update('action', v === '__all__' ? '' : v)}>
+        <SelectTrigger className="h-9 min-w-[160px]">
+          <SelectValue placeholder={t('actions.all')} />
+        </SelectTrigger>
+        <SelectContent>
+          {ACTIONS.map((a) => (
+            <SelectItem key={a.value} value={a.value || '__all__'}>{a.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {/* Entity type filter */}
-      <select
-        value={entityType}
-        onChange={(e) => update('entity_type', e.target.value)}
-        className={selectCls}
-      >
-        {ENTITY_TYPES.map((e) => (
-          <option key={e.value} value={e.value}>{e.label}</option>
-        ))}
-      </select>
+      <Select value={entityType} onValueChange={(v) => update('entity_type', v === '__all__' ? '' : v)}>
+        <SelectTrigger className="h-9 min-w-[140px]">
+          <SelectValue placeholder={t('entities.all')} />
+        </SelectTrigger>
+        <SelectContent>
+          {ENTITY_TYPES.map((e) => (
+            <SelectItem key={e.value} value={e.value || '__all__'}>{e.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       {/* Date range */}
       <div className="flex items-center gap-1.5">

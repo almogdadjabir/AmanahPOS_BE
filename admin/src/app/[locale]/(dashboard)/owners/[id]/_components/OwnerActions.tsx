@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useTransition } from 'react';
 import { Ban, Check, Edit, X } from 'lucide-react';
+import { toast } from 'sonner';
 import { toggleOwnerStatusAction, updateOwnerAction, type UpdateOwnerState } from '@/actions/owners';
 import type { AdminOwnerDetail } from '@/types/api';
 import { Button } from '@/components/ui/button';
@@ -10,12 +11,14 @@ import ConfirmDialog from '@/components/ds/ConfirmDialog';
 export function ToggleStatusButton({ owner }: { owner: AdminOwnerDetail }) {
   const [open, setOpen]     = useState(false);
   const [isPending, start]  = useTransition();
-  const [result, setResult] = useState<{ error?: string } | null>(null);
-
   async function handleConfirm() {
     start(async () => {
       const res = await toggleOwnerStatusAction(owner.id);
-      if (res && 'error' in res) setResult({ error: res.error });
+      if (res && 'error' in res) {
+        toast.error(res.error);
+      } else {
+        toast.success(isActive ? 'Owner deactivated' : 'Owner activated');
+      }
       setOpen(false);
     });
   }
@@ -24,9 +27,6 @@ export function ToggleStatusButton({ owner }: { owner: AdminOwnerDetail }) {
 
   return (
     <>
-      {result?.error && (
-        <p className="text-[11px] text-destructive mt-1">{result.error}</p>
-      )}
       <Button
         variant={isActive ? 'destructive' : 'default'}
         size="sm"

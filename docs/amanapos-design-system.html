@@ -633,6 +633,8 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
     <a class="nav-item" href="#card">        <span class="dot"></span> Card</a>
     <a class="nav-item" href="#table">       <span class="dot"></span> Table</a>
     <a class="nav-item" href="#select">      <span class="dot"></span> Select</a>
+    <a class="nav-item" href="#checkbox">    <span class="dot"></span> Checkbox</a>
+    <a class="nav-item" href="#toast">       <span class="dot"></span> Toast</a>
     <a class="nav-item" href="#dialog">      <span class="dot"></span> Dialog</a>
     <a class="nav-item" href="#sheet">       <span class="dot"></span> Sheet</a>
   </div>
@@ -1232,6 +1234,138 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
 
     <div class="divider"></div>
 
+    <!-- ══ CHECKBOX ══ -->
+    <div class="section" id="checkbox">
+      <div class="section-badge">Primitive</div>
+      <h2 class="section-title">Checkbox</h2>
+      <p class="section-desc">Accessible checkbox built on Radix UI. Teal check icon, smooth scale transition, supports indeterminate state for "select all" patterns. RTL-safe — label always on the correct side.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">Checkbox</div><div class="component-path">components/ui/checkbox.tsx</div></div>
+          <span class="component-status status-new">New</span>
+        </div>
+        <div class="component-preview" style="flex-direction:column;gap:12px;align-items:flex-start">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px;color:var(--text)">
+            <input type="checkbox" checked style="accent-color:#0F766E;width:16px;height:16px;border-radius:4px" readonly />
+            <span>Active owners only</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px;color:var(--text)">
+            <input type="checkbox" style="accent-color:#0F766E;width:16px;height:16px" readonly />
+            <span>Include expired subscriptions</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px;color:#9CA3AF">
+            <input type="checkbox" disabled style="width:16px;height:16px" readonly />
+            <span>Disabled option</span>
+          </label>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">checked</td><td class="prop-type">boolean | 'indeterminate'</td><td class="prop-desc">Controlled checked state</td></tr>
+              <tr><td class="prop-name">onCheckedChange</td><td class="prop-type">(checked: boolean) =&gt; void</td><td class="prop-desc">Fires when user clicks</td></tr>
+              <tr><td class="prop-name">indeterminate</td><td class="prop-type">boolean?</td><td class="prop-desc">Shows a dash — use for "select all" row headers</td></tr>
+              <tr><td class="prop-name">disabled</td><td class="prop-type">boolean?</td><td class="prop-desc">Reduces opacity, disables pointer events</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="code-block"><pre>
+<span class="code-kw">import</span> { Checkbox } <span class="code-kw">from</span> <span class="code-str">'@/components/ui/checkbox'</span>;
+
+<span class="code-cmt">// Simple controlled checkbox with label</span>
+<span class="code-tag">&lt;label</span> <span class="code-attr">className</span>=<span class="code-str">"flex items-center gap-2 cursor-pointer"</span><span class="code-tag">&gt;</span>
+  <span class="code-tag">&lt;Checkbox</span>
+    <span class="code-attr">checked</span>={checked}
+    <span class="code-attr">onCheckedChange</span>={(v) => setChecked(!!v)}
+  <span class="code-tag">/&gt;</span>
+  <span class="code-tag">&lt;span</span> <span class="code-attr">className</span>=<span class="code-str">"text-sm font-medium text-foreground"</span><span class="code-tag">&gt;</span>
+    Active owners only
+  <span class="code-tag">&lt;/span&gt;</span>
+<span class="code-tag">&lt;/label&gt;</span>
+
+<span class="code-cmt">// Indeterminate (select-all header in table)</span>
+<span class="code-tag">&lt;Checkbox</span>
+  <span class="code-attr">indeterminate</span>={someSelected && !allSelected}
+  <span class="code-attr">checked</span>={allSelected}
+  <span class="code-attr">onCheckedChange</span>={toggleAll}
+<span class="code-tag">/&gt;</span>
+</pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ TOAST ══ -->
+    <div class="section" id="toast">
+      <div class="section-badge">Primitive</div>
+      <h2 class="section-title">Toast</h2>
+      <p class="section-desc">Sonner-based notification toasts. RTL-aware — positions top-left in Arabic, top-right in English. Branded with DS color tokens. Fire from any client component with <code>import { toast } from 'sonner'</code>.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">Toaster + toast()</div><div class="component-path">components/ui/toaster.tsx + sonner</div></div>
+          <span class="component-status status-new">New</span>
+        </div>
+        <div class="component-preview" style="flex-direction:column;gap:10px;align-items:stretch">
+          <div style="display:flex;align-items:start;gap:12px;padding:14px 16px;border-radius:10px;background:#ECFDF5;border:1px solid #A7F3D0;font-size:13.5px;font-weight:500;color:#065F46">
+            <span style="font-size:16px">✓</span>
+            <div><div style="font-weight:600">Owner activated</div><div style="font-size:12px;opacity:.7;margin-top:2px">Ahmed Ali now has full access</div></div>
+          </div>
+          <div style="display:flex;align-items:start;gap:12px;padding:14px 16px;border-radius:10px;background:#FEF2F2;border:1px solid #FECACA;font-size:13.5px;font-weight:500;color:#991B1B">
+            <span style="font-size:16px">✕</span>
+            <div><div style="font-weight:600">Failed to save</div><div style="font-size:12px;opacity:.7;margin-top:2px">Check your connection and try again</div></div>
+          </div>
+          <div style="display:flex;align-items:start;gap:12px;padding:14px 16px;border-radius:10px;background:#FFFBEB;border:1px solid #FDE68A;font-size:13.5px;font-weight:500;color:#92400E">
+            <span style="font-size:16px">⚠</span>
+            <div><div style="font-weight:600">Subscription expiring</div><div style="font-size:12px;opacity:.7;margin-top:2px">Renew within 7 days to avoid interruption</div></div>
+          </div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">API — import { toast } from 'sonner'</div>
+          <table class="props-table">
+            <thead><tr><th>Call</th><th>When to use</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">toast.success('msg')</td><td class="prop-desc">Mutation succeeded — owner created, settings saved, notification sent</td></tr>
+              <tr><td class="prop-name">toast.error('msg')</td><td class="prop-desc">Mutation failed — API error, validation error, network error</td></tr>
+              <tr><td class="prop-name">toast.warning('msg')</td><td class="prop-desc">Soft warning that doesn't block — expiry, quota near limit</td></tr>
+              <tr><td class="prop-name">toast('msg')</td><td class="prop-desc">Neutral info message</td></tr>
+              <tr><td class="prop-name">toast.loading('msg')</td><td class="prop-desc">Long async operations (shows spinner, resolve with toast.success/error)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">💡</span>
+        <span><strong>RTL:</strong> The <code>Toaster</code> component reads the current locale from <code>useParams()</code> and automatically positions itself top-left for Arabic and top-right for English. No extra config needed.</span>
+      </div>
+
+      <div class="code-block"><pre>
+<span class="code-cmt">// In any client component — replace inline error banners with toast</span>
+<span class="code-kw">import</span> { toast } <span class="code-kw">from</span> <span class="code-str">'sonner'</span>;
+
+async <span class="code-kw">function</span> <span class="code-fn">handleSave</span>() {
+  <span class="code-kw">try</span> {
+    <span class="code-kw">await</span> updateBusinessAction(id, data);
+    toast.success(<span class="code-str">'Business updated'</span>);
+    onClose();
+  } <span class="code-kw">catch</span> (err) {
+    toast.error(err.message ?? <span class="code-str">'Failed to save'</span>);
+  }
+}
+
+<span class="code-cmt">// With title + description</span>
+toast.success(<span class="code-str">'Owner activated'</span>, {
+  description: <span class="code-str">'Ahmed Ali now has full access'</span>,
+});
+</pre></div>
+    </div>
+
+    <div class="divider"></div>
+
     <!-- ══ DS: PAGETITLE ══ -->
     <div class="section" id="pagetitle">
       <div class="section-badge">DS Component</div>
@@ -1746,7 +1880,9 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
             <tbody>
               <tr><td class="prop-name">Token migration</td><td class="prop-desc">All 300+ deprecated tokens replaced — <code>text-text-primary</code>, <code>border-border-soft</code>, <code>bg-surface-soft</code>, <code>rounded-2xl</code> → semantic equivalents across 44 files</td></tr>
               <tr><td class="prop-name">Table migration</td><td class="prop-desc">All 8 raw HTML tables now use <code>Table/TableHeader/TableBody/TableRow/TableHead/TableCell</code></td></tr>
-              <tr><td class="prop-name">Select primitive</td><td class="prop-desc"><code>components/ui/select.tsx</code> added — Radix-based, DS-styled, ready to use</td></tr>
+              <tr><td class="prop-name">Select primitive</td><td class="prop-desc"><code>components/ui/select.tsx</code> — Radix-based, DS-styled. ActivityFilters migrated to it.</td></tr>
+              <tr><td class="prop-name">Checkbox primitive</td><td class="prop-desc"><code>components/ui/checkbox.tsx</code> — Radix-based, teal check, indeterminate state, RTL-safe</td></tr>
+              <tr><td class="prop-name">Toast (Sonner)</td><td class="prop-desc"><code>components/ui/toaster.tsx</code> — RTL-aware position, DS-branded colors. <code>Toaster</code> mounted in dashboard layout. SendDrawer + OwnerActions wired.</td></tr>
               <tr><td class="prop-name">Pagination UX</td><td class="prop-desc"><code>scroll: false</code> + <code>useTransition</code> spinner — no more scroll-to-top on page change</td></tr>
             </tbody>
           </table>
@@ -1763,10 +1899,9 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
           <table class="props-table">
             <thead><tr><th>Component</th><th>Current workaround</th><th>Notes</th></tr></thead>
             <tbody>
-              <tr><td class="prop-name">Migrate raw &lt;select&gt;</td><td class="prop-type">25 raw &lt;select&gt; elements still exist</td><td class="prop-desc">Now that <code>Select</code> primitive exists, migrate screens as you touch them</td></tr>
-              <tr><td class="prop-name">Checkbox</td><td class="prop-type">None</td><td class="prop-desc">Needed for bulk table row selection — use <code>@radix-ui/react-checkbox</code></td></tr>
-              <tr><td class="prop-name">Toast</td><td class="prop-type">Inline error banners only</td><td class="prop-desc">Add <code>sonner</code> for success/error feedback on mutations — much better UX than inline state</td></tr>
-              <tr><td class="prop-name">SudanPhoneField</td><td class="prop-type">Still in use in some forms</td><td class="prop-desc">Migrate to <code>PhoneInput</code> (components/ui/PhoneInput.tsx) — same UX, uses semantic tokens</td></tr>
+              <tr><td class="prop-name">Migrate remaining raw &lt;select&gt;</td><td class="prop-type">~23 raw &lt;select&gt; remain in forms</td><td class="prop-desc">Use <code>Select</code> for non-form dropdowns; for form selects with <code>name=</code>, a hidden-input wrapper is needed before migrating</td></tr>
+              <tr><td class="prop-name">Wire toast to all mutations</td><td class="prop-type">Inline error state still in most drawers</td><td class="prop-desc">Gradually replace <code>setResult({error})</code> inline banners with <code>toast.error()</code> and remove the banner JSX</td></tr>
+              <tr><td class="prop-name">SudanPhoneField</td><td class="prop-type">Still in use in some forms</td><td class="prop-desc">Migrate to <code>PhoneInput</code> (components/ui/PhoneInput.tsx)</td></tr>
             </tbody>
           </table>
         </div>

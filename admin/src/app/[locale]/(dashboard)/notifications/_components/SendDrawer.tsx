@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { Search, X, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Search, X, Send } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { adminSendPush, adminSendSMS, fetchAdminTemplates, searchOwnersAction } from '../actions';
 import type { NotificationTemplate } from '@/types/api';
@@ -87,8 +88,7 @@ export default function SendDrawer({ onClose }: { onClose?: () => void }) {
   const [body,        setBody]        = useState('');
   const [message,     setMessage]     = useState('');
   const [variables,   setVariables]   = useState<Record<string, string>>({});
-  const [sending,     setSending]     = useState(false);
-  const [result,      setResult]      = useState<{ ok: boolean; text: string } | null>(null);
+  const [sending, setSending] = useState(false);
 
   const selectedTemplate = templates.find((t) => t.id === templateId) ?? null;
 
@@ -107,7 +107,6 @@ export default function SendDrawer({ onClose }: { onClose?: () => void }) {
     e.preventDefault();
     if (!user) return;
     setSending(true);
-    setResult(null);
     try {
       if (mode === 'push') {
         const res = await adminSendPush(
@@ -115,23 +114,21 @@ export default function SendDrawer({ onClose }: { onClose?: () => void }) {
             ? { user_id: user.id, template_id: templateId, variables }
             : { user_id: user.id, title, body },
         );
-        setResult({ ok: true, text: t('sentDevices', { count: res.device_count }) });
+        toast.success(t('sentDevices', { count: res.device_count }));
       } else {
         await adminSendSMS(
           useTemplate && templateId
             ? { user_id: user.id, template_id: templateId, variables }
             : { user_id: user.id, message },
         );
-        setResult({ ok: true, text: t('smsSent') });
+        toast.success(t('smsSent'));
       }
-      // Refresh the logs table so the new delivery row appears immediately,
-      // then close the drawer after a short pause so the user sees the confirmation.
       router.refresh();
-      setTimeout(() => onClose?.(), 1500);
+      onClose?.();
     } catch (err: unknown) {
       const msg = (err as { body?: { message?: string }; message?: string })?.body?.message
         ?? (err as { message?: string })?.message ?? 'Failed to send.';
-      setResult({ ok: false, text: msg });
+      toast.error(msg);
     } finally {
       setSending(false);
     }
@@ -142,7 +139,7 @@ export default function SendDrawer({ onClose }: { onClose?: () => void }) {
       {/* Mode toggle */}
       <div className="flex gap-1 p-1 bg-muted rounded-xl w-fit">
         {(['push', 'sms'] as Mode[]).map((m) => (
-          <button key={m} type="button" onClick={() => { setMode(m); setResult(null); }}
+          <button key={m} type="button" onClick={() => setMode(m)}
             className={cn('px-4 py-1.5 rounded-lg text-sm font-semibold transition-all',
               mode === m ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}
           >
@@ -216,15 +213,8 @@ export default function SendDrawer({ onClose }: { onClose?: () => void }) {
         />
       )}
 
-      {result && (
-        <div className={cn('flex items-center gap-2 p-3 rounded-xl text-sm font-medium',
-          result.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200')}>
-          {result.ok ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-          {result.text}
-        </div>
-      )}
 
-      <div className="mt-auto pt-2">
+<div className="mt-auto pt-2">
         <button type="submit" disabled={sending || !user}
           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
         >
