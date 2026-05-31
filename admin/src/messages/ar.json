@@ -129,7 +129,11 @@
     "tryDifferent": "جرّب كلمات بحث مختلفة أو أمسح عبارة البحث.",
     "searchPlaceholder": "بحث…",
     "saveChanges": "حفظ التعديلات",
-    "noData": "لا توجد بيانات"
+    "noData": "لا توجد بيانات",
+    "previous": "السابق",
+    "next": "التالي",
+    "pageOf": "{page} من {total}",
+    "items": "{count} عنصر"
   },
   "dashboard": {
     "greetingMorning": "صباح الخير",

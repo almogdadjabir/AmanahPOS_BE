@@ -129,7 +129,11 @@
     "tryDifferent": "Try different keywords or clear the search.",
     "searchPlaceholder": "Search…",
     "saveChanges": "Save changes",
-    "noData": "No data"
+    "noData": "No data",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "{page} of {total}",
+    "items": "{count} items"
   },
   "dashboard": {
     "greetingMorning": "Good morning",

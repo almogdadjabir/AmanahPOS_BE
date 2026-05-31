@@ -19,7 +19,8 @@ const CHANNEL_COLORS: Record<string, string> = {
 };
 
 export default function TemplatesList() {
-  const t = useTranslations('notifications');
+  const t  = useTranslations('notifications');
+  const tc = useTranslations('common');
   const router = useRouter();
   const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
   const [count, setCount]         = useState(0);
@@ -136,10 +137,25 @@ export default function TemplatesList() {
       {/* Pagination */}
       {count > 20 && (
         <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-          <span>{count} total</span>
-          <div className="flex gap-2">
-            <button disabled={page === 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1 rounded-lg border border-border disabled:opacity-40 hover:bg-muted transition-colors">Prev</button>
-            <button disabled={page * 20 >= count} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 rounded-lg border border-border disabled:opacity-40 hover:bg-muted transition-colors">Next</button>
+          <span>{tc('items', { count })}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs">{tc('pageOf', { page, total: Math.ceil(count / 20) })}</span>
+            <div className="flex gap-1.5">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+                className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+              >
+                {tc('previous')}
+              </button>
+              <button
+                disabled={page * 20 >= count}
+                onClick={() => setPage((p) => p + 1)}
+                className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+              >
+                {tc('next')}
+              </button>
+            </div>
           </div>
         </div>
       )}
