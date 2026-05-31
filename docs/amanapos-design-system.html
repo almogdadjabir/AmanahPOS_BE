@@ -609,7 +609,7 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
       <div class="sidebar-logo-mark">A</div>
       <div>
         <div class="sidebar-brand">AmanaPOS</div>
-        <div class="sidebar-version">Design System v1.0</div>
+        <div class="sidebar-version">Design System v1.1 — Full</div>
       </div>
     </div>
   </div>
@@ -632,6 +632,7 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
     <a class="nav-item" href="#avatar">      <span class="dot"></span> Avatar</a>
     <a class="nav-item" href="#card">        <span class="dot"></span> Card</a>
     <a class="nav-item" href="#table">       <span class="dot"></span> Table</a>
+    <a class="nav-item" href="#select">      <span class="dot"></span> Select</a>
     <a class="nav-item" href="#dialog">      <span class="dot"></span> Dialog</a>
     <a class="nav-item" href="#sheet">       <span class="dot"></span> Sheet</a>
   </div>
@@ -664,7 +665,7 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
 
   <!-- Hero -->
   <div class="page-hero">
-    <div class="hero-eyebrow">v1.0 — Stable</div>
+    <div class="hero-eyebrow">v1.1 — Fully enforced across all screens</div>
     <h1 class="hero-title">AmanaPOS <span>Design System</span></h1>
     <p class="hero-sub">
       The single source of truth for building the AmanaPOS admin dashboard.
@@ -1098,9 +1099,9 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
       <h2 class="section-title">Table</h2>
       <p class="section-desc">Use <code>components/ui/table.tsx</code> for every data table. Do not write raw <code>&lt;table&gt;</code> HTML.</p>
 
-      <div class="callout danger">
-        <span class="callout-icon">🚫</span>
-        <span><strong>6 screens currently bypass this component</strong> and write raw HTML tables. See the Gaps section for the migration list.</span>
+      <div class="callout tip">
+        <span class="callout-icon">✅</span>
+        <span><strong>All 8 screens migrated</strong> — every data table in the dashboard now uses these components. Do not write raw <code>&lt;table&gt;</code> HTML in new screens.</span>
       </div>
 
       <div class="component-card" style="margin-top:20px">
@@ -1164,6 +1165,68 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
     ))}
   <span class="code-tag">&lt;/TableBody&gt;</span>
 <span class="code-tag">&lt;/Table&gt;</span>
+</pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ SELECT ══ -->
+    <div class="section" id="select">
+      <div class="section-badge">Primitive</div>
+      <h2 class="section-title">Select</h2>
+      <p class="section-desc">Accessible dropdown select built on Radix UI. Replaces all raw <code>&lt;select&gt;</code> elements. Keyboard navigable, RTL-safe, DS-styled.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div>
+            <div class="component-name">Select</div>
+            <div class="component-path">components/ui/select.tsx</div>
+          </div>
+          <span class="component-status status-new">New</span>
+        </div>
+        <div class="component-preview" style="gap:16px;flex-wrap:wrap">
+          <div style="width:220px">
+            <select style="width:100%;height:36px;padding:0 12px;border:1px solid #D1D5DB;border-radius:8px;font-size:13.5px;background:white;color:#111827;outline:none">
+              <option>All actions</option>
+              <option>Owner created</option>
+              <option>Business activated</option>
+            </select>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:#9CA3AF;margin-top:6px;text-align:center">← Use Select component instead</div>
+          </div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Exports</div>
+          <table class="props-table">
+            <thead><tr><th>Export</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">Select</td><td class="prop-desc">Root — wraps <code>SelectTrigger</code> + <code>SelectContent</code></td></tr>
+              <tr><td class="prop-name">SelectTrigger</td><td class="prop-desc">The visible button that opens the dropdown</td></tr>
+              <tr><td class="prop-name">SelectValue</td><td class="prop-desc">Placeholder / selected value display</td></tr>
+              <tr><td class="prop-name">SelectContent</td><td class="prop-desc">Dropdown panel (portaled)</td></tr>
+              <tr><td class="prop-name">SelectItem</td><td class="prop-desc">Individual option with checkmark indicator</td></tr>
+              <tr><td class="prop-name">SelectGroup</td><td class="prop-desc">Group container for related items</td></tr>
+              <tr><td class="prop-name">SelectLabel</td><td class="prop-desc">Group label inside the dropdown</td></tr>
+              <tr><td class="prop-name">SelectSeparator</td><td class="prop-desc">Horizontal divider between groups</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="code-block"><pre>
+<span class="code-kw">import</span> {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem
+} <span class="code-kw">from</span> <span class="code-str">'@/components/ui/select'</span>;
+
+<span class="code-cmt">// Controlled</span>
+<span class="code-tag">&lt;Select</span> <span class="code-attr">value</span>={action} <span class="code-attr">onValueChange</span>={setAction}<span class="code-tag">&gt;</span>
+  <span class="code-tag">&lt;SelectTrigger&gt;</span>
+    <span class="code-tag">&lt;SelectValue</span> <span class="code-attr">placeholder</span>=<span class="code-str">"All actions"</span> <span class="code-tag">/&gt;</span>
+  <span class="code-tag">&lt;/SelectTrigger&gt;</span>
+  <span class="code-tag">&lt;SelectContent&gt;</span>
+    <span class="code-tag">&lt;SelectItem</span> <span class="code-attr">value</span>=<span class="code-str">"owner_created"</span><span class="code-tag">&gt;</span>Owner created<span class="code-tag">&lt;/SelectItem&gt;</span>
+    <span class="code-tag">&lt;SelectItem</span> <span class="code-attr">value</span>=<span class="code-str">"business_activated"</span><span class="code-tag">&gt;</span>Business activated<span class="code-tag">&lt;/SelectItem&gt;</span>
+  <span class="code-tag">&lt;/SelectContent&gt;</span>
+<span class="code-tag">&lt;/Select&gt;</span>
 </pre></div>
     </div>
 
@@ -1667,66 +1730,66 @@ td.prop-desc { font-size: 12.5px; color: var(--text-2); }
 
     <!-- ══ GAPS ══ -->
     <div class="section" id="gaps">
-      <div class="section-badge">Migration</div>
-      <h2 class="section-title">Gaps &amp; Migration Guide</h2>
-      <p class="section-desc">Known inconsistencies that need to be addressed. Work through these when touching the relevant screen.</p>
+      <div class="section-badge">Status</div>
+      <h2 class="section-title">System Status &amp; Remaining Work</h2>
+      <p class="section-desc">Current health of the design system. Green = done. Amber = in progress.</p>
 
-      <div class="callout danger">
-        <span class="callout-icon">🚫</span>
-        <span><strong>6 screens use raw HTML tables</strong> instead of <code>components/ui/table.tsx</code>. Migrate them as you touch each screen — do not write more raw tables.</span>
-      </div>
-
-      <div class="component-card" style="margin-top:20px">
-        <div class="component-header">
-          <div class="component-name">Raw Table Screens — Migration Required</div>
-          <span class="component-status status-deprecated">Needs Migration</span>
+      <!-- Completed -->
+      <div class="component-card" style="margin-top:4px">
+        <div class="component-header" style="background:#F0FDF4">
+          <div class="component-name" style="color:#065F46">✅ Completed</div>
+          <span class="component-status status-stable">All done</span>
         </div>
         <div class="component-props">
           <table class="props-table">
-            <thead><tr><th>Screen</th><th>File</th><th>Priority</th></tr></thead>
+            <thead><tr><th>Item</th><th>Detail</th></tr></thead>
             <tbody>
-              <tr><td>Sales</td><td class="prop-type">sales/_components/SalesTableClient.tsx</td><td><span class="badge badge-warning" style="font-size:10px">Medium</span></td></tr>
-              <tr><td>Activity Logs</td><td class="prop-type">activity-logs/_components/ActivityFeed.tsx</td><td><span class="badge badge-warning" style="font-size:10px">Medium</span></td></tr>
-              <tr><td>Notification Logs</td><td class="prop-type">notifications/logs/_components/LogsTable.tsx</td><td><span class="badge badge-neutral" style="font-size:10px">Low</span></td></tr>
-              <tr><td>Notification Templates</td><td class="prop-type">notifications/templates/_components/TemplatesList.tsx</td><td><span class="badge badge-neutral" style="font-size:10px">Low</span></td></tr>
+              <tr><td class="prop-name">Token migration</td><td class="prop-desc">All 300+ deprecated tokens replaced — <code>text-text-primary</code>, <code>border-border-soft</code>, <code>bg-surface-soft</code>, <code>rounded-2xl</code> → semantic equivalents across 44 files</td></tr>
+              <tr><td class="prop-name">Table migration</td><td class="prop-desc">All 8 raw HTML tables now use <code>Table/TableHeader/TableBody/TableRow/TableHead/TableCell</code></td></tr>
+              <tr><td class="prop-name">Select primitive</td><td class="prop-desc"><code>components/ui/select.tsx</code> added — Radix-based, DS-styled, ready to use</td></tr>
+              <tr><td class="prop-name">Pagination UX</td><td class="prop-desc"><code>scroll: false</code> + <code>useTransition</code> spinner — no more scroll-to-top on page change</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
+      <!-- Remaining -->
       <div class="component-card" style="margin-top:16px">
         <div class="component-header">
-          <div class="component-name">Deprecated Tokens — Replace When Found</div>
-          <span class="component-status status-deprecated">Deprecated</span>
-        </div>
-        <div class="component-props">
-          <table class="props-table">
-            <thead><tr><th>Deprecated token</th><th>Replace with</th></tr></thead>
-            <tbody>
-              <tr><td class="prop-name">text-text-primary</td><td class="prop-type">text-foreground</td></tr>
-              <tr><td class="prop-name">text-text-secondary</td><td class="prop-type">text-muted-foreground</td></tr>
-              <tr><td class="prop-name">text-text-hint</td><td class="prop-type">text-muted-foreground/70</td></tr>
-              <tr><td class="prop-name">border-soft / border-muted</td><td class="prop-type">border-border</td></tr>
-              <tr><td class="prop-name">bg-surface-soft / bg-surface</td><td class="prop-type">bg-muted or bg-card</td></tr>
-              <tr><td class="prop-name">SudanPhoneField</td><td class="prop-type">PhoneInput (components/ui/PhoneInput.tsx)</td></tr>
-              <tr><td class="prop-name">PhoneNumberField (deprecated tokens)</td><td class="prop-type">PhoneInput (components/ui/PhoneInput.tsx)</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div class="component-card" style="margin-top:16px">
-        <div class="component-header">
-          <div class="component-name">Missing Primitives — Add Before Creating Custom Versions</div>
+          <div class="component-name">Remaining — Add Before Building Custom</div>
           <span class="component-status status-new">Planned</span>
         </div>
         <div class="component-props">
           <table class="props-table">
             <thead><tr><th>Component</th><th>Current workaround</th><th>Notes</th></tr></thead>
             <tbody>
-              <tr><td class="prop-name">Select</td><td class="prop-type">Raw &lt;select&gt; with Tailwind classes</td><td class="prop-desc">Add a <code>Select</code> primitive to components/ui/ — use Radix Select</td></tr>
-              <tr><td class="prop-name">Checkbox</td><td class="prop-type">None</td><td class="prop-desc">Needed for bulk table actions</td></tr>
-              <tr><td class="prop-name">Toast / Notification</td><td class="prop-type">Inline error state</td><td class="prop-desc">Add sonner or shadcn/toast for success/error feedback</td></tr>
+              <tr><td class="prop-name">Migrate raw &lt;select&gt;</td><td class="prop-type">25 raw &lt;select&gt; elements still exist</td><td class="prop-desc">Now that <code>Select</code> primitive exists, migrate screens as you touch them</td></tr>
+              <tr><td class="prop-name">Checkbox</td><td class="prop-type">None</td><td class="prop-desc">Needed for bulk table row selection — use <code>@radix-ui/react-checkbox</code></td></tr>
+              <tr><td class="prop-name">Toast</td><td class="prop-type">Inline error banners only</td><td class="prop-desc">Add <code>sonner</code> for success/error feedback on mutations — much better UX than inline state</td></tr>
+              <tr><td class="prop-name">SudanPhoneField</td><td class="prop-type">Still in use in some forms</td><td class="prop-desc">Migrate to <code>PhoneInput</code> (components/ui/PhoneInput.tsx) — same UX, uses semantic tokens</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Token reference (informational) -->
+      <div class="component-card" style="margin-top:16px">
+        <div class="component-header">
+          <div class="component-name">Token Reference — Canonical Mappings</div>
+          <span class="component-status status-stable">Reference</span>
+        </div>
+        <div class="component-props">
+          <table class="props-table">
+            <thead><tr><th>Old (removed)</th><th>Use this instead</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">text-text-primary</td><td class="prop-type">text-foreground</td></tr>
+              <tr><td class="prop-name">text-text-secondary</td><td class="prop-type">text-muted-foreground</td></tr>
+              <tr><td class="prop-name">text-text-hint</td><td class="prop-type">text-muted-foreground</td></tr>
+              <tr><td class="prop-name">border-border-soft</td><td class="prop-type">border-border</td></tr>
+              <tr><td class="prop-name">bg-surface-soft</td><td class="prop-type">bg-muted/40</td></tr>
+              <tr><td class="prop-name">hover:bg-surface-soft</td><td class="prop-type">hover:bg-muted/50</td></tr>
+              <tr><td class="prop-name">bg-surface-muted</td><td class="prop-type">bg-muted</td></tr>
+              <tr><td class="prop-name">bg-white rounded-2xl</td><td class="prop-type">bg-card rounded-xl</td></tr>
             </tbody>
           </table>
         </div>
