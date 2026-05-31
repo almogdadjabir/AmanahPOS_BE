@@ -82,20 +82,29 @@ _TEMPLATES: dict[str, dict] = {
 
 # ── Public API ────────────────────────────────────────────────────────────────
 
-def render_notification(key: str, **kwargs) -> dict:
+def render_notification(key: str, locale: str = "en", **kwargs) -> dict:
     """
-    Return a notification payload dict with title/body formatted by kwargs.
+    Return a bilingual notification payload dict with title/body formatted by kwargs.
+
+    Lookup order:
+      1. DB NotificationTemplate (supports AR + EN, admin-editable)
+      2. Hardcoded _TEMPLATES dict (English-only fallback)
 
     Returns:
-        {
-            "title": "...",
-            "body":  "...",
-            "notification_type": "...",
-        }
+        {"title": "...", "body": "...", "notification_type": "..."}
 
     Raises:
-        KeyError: if key is not in the template registry.
+        KeyError: if key is not found in DB (enabled) and not in _TEMPLATES.
     """
+    # 1. Try DB template first (admin-editable, bilingual)
+    try:
+        from apps.notifications.models import NotificationTemplate
+        tmpl = NotificationTemplate.objects.get(key=key, is_enabled=True)
+        return tmpl.render(locale=locale, **kwargs)
+    except Exception:
+        pass
+
+    # 2. Fall back to hardcoded dict (English only)
     if key not in _TEMPLATES:
         raise KeyError(
             f"Unknown notification template {key!r}. "
