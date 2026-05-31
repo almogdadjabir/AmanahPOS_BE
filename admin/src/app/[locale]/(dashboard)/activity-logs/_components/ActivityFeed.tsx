@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/navigation';
 import { getTranslations } from 'next-intl/server';
 import type { ActivityLog, ActivityAction, ActivityEntityType } from '@/types/api';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 // ── Action badge config ───────────────────────────────────────────────────────
 
@@ -75,13 +76,13 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
   const fullDate   = new Date(log.created_at).toLocaleString();
 
   return (
-    <tr
-      className={`group border-b border-border/40 transition-colors hover:bg-primary/[.025] ${
+    <TableRow
+      className={`group border-b border-border/40 hover:bg-primary/[.025] ${
         idx % 2 === 0 ? '' : 'bg-muted/20'
       }`}
     >
       {/* Actor */}
-      <td className="px-4 py-2.5">
+      <TableCell className="px-4 py-2.5">
         <div className="flex items-center gap-2 min-w-0">
           <Initials name={actorLabel} />
           <div className="min-w-0">
@@ -95,18 +96,18 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
             )}
           </div>
         </div>
-      </td>
+      </TableCell>
 
       {/* Action badge */}
-      <td className="px-4 py-2.5 whitespace-nowrap">
+      <TableCell className="px-4 py-2.5 whitespace-nowrap">
         <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${cfg.bg} ${cfg.text}`}>
           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
           {cfg.label}
         </span>
-      </td>
+      </TableCell>
 
       {/* Entity */}
-      <td className="px-4 py-2.5">
+      <TableCell className="px-4 py-2.5">
         <div className="min-w-0">
           {entityHref ? (
             <Link
@@ -130,17 +131,17 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
             </div>
           )}
         </div>
-      </td>
+      </TableCell>
 
       {/* IP */}
-      <td className="px-4 py-2.5 whitespace-nowrap">
+      <TableCell className="px-4 py-2.5 whitespace-nowrap">
         <span className="text-[11px] font-mono text-muted-foreground/70">
           {log.ip_address ?? t('ipUnknown')}
         </span>
-      </td>
+      </TableCell>
 
       {/* Time */}
-      <td className="px-4 py-2.5 whitespace-nowrap text-end">
+      <TableCell className="px-4 py-2.5 whitespace-nowrap text-end">
         <time
           dateTime={log.created_at}
           title={fullDate}
@@ -148,8 +149,8 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
         >
           {ago}
         </time>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -175,27 +176,27 @@ export default async function ActivityFeed({ logs }: Props) {
 
   return (
     <div className="overflow-x-auto -mx-5 px-5">
-      <table className="w-full min-w-[640px]">
-        <thead>
-          <tr className="border-b border-border">
+      <Table className="min-w-[640px]">
+        <TableHeader>
+          <TableRow className="border-b border-border">
             {[t('colActor'), t('colAction'), t('colEntity'), t('colIp'), t('colTime')].map((h, i) => (
-              <th
+              <TableHead
                 key={h}
                 className={`px-4 py-2 text-[10px] font-black tracking-[.12em] uppercase text-muted-foreground/60 text-start whitespace-nowrap ${
                   i === 4 ? 'text-end' : ''
                 }`}
               >
                 {h}
-              </th>
+              </TableHead>
             ))}
-          </tr>
-        </thead>
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {logs.map((log, idx) => (
             <LogRow key={log.id} log={log} idx={idx} />
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

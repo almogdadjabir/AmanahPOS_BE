@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { fetchAdminDeliveryLogs } from '../../actions';
 import type { DeliveryLog } from '@/types/api';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
 const STATUS_STYLES: Record<string, string> = {
   sent:       'bg-green-100 text-green-700',
@@ -97,56 +98,56 @@ export default function LogsTable() {
       {/* Table */}
       <div className="rounded-xl border border-border overflow-hidden bg-card">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('logRecipient')}</th>
-                <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden md:table-cell">{t('logMessage')}</th>
-                <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('logChannel')}</th>
-                <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('logStatus')}</th>
-                <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">{t('logSentBy')}</th>
-                <th className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden xl:table-cell">{t('logSentAt')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
+          <Table className="text-sm">
+            <TableHeader>
+              <TableRow className="border-b border-border bg-muted/50">
+                <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('logRecipient')}</TableHead>
+                <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden md:table-cell">{t('logMessage')}</TableHead>
+                <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('logChannel')}</TableHead>
+                <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('logStatus')}</TableHead>
+                <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">{t('logSentBy')}</TableHead>
+                <TableHead className="text-start px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-wider hidden xl:table-cell">{t('logSentAt')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {loading && (
-                <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">Loading…</td></tr>
+                <TableRow><TableCell colSpan={6} className="text-center py-10 text-muted-foreground">Loading…</TableCell></TableRow>
               )}
               {!loading && logs.length === 0 && (
-                <tr><td colSpan={6} className="text-center py-12 text-muted-foreground">{t('noLogs')}</td></tr>
+                <TableRow><TableCell colSpan={6} className="text-center py-12 text-muted-foreground">{t('noLogs')}</TableCell></TableRow>
               )}
               {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3">
+                <TableRow key={log.id} className="hover:bg-muted/30 transition-colors">
+                  <TableCell className="px-4 py-3">
                     <p className="font-medium text-foreground">{log.recipient_name}</p>
                     <p className="text-xs text-muted-foreground">{log.recipient_phone}</p>
-                  </td>
-                  <td className="px-4 py-3 max-w-[260px] hidden md:table-cell">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 max-w-[260px] hidden md:table-cell">
                     <p className="truncate text-muted-foreground text-xs">{log.notification_title}</p>
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide', CHANNEL_STYLES[log.channel] ?? 'bg-muted text-muted-foreground')}>
                       {log.channel}
                     </span>
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <span className={cn('px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide', STATUS_STYLES[log.status] ?? 'bg-muted text-muted-foreground')}>
                       {statusLabel(log.status)}
                     </span>
                     {log.retry_count > 0 && (
                       <span className="ms-1.5 text-[10px] text-muted-foreground">×{log.retry_count}</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground hidden lg:table-cell">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-xs text-muted-foreground hidden lg:table-cell">
                     {log.sent_by_admin_name ?? 'System'}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground hidden xl:table-cell">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-xs text-muted-foreground hidden xl:table-cell">
                     {log.sent_at ? new Date(log.sent_at).toLocaleString() : '—'}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 
