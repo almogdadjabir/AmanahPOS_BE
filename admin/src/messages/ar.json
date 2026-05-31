@@ -133,7 +133,9 @@
     "previous": "السابق",
     "next": "التالي",
     "pageOf": "{page} من {total}",
-    "items": "{count} عنصر"
+    "items": "{count} عنصر",
+    "showing": "عرض",
+    "of": "من"
   },
   "dashboard": {
     "greetingMorning": "صباح الخير",

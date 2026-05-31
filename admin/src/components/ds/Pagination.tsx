@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
@@ -12,6 +13,7 @@ interface PaginationProps {
 }
 
 export default function Pagination({ count, pageSize = 20, className = '' }: PaginationProps) {
+  const t            = useTranslations('common');
   const router       = useRouter();
   const pathname     = usePathname();
   const searchParams = useSearchParams();
@@ -36,9 +38,9 @@ export default function Pagination({ count, pageSize = 20, className = '' }: Pag
   return (
     <div className={cn('flex items-center justify-between px-4 py-3 border-t border-border', className)}>
       <p className="text-xs text-muted-foreground">
-        Showing{' '}
+        {t('showing')}{' '}
         <span className="font-semibold text-foreground">{start}–{end}</span>
-        {' '}of{' '}
+        {' '}{t('of')}{' '}
         <span className="font-semibold text-foreground">{count}</span>
       </p>
 

@@ -13,6 +13,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SectionError } from '@/components/SectionError';
 import { TableSkeleton, ChartSkeleton } from '@/components/ds/Skeleton';
 import SalesBarChart from './_components/SalesBarChart';
+import Pagination from '@/components/ds/Pagination';
 
 // ── Date helpers ──────────────────────────────────────────────────────────────
 
@@ -60,12 +61,14 @@ const _todaySummary = cache(async (today: string, shopId: string | undefined) =>
   )
 );
 
-const _recentSales = cache(async (shopId: string | undefined) =>
+const PAGE_SIZE = 25;
+
+const _recentSales = cache(async (shopId: string | undefined, page: number) =>
   withUserCache(
     (tok) => apiGet<ApiList<Sale>>('/api/v1/sales/', {
-      limit: 15, page: 1, shop: shopId,
+      limit: PAGE_SIZE, page, shop: shopId,
     }, { token: tok }),
-    [CACHE_TAGS.sales, 'sp-recent', shopId ?? ''],
+    [CACHE_TAGS.sales, 'sp-recent', shopId ?? '', String(page)],
     15,
   )
 );
@@ -108,13 +111,14 @@ const METHOD_TEXT: Record<string, string> = {
 export default async function SalesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ shop_id?: string }>;
+  searchParams: Promise<{ shop_id?: string; page?: string }>;
 }) {
   const [t, params] = await Promise.all([
     getTranslations('sales'),
     searchParams,
   ]);
   const selectedShop = params.shop_id;
+  const currentPage  = Math.max(1, Number(params.page) || 1);
 
   const bizRes = await fetchBusiness();
   const shops  = bizRes?.data?.[0]?.shops ?? [];
@@ -163,7 +167,7 @@ export default async function SalesPage({
       {/* ── Recent transactions ───────────────────────────────────────────── */}
       <ErrorBoundary fallback={<SectionError message="Failed to load recent transactions" />}>
         <Suspense fallback={<TableSkeleton rows={8} cols={7} />}>
-          <SalesRecentSection shopId={selectedShop} />
+          <SalesRecentSection shopId={selectedShop} page={currentPage} />
         </Suspense>
       </ErrorBoundary>
 
@@ -355,15 +359,21 @@ async function SalesChartSection({ shopId }: { shopId?: string }) {
 
 // ── Section: recent transactions ──────────────────────────────────────────────
 
-async function SalesRecentSection({ shopId }: { shopId?: string }) {
+async function SalesRecentSection({ shopId, page }: { shopId?: string; page: number }) {
   const [recentRes, profileRes] = await Promise.all([
-    _recentSales(shopId),
+    _recentSales(shopId, page),
     fetchUserProfile(),
   ]);
-  const recent = recentRes?.results ?? [];
+  const recent    = recentRes?.results ?? [];
+  const count     = recentRes?.count ?? 0;
   const canRefund = profileRes?.data?.role === 'owner' || profileRes?.data?.is_staff === true;
 
-  return <SalesTableClient sales={recent} canRefund={canRefund} />;
+  return (
+    <>
+      <SalesTableClient sales={recent} canRefund={canRefund} />
+      <Pagination count={count} pageSize={PAGE_SIZE} />
+    </>
+  );
 }
 
 // ── Section: per-shop revenue breakdown ──────────────────────────────────────

@@ -133,7 +133,9 @@
     "previous": "Previous",
     "next": "Next",
     "pageOf": "{page} of {total}",
-    "items": "{count} items"
+    "items": "{count} items",
+    "showing": "Showing",
+    "of": "of"
   },
   "dashboard": {
     "greetingMorning": "Good morning",
