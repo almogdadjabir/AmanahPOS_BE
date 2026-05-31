@@ -12,6 +12,13 @@ const COOKIE_OPTS = {
   path: '/',
 };
 
+// POST handler: safety net for any POST request that reaches this route
+// (e.g., edge cases where a redirect is followed as POST).
+// Behaves identically to GET — refresh the token and redirect to login on failure.
+export async function POST(req: NextRequest) {
+  return GET(req);
+}
+
 export async function GET(req: NextRequest) {
   const redirectTo = req.nextUrl.searchParams.get('redirect') || '/ar';
   const locale     = redirectTo.match(/^\/(ar|en)/)?.[1] || 'ar';

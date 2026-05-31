@@ -30,6 +30,14 @@ export default function middleware(req: NextRequest) {
   }
 
   if (token && !isLoginPage && isTokenExpired(token)) {
+    // Only redirect to the refresh proxy for full-page navigations (GET).
+    // Server actions are POST — redirecting them to /api/auth/refresh causes a
+    // 405 because the browser follows the redirect as POST. Let non-GET requests
+    // through; the server action will receive a 401 from the backend and surface
+    // the error normally.
+    if (req.method !== 'GET') {
+      return NextResponse.next();
+    }
     if (refresh) {
       const refreshUrl = new URL('/api/auth/refresh', req.url);
       refreshUrl.searchParams.set('redirect', pathname);

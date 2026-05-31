@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { devFetch } from './dev-logger';
 
 const BASE =
@@ -55,6 +56,7 @@ export async function apiGet<T>(path: string, params?: Params, fetchOpts?: Fetch
   });
 
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401) redirect('/ar/login');
   if (!res.ok) throw new ApiError(res.status, data);
   return data as T;
 }
@@ -71,6 +73,7 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   });
 
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401) redirect('/ar/login');
   if (!res.ok) throw new ApiError(res.status, data);
   return data as T;
 }
@@ -87,6 +90,7 @@ export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   });
 
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401) redirect('/ar/login');
   if (!res.ok) throw new ApiError(res.status, data);
   return data as T;
 }
@@ -102,6 +106,7 @@ export async function apiDelete<T>(path: string): Promise<T> {
   });
 
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401) redirect('/ar/login');
   if (!res.ok) throw new ApiError(res.status, data);
   return data as T;
 }
