@@ -1413,6 +1413,10 @@
     "templatesTitle": "القوالب",
     "templatesDescription": "إدارة قوالب الإشعارات",
     "searchPlaceholder": "بحث بالاسم أو المحتوى…",
-    "tabAll": "الكل"
+    "tabAll": "الكل",
+    "templates": {
+      "title": "قوالب الإشعارات",
+      "description": "إدارة قوالب الإشعارات ثنائية اللغة. التغييرات تُطبَّق عند الإرسال التالي."
+    }
   }
 }

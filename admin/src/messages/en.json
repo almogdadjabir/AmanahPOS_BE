@@ -1413,6 +1413,10 @@
     "templatesTitle": "Templates",
     "templatesDescription": "Manage reusable notification templates",
     "searchPlaceholder": "Search by recipient or message…",
-    "tabAll": "All"
+    "tabAll": "All",
+    "templates": {
+      "title": "Notification Templates",
+      "description": "Manage bilingual push notification templates. Changes take effect on the next send."
+    }
   }
 }
