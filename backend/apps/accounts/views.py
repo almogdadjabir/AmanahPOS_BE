@@ -174,8 +174,9 @@ class LoginOTPVerifyView(APIView):
             from apps.notifications.services import notify_user
             from apps.notifications.notification_templates import render_notification
 
+            locale = user.language or "en"
             if is_first_login:
-                notify_user(user, **render_notification("welcome"))
+                notify_user(user, **render_notification("welcome", locale=locale))
             elif device_is_new:
                 # Build a human-readable device label from what the client sent.
                 device_name = (
@@ -188,7 +189,7 @@ class LoginOTPVerifyView(APIView):
                 )
                 notify_user(
                     user,
-                    **render_notification("new_device_login", device_name=device_name),
+                    **render_notification("new_device_login", locale=locale, device_name=device_name),
                 )
         except Exception:
             logger.exception("Failed to send login notification for user %s", user.id)

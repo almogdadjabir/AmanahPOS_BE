@@ -76,6 +76,7 @@ def check_expiry_alerts() -> None:
 
         owner = batch.shop.business.owner
         expiry_str = batch.expiry_date.strftime("%Y-%m-%d")
+        locale = getattr(owner, "language", "en") or "en"
 
         try:
             if batch.expiry_date < today:
@@ -83,6 +84,7 @@ def check_expiry_alerts() -> None:
                     continue
                 payload = render_notification(
                     "product_expired",
+                    locale=locale,
                     product_name=batch.product.name,
                     shop_name=batch.shop.name,
                     expiry_date=expiry_str,
@@ -92,6 +94,7 @@ def check_expiry_alerts() -> None:
                     continue
                 payload = render_notification(
                     "product_expiring_soon",
+                    locale=locale,
                     product_name=batch.product.name,
                     shop_name=batch.shop.name,
                     expiry_date=expiry_str,

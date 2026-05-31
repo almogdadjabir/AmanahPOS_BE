@@ -40,13 +40,29 @@ def check_subscription_expiry():
 
     for sub in expiring_soon:
         try:
-            from apps.notifications.tasks import send_sms_task
-            send_sms_task.delay(
-                phone=sub.business.owner.phone,
-                message=(
-                    f"Your AmanaPOS subscription '{sub.plan.name}' expires in 7 days "
-                    f"on {sub.end_date}. Renew now to avoid service interruption."
-                ),
+            from apps.notifications.notification_templates import render_notification
+            from apps.notifications.services import notify_user
+
+            owner  = sub.business.owner
+            locale = getattr(owner, "language", "en") or "en"
+
+            payload = render_notification(
+                "subscription_expiry",
+                locale=locale,
+                business_name=sub.business.name,
+                days_remaining=7,
+            )
+            notify_user(
+                user=owner,
+                title=payload["title"],
+                body=payload["body"],
+                notification_type=payload["notification_type"],
+                data={
+                    "type":           payload["notification_type"],
+                    "business_id":    str(sub.business_id),
+                    "days_remaining": "7",
+                    "end_date":       str(sub.end_date),
+                },
             )
         except Exception as exc:
             logger.warning("Failed to send subscription reminder for %s: %s", sub.id, exc)
