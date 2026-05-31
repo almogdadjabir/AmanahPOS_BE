@@ -40,6 +40,12 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_login_at = models.DateTimeField(null=True, blank=True)
+    language = models.CharField(
+        max_length=5,
+        choices=[("en", "English"), ("ar", "Arabic")],
+        default="en",
+        db_index=True,
+    )
 
     objects = UserManager()
 

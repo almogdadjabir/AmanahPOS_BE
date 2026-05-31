@@ -143,6 +143,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "is_staff",
             "is_verified",
             "has_password",
+            "language",
             "business_id",
             "default_shop_id",
             "bankak_account",
