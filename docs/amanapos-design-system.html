@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AmanaPOS Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+/* ── Reset ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+/* ── Tokens ──────────────────────────────────────── */
+:root {
+  --teal:       #0F766E;
+  --teal-light: #CCFBF1;
+  --teal-dark:  #0D6B63;
+  --teal-dim:   rgba(15,118,110,.12);
+  --sidebar-bg: #0B1220;
+  --sidebar-2:  #111827;
+  --sidebar-bd: #1F2937;
+  --canvas:     #F8F9FB;
+  --white:      #FFFFFF;
+  --text:       #111827;
+  --text-2:     #4B5563;
+  --text-3:     #9CA3AF;
+  --border:     #E5E7EB;
+  --border-2:   #D1D5DB;
+  --code-bg:    #F3F4F6;
+  --red:        #E53E3E;
+  --amber:      #D97706;
+  --green:      #059669;
+  --blue:       #3B82F6;
+  --mono:       'DM Mono', monospace;
+  --sans:       'DM Sans', sans-serif;
+  --display:    'Sora', sans-serif;
+  --radius:     10px;
+  --shadow:     0 1px 3px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+  --sidebar-w:  260px;
+}
+
+body {
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--canvas);
+  min-height: 100vh;
+}
+
+/* ── Layout ──────────────────────────────────────── */
+.shell { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ──────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--sidebar-bd);
+}
+
+.sidebar-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--sidebar-bd);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.sidebar-logo-mark {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--teal), #14B8A6);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 14px;
+  color: white;
+}
+
+.sidebar-brand {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+  letter-spacing: -.01em;
+}
+
+.sidebar-version {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: #6B7280;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.nav-section {
+  padding: 20px 12px 8px;
+}
+
+.nav-section-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #4B5563;
+  padding: 0 8px;
+  margin-bottom: 4px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #9CA3AF;
+  text-decoration: none;
+  transition: all .12s;
+  cursor: pointer;
+}
+
+.nav-item:hover { background: #1F2937; color: #E5E7EB; }
+.nav-item.active { background: var(--teal-dim); color: var(--teal-light); }
+.nav-item .dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+/* ── Main ─────────────────────────────────────────── */
+.main { flex: 1; min-width: 0; }
+
+/* ── Page hero ────────────────────────────────────── */
+.page-hero {
+  background: var(--sidebar-bg);
+  padding: 56px 64px 48px;
+  border-bottom: 1px solid #1F2937;
+  position: relative;
+  overflow: hidden;
+}
+
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 70% 50%, rgba(15,118,110,.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--teal-light);
+  margin-bottom: 12px;
+}
+
+.hero-title {
+  font-family: var(--display);
+  font-size: clamp(28px, 3vw, 44px);
+  font-weight: 800;
+  color: white;
+  line-height: 1.1;
+  letter-spacing: -.02em;
+  margin-bottom: 12px;
+}
+
+.hero-title span { color: #5EEAD4; }
+
+.hero-sub {
+  font-size: 15px;
+  color: #6B7280;
+  max-width: 520px;
+  line-height: 1.7;
+}
+
+/* ── Content wrapper ──────────────────────────────── */
+.content { padding: 48px 64px 96px; max-width: 980px; }
+
+/* ── Sections ─────────────────────────────────────── */
+.section { margin-bottom: 72px; scroll-margin-top: 24px; }
+
+.section-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--teal);
+  background: var(--teal-dim);
+  padding: 3px 10px;
+  border-radius: 100px;
+  margin-bottom: 10px;
+}
+
+.section-title {
+  font-family: var(--display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: -.02em;
+}
+
+.section-desc {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-bottom: 28px;
+  max-width: 580px;
+  line-height: 1.7;
+}
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 48px 0;
+}
+
+/* ── Token grids ──────────────────────────────────── */
+.token-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 28px; }
+
+.swatch {
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.swatch-color { height: 56px; }
+
+.swatch-info {
+  padding: 10px 12px;
+  background: white;
+}
+
+.swatch-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.swatch-value { font-family: var(--mono); font-size: 10px; color: var(--text-3); margin-top: 2px; }
+.swatch-token { font-family: var(--mono); font-size: 9px; color: var(--teal); margin-top: 2px; }
+
+/* ── Type scale ───────────────────────────────────── */
+.type-row {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.type-meta { min-width: 120px; flex-shrink: 0; }
+.type-label { font-family: var(--mono); font-size: 10px; color: var(--text-3); }
+.type-size { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--teal); }
+.type-sample { flex: 1; color: var(--text); }
+
+/* ── Shadow showcase ──────────────────────────────── */
+.shadow-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+
+.shadow-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+
+.shadow-name { font-family: var(--mono); font-size: 11px; color: var(--text-3); margin-top: 10px; }
+.shadow-value { font-family: var(--mono); font-size: 9px; color: var(--text-3); margin-top: 4px; word-break: break-all; }
+
+/* ── Component cards ──────────────────────────────── */
+.component-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.component-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FAFAFA;
+}
+
+.component-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.component-path { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+
+.component-status {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 100px;
+  letter-spacing: .04em;
+}
+
+.status-stable    { background: #ECFDF5; color: #065F46; }
+.status-deprecated { background: #FEF3C7; color: #92400E; }
+.status-premium   { background: #FDF6E3; color: #92400E; }
+.status-new       { background: #EFF6FF; color: #1E40AF; }
+
+.component-preview {
+  padding: 28px 24px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 8px,
+    rgba(0,0,0,.015) 8px,
+    rgba(0,0,0,.015) 9px
+  );
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 80px;
+}
+
+.component-props {
+  border-top: 1px solid var(--border);
+}
+
+.props-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 12px 20px 8px;
+}
+
+.props-table { width: 100%; border-collapse: collapse; }
+.props-table th { background: #F9FAFB; padding: 8px 16px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--border); }
+.props-table td { padding: 9px 16px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.props-table tr:last-child td { border-bottom: none; }
+.props-table tr:hover td { background: #FAFAFA; }
+td.prop-name { font-family: var(--mono); font-size: 12px; color: var(--teal); font-weight: 500; }
+td.prop-type { font-family: var(--mono); font-size: 11px; color: #7C3AED; }
+td.prop-default { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+td.prop-desc { font-size: 12.5px; color: var(--text-2); }
+
+/* ── Code block ───────────────────────────────────── */
+.code-block {
+  background: #1E293B;
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+
+.code-block pre {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: #E2E8F0;
+}
+
+.code-kw   { color: #93C5FD; }
+.code-str  { color: #86EFAC; }
+.code-fn   { color: #FDE68A; }
+.code-type { color: #F9A8D4; }
+.code-cmt  { color: #4B5563; }
+.code-tag  { color: #FB923C; }
+.code-attr { color: #BAE6FD; }
+
+/* ── Live Button demos ────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 36px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .12s;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.btn-primary   { background: var(--teal); color: white; border-color: var(--teal-dark); }
+.btn-primary:hover { background: var(--teal-dark); }
+.btn-secondary { background: #F3F4F6; color: var(--text); border-color: var(--border-2); }
+.btn-secondary:hover { background: #E5E7EB; }
+.btn-outline   { background: transparent; color: var(--text); border-color: var(--border-2); }
+.btn-outline:hover { background: #F9FAFB; }
+.btn-danger    { background: var(--red); color: white; border-color: #C53030; }
+.btn-danger:hover { background: #C53030; }
+.btn-ghost     { background: transparent; color: var(--text-2); border-color: transparent; }
+.btn-ghost:hover { background: #F3F4F6; color: var(--text); }
+.btn-sm  { height: 30px; padding: 0 12px; font-size: 12.5px; }
+.btn-lg  { height: 44px; padding: 0 20px; font-size: 15px; }
+.btn-icon { width: 36px; padding: 0; justify-content: center; }
+.btn-icon-sm { width: 28px; height: 28px; padding: 0; justify-content: center; font-size: 12px; }
+.btn:disabled { opacity: .4; pointer-events: none; }
+
+/* ── Badge demos ──────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge-primary    { background: #CCFBF1; color: #0F766E; }
+.badge-success    { background: #ECFDF5; color: #065F46; }
+.badge-warning    { background: #FEF3C7; color: #92400E; }
+.badge-danger     { background: #FEE2E2; color: #991B1B; }
+.badge-info       { background: #EFF6FF; color: #1E40AF; }
+.badge-neutral    { background: #F3F4F6; color: #374151; }
+
+/* ── Input demos ──────────────────────────────────── */
+.input-wrap { position: relative; }
+
+.input-demo {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border-2);
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 13.5px;
+  color: var(--text);
+  background: white;
+  outline: none;
+  transition: all .12s;
+}
+
+.input-demo:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15,118,110,.12); }
+.input-demo.error { border-color: var(--red); }
+.input-demo.error:focus { box-shadow: 0 0 0 3px rgba(229,62,62,.12); }
+.input-label { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 5px; display: block; }
+.input-hint  { font-size: 11.5px; color: var(--text-3); margin-top: 4px; }
+.input-error { font-size: 11.5px; color: var(--red); margin-top: 4px; }
+
+/* ── Card demo ────────────────────────────────────── */
+.card-demo {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.card-demo-header { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.card-demo-title { font-weight: 700; font-size: 14px; color: var(--text); }
+.card-demo-desc  { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+.card-demo-body  { padding: 16px 20px; font-size: 13.5px; color: var(--text-2); }
+.card-demo-footer { padding: 12px 20px; border-top: 1px solid var(--border); background: #FAFAFA; display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── Table demo ───────────────────────────────────── */
+.table-demo { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-demo thead tr { border-bottom: 1px solid var(--border); background: #FAFAFA; }
+.table-demo th { padding: 10px 16px; text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); white-space: nowrap; }
+.table-demo td { padding: 11px 16px; border-bottom: 1px solid var(--border); color: var(--text-2); }
+.table-demo tbody tr:hover td { background: #F9FAFB; }
+.table-demo tbody tr:last-child td { border-bottom: none; }
+
+/* ── Avatar demo ──────────────────────────────────── */
+.avatar-demo {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: white;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* ── StatCard demo ────────────────────────────────── */
+.statcard-demo {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  min-width: 180px;
+}
+
+.statcard-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--text-3); margin-bottom: 8px; }
+.statcard-value { font-family: var(--display); font-size: 28px; font-weight: 800; color: var(--text); letter-spacing: -.02em; line-height: 1; }
+.statcard-sub { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+.statcard-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-bottom: 12px; }
+
+/* ── Pagination demo ──────────────────────────────── */
+.pagination-demo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: white;
+}
+
+.page-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border-2);
+  background: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-2);
+  transition: all .1s;
+}
+
+.page-btn:hover { background: #F3F4F6; }
+.page-btn.active { background: var(--teal); color: white; border-color: var(--teal); }
+.page-btn.dots { border: none; background: none; color: var(--text-3); pointer-events: none; }
+
+/* ── Empty state demo ─────────────────────────────── */
+.empty-demo {
+  background: white;
+  border: 2px dashed var(--border-2);
+  border-radius: var(--radius);
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-icon { font-size: 32px; margin-bottom: 12px; }
+.empty-title { font-weight: 700; font-size: 15px; color: var(--text); margin-bottom: 4px; }
+.empty-desc  { font-size: 13px; color: var(--text-3); margin-bottom: 16px; }
+
+/* ── Callout ──────────────────────────────────────── */
+.callout {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  margin: 20px 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  border: 1px solid;
+}
+
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout.tip  { background: #F0FDFA; border-color: #A7F3D0; color: #065F46; }
+.callout.warn { background: #FFFBEB; border-color: #FDE68A; color: #92400E; }
+.callout.info { background: #EFF6FF; border-color: #BAE6FD; color: #1E40AF; }
+.callout.danger { background: #FEF2F2; border-color: #FECACA; color: #991B1B; }
+
+/* ── Pattern layout ───────────────────────────────── */
+.pattern-frame {
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 16px 0;
+}
+
+/* ── Spacing table ────────────────────────────────── */
+.spacing-row { display: flex; align-items: center; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.spacing-bar-wrap { flex: 1; }
+.spacing-bar { height: 8px; background: var(--teal); border-radius: 4px; }
+.spacing-meta { display: flex; gap: 12px; min-width: 160px; }
+.spacing-token { font-family: var(--mono); font-size: 11px; color: var(--teal); min-width: 48px; }
+.spacing-px { font-family: var(--mono); font-size: 11px; color: var(--text-3); min-width: 48px; }
+.spacing-class { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+
+/* ── Print ────────────────────────────────────────── */
+@media print {
+  .sidebar { display: none; }
+  .main { padding: 0; }
+  .content { padding: 24px; }
+}
+
+/* ── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
+.sidebar::-webkit-scrollbar-thumb { background: #374151; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">A</div>
+      <div>
+        <div class="sidebar-brand">AmanaPOS</div>
+        <div class="sidebar-version">Design System v1.0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Foundation</div>
+    <a class="nav-item" href="#intro">       <span class="dot"></span> Introduction</a>
+    <a class="nav-item" href="#tokens">      <span class="dot"></span> Design Tokens</a>
+    <a class="nav-item" href="#colors">      <span class="dot"></span> Colors</a>
+    <a class="nav-item" href="#typography">  <span class="dot"></span> Typography</a>
+    <a class="nav-item" href="#spacing">     <span class="dot"></span> Spacing</a>
+    <a class="nav-item" href="#shadows">     <span class="dot"></span> Shadows &amp; Radius</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Primitives</div>
+    <a class="nav-item" href="#button">      <span class="dot"></span> Button</a>
+    <a class="nav-item" href="#badge">       <span class="dot"></span> Badge</a>
+    <a class="nav-item" href="#input">       <span class="dot"></span> Input</a>
+    <a class="nav-item" href="#avatar">      <span class="dot"></span> Avatar</a>
+    <a class="nav-item" href="#card">        <span class="dot"></span> Card</a>
+    <a class="nav-item" href="#table">       <span class="dot"></span> Table</a>
+    <a class="nav-item" href="#dialog">      <span class="dot"></span> Dialog</a>
+    <a class="nav-item" href="#sheet">       <span class="dot"></span> Sheet</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">DS Components</div>
+    <a class="nav-item" href="#pagetitle">   <span class="dot"></span> PageTitle</a>
+    <a class="nav-item" href="#statcard">    <span class="dot"></span> StatCard</a>
+    <a class="nav-item" href="#drawer">      <span class="dot"></span> Drawer</a>
+    <a class="nav-item" href="#pagination">  <span class="dot"></span> Pagination</a>
+    <a class="nav-item" href="#search">      <span class="dot"></span> SearchInput</a>
+    <a class="nav-item" href="#empty">       <span class="dot"></span> EmptyState</a>
+    <a class="nav-item" href="#confirm">     <span class="dot"></span> ConfirmDialog</a>
+    <a class="nav-item" href="#skeleton">    <span class="dot"></span> Skeleton</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Patterns</div>
+    <a class="nav-item" href="#page-layout"> <span class="dot"></span> Page Layout</a>
+    <a class="nav-item" href="#data-table">  <span class="dot"></span> Data Table</a>
+    <a class="nav-item" href="#forms">       <span class="dot"></span> Forms</a>
+    <a class="nav-item" href="#status">      <span class="dot"></span> Status Badges</a>
+    <a class="nav-item" href="#rtl">         <span class="dot"></span> RTL / i18n</a>
+    <a class="nav-item" href="#gaps">        <span class="dot"></span> Gaps &amp; Migration</a>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+  <!-- Hero -->
+  <div class="page-hero">
+    <div class="hero-eyebrow">v1.0 — Stable</div>
+    <h1 class="hero-title">AmanaPOS <span>Design System</span></h1>
+    <p class="hero-sub">
+      The single source of truth for building the AmanaPOS admin dashboard.
+      Every token, component, and pattern — documented and ready to use.
+    </p>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ INTRO ══ -->
+    <div class="section" id="intro">
+      <div class="section-badge">Overview</div>
+      <h2 class="section-title">Introduction</h2>
+      <p class="section-desc">
+        AmanaPOS uses a layered design system built on Tailwind CSS + Radix UI primitives.
+        Two tiers: <strong>UI primitives</strong> (<code>components/ui/</code>) and <strong>DS components</strong> (<code>components/ds/</code>).
+      </p>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <span><strong>Rule:</strong> Always reach for a component before writing raw Tailwind. If a component doesn't exist for your use case, add it to <code>components/ds/</code> and document it here.</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px">
+        <div class="card-demo">
+          <div class="card-demo-header">
+            <div class="card-demo-title">components/ui/</div>
+            <div class="card-demo-desc">Radix UI primitives — atoms</div>
+          </div>
+          <div class="card-demo-body" style="font-size:12.5px;color:var(--text-3)">
+            Button, Badge, Input, Card, Table, Dialog, Sheet, DropdownMenu, AlertDialog, Avatar, Label, Skeleton, Separator
+          </div>
+        </div>
+        <div class="card-demo">
+          <div class="card-demo-header">
+            <div class="card-demo-title">components/ds/</div>
+            <div class="card-demo-desc">Dashboard-level molecules</div>
+          </div>
+          <div class="card-demo-body" style="font-size:12.5px;color:var(--text-3)">
+            PageTitle, StatCard, Drawer, Pagination, SearchInput, ConfirmDialog, EmptyState, Skeleton variants
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ DESIGN TOKENS ══ -->
+    <div class="section" id="tokens">
+      <div class="section-badge">Foundation</div>
+      <h2 class="section-title">Design Tokens</h2>
+      <p class="section-desc">
+        All tokens are CSS custom properties defined in <code>globals.css</code> and extended in <code>tailwind.config.ts</code>.
+        Always use the semantic token, never a raw hex value.
+      </p>
+    </div>
+
+    <!-- Colors -->
+    <div class="section" id="colors">
+      <div class="section-badge">Foundation</div>
+      <h2 class="section-title">Colors</h2>
+      <p class="section-desc">The palette is built on HSL semantic variables. The primary brand color is teal (#0F766E).</p>
+
+      <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:12px">Brand</p>
+      <div class="token-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#0F766E"></div><div class="swatch-info"><div class="swatch-name">Primary</div><div class="swatch-value">#0F766E</div><div class="swatch-token">--primary</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#0D6B63"></div><div class="swatch-info"><div class="swatch-name">Primary Hover</div><div class="swatch-value">#0D6B63</div><div class="swatch-token">primary.hover</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#CCFBF1"></div><div class="swatch-info"><div class="swatch-name">Primary Light</div><div class="swatch-value">#CCFBF1</div><div class="swatch-token">primary.light</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#F0FDFA"></div><div class="swatch-info"><div class="swatch-name">Primary Soft</div><div class="swatch-value">#F0FDFA</div><div class="swatch-token">primary.soft</div></div></div>
+      </div>
+
+      <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:12px">Semantic Surfaces</p>
+      <div class="token-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#F8F9FB"></div><div class="swatch-info"><div class="swatch-name">Background</div><div class="swatch-value">hsl(215 28% 97%)</div><div class="swatch-token">bg-background</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#FFFFFF;border:1px solid #E5E7EB"></div><div class="swatch-info"><div class="swatch-name">Card</div><div class="swatch-value">#FFFFFF</div><div class="swatch-token">bg-card</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#EDF2F7"></div><div class="swatch-info"><div class="swatch-name">Muted</div><div class="swatch-value">hsl(215 22% 93%)</div><div class="swatch-token">bg-muted</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#E5E7EB"></div><div class="swatch-info"><div class="swatch-name">Border</div><div class="swatch-value">hsl(215 22% 88%)</div><div class="swatch-token">border-border</div></div></div>
+      </div>
+
+      <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:12px">Status Colors</p>
+      <div class="token-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#059669"></div><div class="swatch-info"><div class="swatch-name">Success</div><div class="swatch-value">#059669</div><div class="swatch-token">text-success / bg-success</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#D97706"></div><div class="swatch-info"><div class="swatch-name">Warning</div><div class="swatch-value">#D97706</div><div class="swatch-token">text-warning</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#E53E3E"></div><div class="swatch-info"><div class="swatch-name">Danger</div><div class="swatch-value">#E53E3E</div><div class="swatch-token">text-danger / bg-danger</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#3B82F6"></div><div class="swatch-info"><div class="swatch-name">Info</div><div class="swatch-value">#3B82F6</div><div class="swatch-token">text-info</div></div></div>
+      </div>
+
+      <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:12px">Text Scale</p>
+      <div class="token-grid">
+        <div class="swatch"><div class="swatch-color" style="background:#111827"></div><div class="swatch-info"><div class="swatch-name">Foreground</div><div class="swatch-value">#111827</div><div class="swatch-token">text-foreground</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#4B5563"></div><div class="swatch-info"><div class="swatch-name">Muted FG</div><div class="swatch-value">#4B5563</div><div class="swatch-token">text-muted-foreground</div></div></div>
+        <div class="swatch"><div class="swatch-color" style="background:#9CA3AF"></div><div class="swatch-info"><div class="swatch-name">Hint</div><div class="swatch-value">#9CA3AF</div><div class="swatch-token">text-[var]</div></div></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ TYPOGRAPHY ══ -->
+    <div class="section" id="typography">
+      <div class="section-badge">Foundation</div>
+      <h2 class="section-title">Typography</h2>
+      <p class="section-desc">Two fonts: <strong>Nunito</strong> (LTR/English) and <strong>Tajawal</strong> (RTL/Arabic). Loaded via <code>next/font/google</code>.</p>
+
+      <div class="type-row">
+        <div class="type-meta"><div class="type-label">Page Title</div><div class="type-size">22px / 900</div></div>
+        <div class="type-sample" style="font-size:22px;font-weight:900;letter-spacing:-.02em">Sales History</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="type-label">Section Header</div><div class="type-size">15px / 700</div></div>
+        <div class="type-sample" style="font-size:15px;font-weight:700">Recent Transactions</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="type-label">Body / Labels</div><div class="type-size">13–14px / 500–600</div></div>
+        <div class="type-sample" style="font-size:13.5px;font-weight:500;color:#4B5563">This is a standard body text label used inside cards and table cells.</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="type-label">Caption / Hint</div><div class="type-size">11–12px / 400</div></div>
+        <div class="type-sample" style="font-size:11.5px;color:#9CA3AF">Last updated 2 minutes ago · 42 results</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="type-label">Table Header</div><div class="type-size">10.5px / 700 uppercase</div></div>
+        <div class="type-sample" style="font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9CA3AF">RECEIPT NO · CASHIER · STATUS</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="type-label">KPI Value</div><div class="type-size">26–32px / 800</div></div>
+        <div class="type-sample" style="font-size:28px;font-weight:800;letter-spacing:-.02em">1,284</div>
+      </div>
+      <div class="type-row">
+        <div class="type-meta"><div class="type-label">Mono / Code</div><div class="type-size">DM Mono · 11–12px</div></div>
+        <div class="type-sample" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--teal)">REC-20260531-A12F · +249912345678</div>
+      </div>
+
+      <div class="callout warn" style="margin-top:24px">
+        <span class="callout-icon">⚠️</span>
+        <span><strong>Avoid arbitrary sizes.</strong> Prefer <code>text-xs</code> (12px), <code>text-sm</code> (14px), <code>text-base</code> (16px). Use <code>text-[13px]</code> only when 12px is too small and 14px is too large.</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ SPACING ══ -->
+    <div class="section" id="spacing">
+      <div class="section-badge">Foundation</div>
+      <h2 class="section-title">Spacing</h2>
+      <p class="section-desc">4px base unit. Tailwind's default scale — use the named classes, never arbitrary values for spacing.</p>
+
+      <div class="spacing-row"><div class="spacing-meta"><div class="spacing-token">1</div><div class="spacing-px">4px</div><div class="spacing-class">p-1 / m-1 / gap-1</div></div><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:4px"></div></div></div>
+      <div class="spacing-row"><div class="spacing-meta"><div class="spacing-token">2</div><div class="spacing-px">8px</div><div class="spacing-class">p-2 / m-2 / gap-2</div></div><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:8px"></div></div></div>
+      <div class="spacing-row"><div class="spacing-meta"><div class="spacing-token">3</div><div class="spacing-px">12px</div><div class="spacing-class">p-3 / gap-3</div></div><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:12px"></div></div></div>
+      <div class="spacing-row"><div class="spacing-meta"><div class="spacing-token">4</div><div class="spacing-px">16px</div><div class="spacing-class">p-4 / gap-4</div></div><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:16px"></div></div></div>
+      <div class="spacing-row"><div class="spacing-meta"><div class="spacing-token">5</div><div class="spacing-px">20px</div><div class="spacing-class">p-5 / gap-5</div></div><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:20px"></div></div></div>
+      <div class="spacing-row"><div class="spacing-meta"><div class="spacing-token">6</div><div class="spacing-px">24px</div><div class="spacing-class">p-6 / gap-6</div></div><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:24px"></div></div></div>
+      <div class="spacing-row"><div class="spacing-meta"><div class="spacing-token">8</div><div class="spacing-px">32px</div><div class="spacing-class">p-8 / gap-8</div></div><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:32px"></div></div></div>
+      <div class="spacing-row"><div class="spacing-meta"><div class="spacing-token">12</div><div class="spacing-px">48px</div><div class="spacing-class">p-12 / gap-12</div></div><div class="spacing-bar-wrap"><div class="spacing-bar" style="width:48px"></div></div></div>
+
+      <div class="callout info" style="margin-top:20px">
+        <span class="callout-icon">📐</span>
+        <span><strong>Card internal padding:</strong> use <code>p-5</code> (20px). <strong>Page content padding:</strong> use <code>px-6 py-5</code>. <strong>Table cell padding:</strong> <code>px-4 py-3</code>.</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ SHADOWS ══ -->
+    <div class="section" id="shadows">
+      <div class="section-badge">Foundation</div>
+      <h2 class="section-title">Shadows &amp; Radius</h2>
+
+      <div class="shadow-row">
+        <div class="shadow-card" style="box-shadow:0 1px 2px 0 rgb(0 0 0/.04),0 4px 16px 0 rgb(0 0 0/.06)">
+          <div style="width:48px;height:48px;background:#F3F4F6;border-radius:8px;margin:auto"></div>
+          <div class="shadow-name">shadow-card</div>
+          <div class="shadow-value">Default card shadow — use on all cards, tables, drawers</div>
+        </div>
+        <div class="shadow-card" style="box-shadow:0 4px 8px -1px rgb(0 0 0/.07),0 12px 32px -4px rgb(0 0 0/.08)">
+          <div style="width:48px;height:48px;background:#F3F4F6;border-radius:8px;margin:auto"></div>
+          <div class="shadow-name">shadow-card-md</div>
+          <div class="shadow-value">Hover state or elevated modals</div>
+        </div>
+        <div class="shadow-card" style="box-shadow:0 10px 20px -3px rgb(0 0 0/.09),0 24px 48px -8px rgb(0 0 0/.1)">
+          <div style="width:48px;height:48px;background:#F3F4F6;border-radius:8px;margin:auto"></div>
+          <div class="shadow-name">shadow-card-lg</div>
+          <div class="shadow-value">Full-screen sheets and drawers</div>
+        </div>
+      </div>
+
+      <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin:24px 0 12px">Border Radius Scale</p>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;background:var(--teal);border-radius:4px;margin:auto"></div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px">rounded-sm<br/>6px</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;background:var(--teal);border-radius:8px;margin:auto"></div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px">rounded-md<br/>8px</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;background:var(--teal);border-radius:10px;margin:auto"></div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px">rounded-lg<br/>10px (default)</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;background:var(--teal);border-radius:12px;margin:auto"></div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px">rounded-xl<br/>12px</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;background:var(--teal);border-radius:16px;margin:auto"></div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px">rounded-2xl<br/>16px</div>
+        </div>
+        <div style="text-align:center">
+          <div style="width:48px;height:48px;background:var(--teal);border-radius:9999px;margin:auto"></div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--text-3);margin-top:6px">rounded-full<br/>badges/pills</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ BUTTON ══ -->
+    <div class="section" id="button">
+      <div class="section-badge">Primitive</div>
+      <h2 class="section-title">Button</h2>
+      <p class="section-desc">The primary interactive element. Six variants, four sizes. Built on <code>class-variance-authority</code>.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div>
+            <div class="component-name">Button</div>
+            <div class="component-path">components/ui/button.tsx</div>
+          </div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-secondary">Secondary</button>
+          <button class="btn btn-outline">Outline</button>
+          <button class="btn btn-danger">Destructive</button>
+          <button class="btn btn-ghost">Ghost</button>
+          <button class="btn btn-primary" disabled>Disabled</button>
+        </div>
+        <div class="component-preview" style="background:white;border-top:1px solid var(--border)">
+          <button class="btn btn-primary btn-lg">Large</button>
+          <button class="btn btn-primary">Default (h-9)</button>
+          <button class="btn btn-primary btn-sm">Small</button>
+          <button class="btn btn-outline btn-icon">+</button>
+          <button class="btn btn-outline btn-icon-sm">×</button>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">variant</td><td class="prop-type">'default'|'secondary'|'outline'|'destructive'|'ghost'|'link'</td><td class="prop-default">'default'</td><td class="prop-desc">Visual style of the button</td></tr>
+              <tr><td class="prop-name">size</td><td class="prop-type">'default'|'sm'|'lg'|'icon'|'icon-sm'</td><td class="prop-default">'default'</td><td class="prop-desc">Height and padding preset</td></tr>
+              <tr><td class="prop-name">asChild</td><td class="prop-type">boolean</td><td class="prop-default">false</td><td class="prop-desc">Render as child element (for Link wrapping)</td></tr>
+              <tr><td class="prop-name">disabled</td><td class="prop-type">boolean</td><td class="prop-default">false</td><td class="prop-desc">Reduces opacity and disables pointer events</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="code-block"><pre>
+<span class="code-kw">import</span> { Button } <span class="code-kw">from</span> <span class="code-str">'@/components/ui/button'</span>;
+
+<span class="code-tag">&lt;Button</span> <span class="code-attr">variant</span>=<span class="code-str">"default"</span><span class="code-tag">&gt;</span>Save Changes<span class="code-tag">&lt;/Button&gt;</span>
+<span class="code-tag">&lt;Button</span> <span class="code-attr">variant</span>=<span class="code-str">"destructive"</span> <span class="code-attr">size</span>=<span class="code-str">"sm"</span><span class="code-tag">&gt;</span>Delete<span class="code-tag">&lt;/Button&gt;</span>
+<span class="code-tag">&lt;Button</span> <span class="code-attr">variant</span>=<span class="code-str">"outline"</span> <span class="code-attr">size</span>=<span class="code-str">"icon"</span><span class="code-tag">&gt;</span><span class="code-tag">&lt;PlusIcon /&gt;</span><span class="code-tag">&lt;/Button&gt;</span>
+<span class="code-cmt">// Loading pattern — use isPending from useActionState or useTransition</span>
+<span class="code-tag">&lt;Button</span> <span class="code-attr">disabled</span>={isPending}<span class="code-tag">&gt;</span>{isPending ? <span class="code-str">'Saving…'</span> : <span class="code-str">'Save'</span>}<span class="code-tag">&lt;/Button&gt;</span>
+</pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ BADGE ══ -->
+    <div class="section" id="badge">
+      <div class="section-badge">Primitive</div>
+      <h2 class="section-title">Badge</h2>
+      <p class="section-desc">Status indicators, labels, and count chips. Seven semantic variants.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">Badge</div><div class="component-path">components/ui/badge.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview">
+          <span class="badge badge-primary"><span class="badge-dot"></span>Primary</span>
+          <span class="badge badge-success"><span class="badge-dot"></span>Active</span>
+          <span class="badge badge-warning"><span class="badge-dot"></span>Expiring</span>
+          <span class="badge badge-danger"><span class="badge-dot"></span>Deactivated</span>
+          <span class="badge badge-info"><span class="badge-dot"></span>Pending</span>
+          <span class="badge badge-neutral">Draft</span>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">variant</td><td class="prop-type">'default'|'primary'|'success'|'destructive'|'warning'|'info'|'danger'</td><td class="prop-default">'default'</td><td class="prop-desc">Color scheme</td></tr>
+              <tr><td class="prop-name">dot</td><td class="prop-type">boolean</td><td class="prop-default">false</td><td class="prop-desc">Show colored leading dot indicator</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ INPUT ══ -->
+    <div class="section" id="input">
+      <div class="section-badge">Primitive</div>
+      <h2 class="section-title">Input</h2>
+      <p class="section-desc">Text input with optional label, hint, error message, and icon slots.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">Input</div><div class="component-path">components/ui/input.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview" style="flex-direction:column;align-items:stretch;max-width:400px">
+          <div>
+            <label class="input-label">Phone number</label>
+            <input class="input-demo" placeholder="+249 91 234 5678" style="width:100%" />
+            <div class="input-hint">Include country code</div>
+          </div>
+          <div style="margin-top:16px">
+            <label class="input-label">Business name</label>
+            <input class="input-demo error" value="Al" style="width:100%" />
+            <div class="input-error">Name must be at least 3 characters</div>
+          </div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">label</td><td class="prop-type">string</td><td class="prop-desc">Label text above input</td></tr>
+              <tr><td class="prop-name">hint</td><td class="prop-type">string</td><td class="prop-desc">Helper text below input</td></tr>
+              <tr><td class="prop-name">error</td><td class="prop-type">string</td><td class="prop-desc">Error message — turns border red</td></tr>
+              <tr><td class="prop-name">icon</td><td class="prop-type">ReactNode</td><td class="prop-desc">Left icon slot</td></tr>
+              <tr><td class="prop-name">iconRight</td><td class="prop-type">ReactNode</td><td class="prop-desc">Right icon slot</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ AVATAR ══ -->
+    <div class="section" id="avatar">
+      <div class="section-badge">Primitive</div>
+      <h2 class="section-title">Avatar</h2>
+      <p class="section-desc">Displays user initials with a deterministic color from a 6-color palette based on the name string.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">Avatar</div><div class="component-path">components/ui/Avatar.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview" style="gap:12px;align-items:center">
+          <div class="avatar-demo" style="width:40px;height:40px;background:#0F766E;font-size:14px">AJ</div>
+          <div class="avatar-demo" style="width:40px;height:40px;background:#7C3AED;font-size:14px">MK</div>
+          <div class="avatar-demo" style="width:40px;height:40px;background:#D97706;font-size:14px">SA</div>
+          <div class="avatar-demo" style="width:40px;height:40px;background:#DC2626;font-size:14px">YB</div>
+          <div class="avatar-demo" style="width:32px;height:32px;background:#0284C7;font-size:12px">AM</div>
+          <div class="avatar-demo" style="width:24px;height:24px;background:#059669;font-size:10px">FM</div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">name</td><td class="prop-type">string</td><td class="prop-default">required</td><td class="prop-desc">Full name — first two initials extracted, color seeded from hash</td></tr>
+              <tr><td class="prop-name">size</td><td class="prop-type">number</td><td class="prop-default">32</td><td class="prop-desc">Diameter in pixels</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ CARD ══ -->
+    <div class="section" id="card">
+      <div class="section-badge">Primitive</div>
+      <h2 class="section-title">Card</h2>
+      <p class="section-desc">Composite container: <code>Card</code>, <code>CardHeader</code>, <code>CardTitle</code>, <code>CardDescription</code>, <code>CardContent</code>, <code>CardFooter</code>.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">Card</div><div class="component-path">components/ui/card.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview">
+          <div class="card-demo" style="width:100%;max-width:360px">
+            <div class="card-demo-header">
+              <div class="card-demo-title">Business Overview</div>
+              <div class="card-demo-desc">Last updated 5 minutes ago</div>
+            </div>
+            <div class="card-demo-body">Active subscription with 3 shops and 12 staff members.</div>
+            <div class="card-demo-footer">
+              <button class="btn btn-outline btn-sm">Cancel</button>
+              <button class="btn btn-primary btn-sm">Save</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block"><pre>
+<span class="code-kw">import</span> { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } <span class="code-kw">from</span> <span class="code-str">'@/components/ui/card'</span>;
+
+<span class="code-tag">&lt;Card&gt;</span>
+  <span class="code-tag">&lt;CardHeader&gt;</span>
+    <span class="code-tag">&lt;CardTitle&gt;</span>Business Overview<span class="code-tag">&lt;/CardTitle&gt;</span>
+    <span class="code-tag">&lt;CardDescription&gt;</span>Last updated 5 minutes ago<span class="code-tag">&lt;/CardDescription&gt;</span>
+  <span class="code-tag">&lt;/CardHeader&gt;</span>
+  <span class="code-tag">&lt;CardContent&gt;</span>Active subscription…<span class="code-tag">&lt;/CardContent&gt;</span>
+  <span class="code-tag">&lt;CardFooter&gt;</span>
+    <span class="code-tag">&lt;Button</span> <span class="code-attr">variant</span>=<span class="code-str">"outline"</span><span class="code-tag">&gt;</span>Cancel<span class="code-tag">&lt;/Button&gt;</span>
+    <span class="code-tag">&lt;Button&gt;</span>Save<span class="code-tag">&lt;/Button&gt;</span>
+  <span class="code-tag">&lt;/CardFooter&gt;</span>
+<span class="code-tag">&lt;/Card&gt;</span>
+</pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ TABLE ══ -->
+    <div class="section" id="table">
+      <div class="section-badge">Primitive</div>
+      <h2 class="section-title">Table</h2>
+      <p class="section-desc">Use <code>components/ui/table.tsx</code> for every data table. Do not write raw <code>&lt;table&gt;</code> HTML.</p>
+
+      <div class="callout danger">
+        <span class="callout-icon">🚫</span>
+        <span><strong>6 screens currently bypass this component</strong> and write raw HTML tables. See the Gaps section for the migration list.</span>
+      </div>
+
+      <div class="component-card" style="margin-top:20px">
+        <div class="component-header">
+          <div><div class="component-name">Table</div><div class="component-path">components/ui/table.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview" style="padding:0;background:white">
+          <table class="table-demo" style="width:100%">
+            <thead><tr><th>Receipt</th><th>Cashier</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr>
+                <td style="font-family:'DM Mono',monospace;font-size:11px;color:#9CA3AF">REC-20260531</td>
+                <td>Ahmed Ali</td>
+                <td style="font-weight:600">1,200 SDG</td>
+                <td><span class="badge badge-success" style="font-size:10px"><span class="badge-dot"></span>Completed</span></td>
+              </tr>
+              <tr>
+                <td style="font-family:'DM Mono',monospace;font-size:11px;color:#9CA3AF">REC-20260530</td>
+                <td>Sara Mohamed</td>
+                <td style="font-weight:600">850 SDG</td>
+                <td><span class="badge badge-warning" style="font-size:10px"><span class="badge-dot"></span>Partial Refund</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Exports</div>
+          <table class="props-table">
+            <thead><tr><th>Component</th><th>Renders as</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">Table</td><td class="prop-type">div + table</td><td class="prop-desc">Overflow wrapper + table element</td></tr>
+              <tr><td class="prop-name">TableHeader</td><td class="prop-type">thead</td><td class="prop-desc">Adds border-bottom to rows</td></tr>
+              <tr><td class="prop-name">TableBody</td><td class="prop-type">tbody</td><td class="prop-desc">Adds dividers between rows</td></tr>
+              <tr><td class="prop-name">TableRow</td><td class="prop-type">tr</td><td class="prop-desc">Hover bg-muted/40, selected state</td></tr>
+              <tr><td class="prop-name">TableHead</td><td class="prop-type">th</td><td class="prop-desc">h-10, 10.5px uppercase, last child text-end</td></tr>
+              <tr><td class="prop-name">TableCell</td><td class="prop-type">td</td><td class="prop-desc">px-4 py-3, last child text-end</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="code-block"><pre>
+<span class="code-kw">import</span> { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } <span class="code-kw">from</span> <span class="code-str">'@/components/ui/table'</span>;
+
+<span class="code-tag">&lt;Table&gt;</span>
+  <span class="code-tag">&lt;TableHeader&gt;</span>
+    <span class="code-tag">&lt;TableRow&gt;</span>
+      <span class="code-tag">&lt;TableHead&gt;</span>Receipt<span class="code-tag">&lt;/TableHead&gt;</span>
+      <span class="code-tag">&lt;TableHead&gt;</span>Cashier<span class="code-tag">&lt;/TableHead&gt;</span>
+      <span class="code-tag">&lt;TableHead&gt;</span>Amount<span class="code-tag">&lt;/TableHead&gt;</span>
+    <span class="code-tag">&lt;/TableRow&gt;</span>
+  <span class="code-tag">&lt;/TableHeader&gt;</span>
+  <span class="code-tag">&lt;TableBody&gt;</span>
+    {rows.map((row) =&gt; (
+      <span class="code-tag">&lt;TableRow</span> <span class="code-attr">key</span>={row.id}<span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;TableCell&gt;</span>{row.receipt}<span class="code-tag">&lt;/TableCell&gt;</span>
+        <span class="code-tag">&lt;TableCell&gt;</span>{row.cashier}<span class="code-tag">&lt;/TableCell&gt;</span>
+        <span class="code-tag">&lt;TableCell&gt;</span>{row.amount}<span class="code-tag">&lt;/TableCell&gt;</span>
+      <span class="code-tag">&lt;/TableRow&gt;</span>
+    ))}
+  <span class="code-tag">&lt;/TableBody&gt;</span>
+<span class="code-tag">&lt;/Table&gt;</span>
+</pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ DS: PAGETITLE ══ -->
+    <div class="section" id="pagetitle">
+      <div class="section-badge">DS Component</div>
+      <h2 class="section-title">PageTitle</h2>
+      <p class="section-desc">Standard page header. Always the first element inside a page body. Handles title, optional description, and right-aligned action slot.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">PageTitle</div><div class="component-path">components/ds/PageTitle.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview" style="background:var(--canvas)">
+          <div style="width:100%;display:flex;align-items:flex-start;justify-content:space-between">
+            <div>
+              <div style="font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.02em;line-height:1.2">Sales History</div>
+              <div style="font-size:13px;color:#9CA3AF;margin-top:4px">Sunday, 31 May 2026</div>
+            </div>
+            <button class="btn btn-primary btn-sm">+ New Owner</button>
+          </div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">title</td><td class="prop-type">string</td><td class="prop-desc">Page title — displayed at 22px / 900 weight</td></tr>
+              <tr><td class="prop-name">description</td><td class="prop-type">string?</td><td class="prop-desc">Subtitle below the title</td></tr>
+              <tr><td class="prop-name">action</td><td class="prop-type">ReactNode?</td><td class="prop-desc">Right-side slot — Button, menu, etc.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ DS: STATCARD ══ -->
+    <div class="section" id="statcard">
+      <div class="section-badge">DS Component</div>
+      <h2 class="section-title">StatCard</h2>
+      <p class="section-desc">KPI metric card. Used in dashboard sections. Accepts optional icon and accent color override.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">StatCard</div><div class="component-path">components/ds/StatCard.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview" style="background:var(--canvas);flex-wrap:wrap">
+          <div class="statcard-demo">
+            <div class="statcard-icon" style="background:#CCFBF1;color:#0F766E">💰</div>
+            <div class="statcard-label">Today's Revenue</div>
+            <div class="statcard-value">12,480</div>
+            <div class="statcard-sub">42 completed sales</div>
+          </div>
+          <div class="statcard-demo">
+            <div class="statcard-icon" style="background:#ECFDF5;color:#059669">📦</div>
+            <div class="statcard-label">Low Stock</div>
+            <div class="statcard-value">7</div>
+            <div class="statcard-sub">products need restock</div>
+          </div>
+          <div class="statcard-demo">
+            <div class="statcard-icon" style="background:#FEE2E2;color:#E53E3E">↩</div>
+            <div class="statcard-label">Today's Refunds</div>
+            <div class="statcard-value">320</div>
+            <div class="statcard-sub">2 refunds</div>
+          </div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">label</td><td class="prop-type">string</td><td class="prop-desc">KPI label — shown in uppercase</td></tr>
+              <tr><td class="prop-name">value</td><td class="prop-type">string | number</td><td class="prop-desc">Main metric value</td></tr>
+              <tr><td class="prop-name">sub</td><td class="prop-type">string?</td><td class="prop-desc">Context line below the value</td></tr>
+              <tr><td class="prop-name">icon</td><td class="prop-type">ReactNode?</td><td class="prop-desc">Icon rendered in the accent chip</td></tr>
+              <tr><td class="prop-name">accent</td><td class="prop-type">string?</td><td class="prop-desc">Tailwind classes for icon chip bg/text color</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ DS: DRAWER ══ -->
+    <div class="section" id="drawer">
+      <div class="section-badge">DS Component</div>
+      <h2 class="section-title">Drawer</h2>
+      <p class="section-desc">Right-side panel. Thin wrapper over <code>Sheet</code> with a standardised title + subtitle header and optional footer. Max width 540px.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">Drawer</div><div class="component-path">components/ds/Drawer.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview" style="flex-direction:column">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-outline">Open Drawer →</button>
+          </div>
+          <div style="margin-top:12px;background:#F9FAFB;border:1px solid var(--border);border-radius:8px;overflow:hidden;max-width:300px">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start">
+              <div><div style="font-weight:700;font-size:14px">Edit Business</div><div style="font-size:12px;color:#9CA3AF;margin-top:2px">Al-Mogdad Retail Ltd.</div></div>
+              <span style="font-size:18px;color:#9CA3AF;cursor:pointer">×</span>
+            </div>
+            <div style="padding:16px;font-size:13px;color:#4B5563">Drawer content goes here…</div>
+          </div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">open</td><td class="prop-type">boolean</td><td class="prop-desc">Controls visibility</td></tr>
+              <tr><td class="prop-name">onClose</td><td class="prop-type">() =&gt; void</td><td class="prop-desc">Called when overlay or × is clicked</td></tr>
+              <tr><td class="prop-name">title</td><td class="prop-type">string</td><td class="prop-desc">Header title</td></tr>
+              <tr><td class="prop-name">subtitle</td><td class="prop-type">string?</td><td class="prop-desc">Sub-line below title (e.g. receipt number)</td></tr>
+              <tr><td class="prop-name">children</td><td class="prop-type">ReactNode</td><td class="prop-desc">Scrollable body content</td></tr>
+              <tr><td class="prop-name">footer</td><td class="prop-type">ReactNode?</td><td class="prop-desc">Sticky footer slot (typically action buttons)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ DS: PAGINATION ══ -->
+    <div class="section" id="pagination">
+      <div class="section-badge">DS Component</div>
+      <h2 class="section-title">Pagination</h2>
+      <p class="section-desc">URL-driven page controls. Reads/writes <code>?page=N</code> from the URL. Uses <code>useTransition</code> for pending state and <code>scroll: false</code> to prevent scroll-to-top.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">Pagination</div><div class="component-path">components/ds/Pagination.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview" style="padding:0;background:white;flex-direction:column">
+          <div class="pagination-demo">
+            <span style="font-size:12px;color:#9CA3AF">Showing <strong style="color:var(--text)">1–25</strong> of <strong style="color:var(--text)">847</strong></span>
+            <div style="display:flex;gap:4px;align-items:center">
+              <button class="page-btn">‹</button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn">4</button>
+              <button class="page-btn">5</button>
+              <button class="page-btn dots">…</button>
+              <button class="page-btn">34</button>
+              <button class="page-btn">›</button>
+            </div>
+          </div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">count</td><td class="prop-type">number</td><td class="prop-default">required</td><td class="prop-desc">Total item count from API</td></tr>
+              <tr><td class="prop-name">pageSize</td><td class="prop-type">number</td><td class="prop-default">20</td><td class="prop-desc">Items per page — must match the API's page_size</td></tr>
+              <tr><td class="prop-name">className</td><td class="prop-type">string?</td><td class="prop-default">—</td><td class="prop-desc">Additional Tailwind classes</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">💡</span>
+        <span>Always render <code>&lt;Pagination&gt;</code> <strong>inside the Suspense boundary</strong> with the data, not outside it — it needs to know the current page from <code>searchParams</code>.</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ DS: SEARCHINPUT ══ -->
+    <div class="section" id="search">
+      <div class="section-badge">DS Component</div>
+      <h2 class="section-title">SearchInput</h2>
+      <p class="section-desc">Debounced search input that syncs to <code>?search=</code> in the URL. Clears automatically and resets pagination.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">SearchInput</div><div class="component-path">components/ds/SearchInput.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview">
+          <div class="input-wrap" style="width:280px;position:relative">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9CA3AF;font-size:14px">🔍</span>
+            <input class="input-demo" placeholder="Search by name or phone…" style="padding-left:32px;width:100%" />
+          </div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">placeholder</td><td class="prop-type">string</td><td class="prop-default">—</td><td class="prop-desc">Input placeholder text</td></tr>
+              <tr><td class="prop-name">debounce</td><td class="prop-type">number</td><td class="prop-default">400</td><td class="prop-desc">Milliseconds delay before URL push</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ DS: EMPTYSTATE ══ -->
+    <div class="section" id="empty">
+      <div class="section-badge">DS Component</div>
+      <h2 class="section-title">EmptyState</h2>
+      <p class="section-desc">Used when a list or table has no data. Centered layout with icon, title, description, and optional CTA.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">EmptyState</div><div class="component-path">components/ds/EmptyState.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-preview">
+          <div class="empty-demo" style="width:100%">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">No owners yet</div>
+            <div class="empty-desc">Register the first owner account to get started.</div>
+            <button class="btn btn-primary btn-sm">+ Create Owner</button>
+          </div>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Props</div>
+          <table class="props-table">
+            <thead><tr><th>Prop</th><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">icon</td><td class="prop-type">ReactNode?</td><td class="prop-desc">Emoji or icon component</td></tr>
+              <tr><td class="prop-name">title</td><td class="prop-type">string</td><td class="prop-desc">Main message</td></tr>
+              <tr><td class="prop-name">description</td><td class="prop-type">string?</td><td class="prop-desc">Supporting text</td></tr>
+              <tr><td class="prop-name">action</td><td class="prop-type">ReactNode?</td><td class="prop-desc">CTA button or link</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ DS: SKELETON ══ -->
+    <div class="section" id="skeleton">
+      <div class="section-badge">DS Component</div>
+      <h2 class="section-title">Skeleton</h2>
+      <p class="section-desc">Loading placeholders. Always wrap data-fetching sections in <code>&lt;Suspense fallback={…}&gt;</code> using one of these exports.</p>
+
+      <div class="component-card">
+        <div class="component-header">
+          <div><div class="component-name">Skeleton variants</div><div class="component-path">components/ds/Skeleton.tsx</div></div>
+          <span class="component-status status-stable">Stable</span>
+        </div>
+        <div class="component-props">
+          <div class="props-title">Exports</div>
+          <table class="props-table">
+            <thead><tr><th>Export</th><th>Props</th><th>Use when</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">TableSkeleton</td><td class="prop-type">rows=6, cols=5</td><td class="prop-desc">Loading a data table</td></tr>
+              <tr><td class="prop-name">StatsSectionSkeleton</td><td class="prop-type">count=3</td><td class="prop-desc">Loading KPI card grid</td></tr>
+              <tr><td class="prop-name">ChartSkeleton</td><td class="prop-type">—</td><td class="prop-desc">Loading a bar/line chart</td></tr>
+              <tr><td class="prop-name">PageHeaderSkeleton</td><td class="prop-type">—</td><td class="prop-desc">Loading a page header</td></tr>
+              <tr><td class="prop-name">FiltersBarSkeleton</td><td class="prop-type">—</td><td class="prop-desc">Loading search + filters row</td></tr>
+              <tr><td class="prop-name">CardGridSkeleton</td><td class="prop-type">count=6</td><td class="prop-desc">Loading card grid</td></tr>
+              <tr><td class="prop-name">Bone</td><td class="prop-type">className</td><td class="prop-desc">Generic single skeleton element</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="code-block"><pre>
+<span class="code-kw">import</span> { Suspense } <span class="code-kw">from</span> <span class="code-str">'react'</span>;
+<span class="code-kw">import</span> { TableSkeleton, StatsSectionSkeleton } <span class="code-kw">from</span> <span class="code-str">'@/components/ds/Skeleton'</span>;
+
+<span class="code-tag">&lt;Suspense</span> <span class="code-attr">fallback</span>={<span class="code-tag">&lt;StatsSectionSkeleton</span> <span class="code-attr">count</span>={4} <span class="code-tag">/&gt;</span>}<span class="code-tag">&gt;</span>
+  <span class="code-tag">&lt;KpiCards /&gt;</span>
+<span class="code-tag">&lt;/Suspense&gt;</span>
+
+<span class="code-tag">&lt;Suspense</span> <span class="code-attr">fallback</span>={<span class="code-tag">&lt;TableSkeleton</span> <span class="code-attr">rows</span>={8} <span class="code-attr">cols</span>={6} <span class="code-tag">/&gt;</span>}<span class="code-tag">&gt;</span>
+  <span class="code-tag">&lt;DataTable /&gt;</span>
+<span class="code-tag">&lt;/Suspense&gt;</span>
+</pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ PATTERNS ══ -->
+    <div class="section" id="page-layout">
+      <div class="section-badge">Patterns</div>
+      <h2 class="section-title">Page Layout</h2>
+      <p class="section-desc">Every dashboard page follows the same structure. Server component at the root, client components only where interactivity is needed.</p>
+
+      <div class="code-block"><pre>
+<span class="code-cmt">// app/[locale]/(dashboard)/owners/page.tsx — SERVER component</span>
+<span class="code-kw">export default async function</span> <span class="code-fn">OwnersPage</span>({ searchParams }) {
+  <span class="code-kw">const</span> params = <span class="code-kw">await</span> searchParams;
+  <span class="code-kw">const</span> page   = Math.max(1, Number(params.page) || 1);
+
+  <span class="code-kw">return</span> (
+    <span class="code-tag">&lt;div</span> <span class="code-attr">className</span>=<span class="code-str">"space-y-5"</span><span class="code-tag">&gt;</span>
+      <span class="code-tag">&lt;PageTitle</span>
+        <span class="code-attr">title</span>={t(<span class="code-str">'title'</span>)}
+        <span class="code-attr">action</span>={<span class="code-tag">&lt;Button&gt;</span>New Owner<span class="code-tag">&lt;/Button&gt;</span>}
+      <span class="code-tag">/&gt;</span>
+
+      <span class="code-cmt">{/* Stats — optional */}</span>
+      <span class="code-tag">&lt;Suspense</span> <span class="code-attr">fallback</span>={<span class="code-tag">&lt;StatsSectionSkeleton /&gt;</span>}<span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;StatsSection /&gt;</span>
+      <span class="code-tag">&lt;/Suspense&gt;</span>
+
+      <span class="code-cmt">{/* Filters — client component */}</span>
+      <span class="code-tag">&lt;Suspense</span> <span class="code-attr">fallback</span>={<span class="code-tag">&lt;FiltersBarSkeleton /&gt;</span>}<span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;SearchInput</span> <span class="code-attr">placeholder</span>=<span class="code-str">"Search…"</span> <span class="code-tag">/&gt;</span>
+      <span class="code-tag">&lt;/Suspense&gt;</span>
+
+      <span class="code-cmt">{/* Table */}</span>
+      <span class="code-tag">&lt;div</span> <span class="code-attr">className</span>=<span class="code-str">"bg-card rounded-xl border border-border shadow-card overflow-hidden"</span><span class="code-tag">&gt;</span>
+        <span class="code-tag">&lt;Suspense</span> <span class="code-attr">fallback</span>={<span class="code-tag">&lt;TableSkeleton</span> <span class="code-attr">rows</span>={8} <span class="code-attr">cols</span>={5} <span class="code-tag">/&gt;</span>}<span class="code-tag">&gt;</span>
+          <span class="code-tag">&lt;DataTable</span> <span class="code-attr">searchParams</span>={params} <span class="code-tag">/&gt;</span>
+          <span class="code-tag">&lt;Pagination</span> <span class="code-attr">count</span>={count} <span class="code-attr">pageSize</span>={20} <span class="code-tag">/&gt;</span>
+        <span class="code-tag">&lt;/Suspense&gt;</span>
+      <span class="code-tag">&lt;/div&gt;</span>
+    <span class="code-tag">&lt;/div&gt;</span>
+  );
+}
+</pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ DATA TABLE PATTERN ══ -->
+    <div class="section" id="data-table">
+      <div class="section-badge">Patterns</div>
+      <h2 class="section-title">Data Table</h2>
+      <p class="section-desc">Standard server-rendered data table. The table is a server component — no client-side fetching.</p>
+
+      <div class="pattern-frame">
+        <div style="background:white;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;font-weight:700">Owners <span style="color:#9CA3AF;font-weight:400">· 247 results</span></span>
+          </div>
+          <table class="table-demo">
+            <thead><tr><th>Owner</th><th>Phone</th><th>Businesses</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar-demo" style="width:28px;height:28px;background:#0F766E;font-size:10px">AJ</div>Al-Mogdad Jabir</div></td>
+                <td style="font-family:'DM Mono',monospace;font-size:11px">+249 912 345 678</td>
+                <td>2</td>
+                <td><span class="badge badge-success" style="font-size:10px"><span class="badge-dot"></span>Active</span></td>
+                <td style="text-align:right"><button class="btn btn-ghost btn-sm" style="font-size:12px">View →</button></td>
+              </tr>
+              <tr>
+                <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar-demo" style="width:28px;height:28px;background:#D97706;font-size:10px">SA</div>Sara Ahmed</div></td>
+                <td style="font-family:'DM Mono',monospace;font-size:11px">+249 900 111 222</td>
+                <td>1</td>
+                <td><span class="badge badge-warning" style="font-size:10px"><span class="badge-dot"></span>No Sub</span></td>
+                <td style="text-align:right"><button class="btn btn-ghost btn-sm" style="font-size:12px">View →</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination-demo">
+            <span style="font-size:12px;color:#9CA3AF">Showing <strong style="color:var(--text)">1–20</strong> of <strong style="color:var(--text)">247</strong></span>
+            <div style="display:flex;gap:3px">
+              <button class="page-btn active">1</button>
+              <button class="page-btn">2</button>
+              <button class="page-btn">3</button>
+              <button class="page-btn dots">…</button>
+              <button class="page-btn">13</button>
+              <button class="page-btn">›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ FORMS ══ -->
+    <div class="section" id="forms">
+      <div class="section-badge">Patterns</div>
+      <h2 class="section-title">Forms</h2>
+      <p class="section-desc">All mutations use React 19 <code>useActionState</code>. Never use HTML <code>&lt;form action=…&gt;</code> directly — always wire through a server action.</p>
+
+      <div class="code-block"><pre>
+<span class="code-str">'use client'</span>;
+
+<span class="code-kw">import</span> { useActionState } <span class="code-kw">from</span> <span class="code-str">'react'</span>;
+<span class="code-kw">import</span> { createOwnerAction } <span class="code-kw">from</span> <span class="code-str">'@/actions/owners'</span>;
+<span class="code-kw">import</span> { Drawer } <span class="code-kw">from</span> <span class="code-str">'@/components/ds/Drawer'</span>;
+<span class="code-kw">import</span> { Input } <span class="code-kw">from</span> <span class="code-str">'@/components/ui/input'</span>;
+<span class="code-kw">import</span> { Button } <span class="code-kw">from</span> <span class="code-str">'@/components/ui/button'</span>;
+
+<span class="code-kw">export default function</span> <span class="code-fn">CreateOwnerDrawer</span>({ open, onClose }) {
+  <span class="code-kw">const</span> [state, action, isPending] = useActionState(createOwnerAction, <span class="code-kw">null</span>);
+
+  <span class="code-kw">return</span> (
+    <span class="code-tag">&lt;Drawer</span> <span class="code-attr">open</span>={open} <span class="code-attr">onClose</span>={onClose} <span class="code-attr">title</span>=<span class="code-str">"New Owner"</span><span class="code-tag">&gt;</span>
+      {state?.error &amp;&amp; <span class="code-tag">&lt;p</span> <span class="code-attr">className</span>=<span class="code-str">"text-destructive text-sm"</span><span class="code-tag">&gt;</span>{state.error}<span class="code-tag">&lt;/p&gt;</span>}
+      <span class="code-tag">&lt;Input</span> <span class="code-attr">name</span>=<span class="code-str">"full_name"</span> <span class="code-attr">label</span>=<span class="code-str">"Full name"</span> <span class="code-attr">required</span> <span class="code-tag">/&gt;</span>
+      <span class="code-tag">&lt;PhoneInput</span> <span class="code-attr">label</span>=<span class="code-str">"Phone"</span> <span class="code-attr">phoneName</span>=<span class="code-str">"phone_local"</span> <span class="code-tag">/&gt;</span>
+      <span class="code-tag">&lt;Button</span> <span class="code-attr">formAction</span>={action} <span class="code-attr">disabled</span>={isPending}<span class="code-tag">&gt;</span>
+        {isPending ? <span class="code-str">'Creating…'</span> : <span class="code-str">'Create Owner'</span>}
+      <span class="code-tag">&lt;/Button&gt;</span>
+    <span class="code-tag">&lt;/Drawer&gt;</span>
+  );
+}
+</pre></div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ STATUS ══ -->
+    <div class="section" id="status">
+      <div class="section-badge">Patterns</div>
+      <h2 class="section-title">Status Badges</h2>
+      <p class="section-desc">Standard status values used across the platform. Always map model values to the correct badge variant.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card-demo">
+          <div class="card-demo-header"><div class="card-demo-title">User / Business Status</div></div>
+          <div class="card-demo-body" style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">is_active=true</span><span class="badge badge-success"><span class="badge-dot"></span>Active</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">is_active=false</span><span class="badge badge-danger"><span class="badge-dot"></span>Deactivated</span></div>
+          </div>
+        </div>
+        <div class="card-demo">
+          <div class="card-demo-header"><div class="card-demo-title">Sale Status</div></div>
+          <div class="card-demo-body" style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">completed</span><span class="badge badge-success"><span class="badge-dot"></span>Completed</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">pending</span><span class="badge badge-warning"><span class="badge-dot"></span>Pending</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">partial_refund</span><span class="badge" style="background:#FFF7ED;color:#C2410C"><span class="badge-dot"></span>Partial Refund</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">refunded</span><span class="badge badge-info"><span class="badge-dot"></span>Refunded</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">cancelled</span><span class="badge badge-danger"><span class="badge-dot"></span>Cancelled</span></div>
+          </div>
+        </div>
+        <div class="card-demo">
+          <div class="card-demo-header"><div class="card-demo-title">Subscription Status</div></div>
+          <div class="card-demo-body" style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">active + valid</span><span class="badge badge-success"><span class="badge-dot"></span>Active</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">expiring &lt;7 days</span><span class="badge badge-warning"><span class="badge-dot"></span>Expiring</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">is_active=false</span><span class="badge badge-danger"><span class="badge-dot"></span>Expired</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">no subscription</span><span class="badge badge-neutral">No Plan</span></div>
+          </div>
+        </div>
+        <div class="card-demo">
+          <div class="card-demo-header"><div class="card-demo-title">Delivery Status (Notifications)</div></div>
+          <div class="card-demo-body" style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">sent</span><span class="badge badge-success"><span class="badge-dot"></span>Sent</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">pending</span><span class="badge badge-warning"><span class="badge-dot"></span>Pending</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">processing</span><span class="badge badge-info"><span class="badge-dot"></span>Processing</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'DM Mono',monospace;font-size:11px">failed</span><span class="badge badge-danger"><span class="badge-dot"></span>Failed</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ RTL ══ -->
+    <div class="section" id="rtl">
+      <div class="section-badge">Patterns</div>
+      <h2 class="section-title">RTL / i18n</h2>
+      <p class="section-desc">Arabic (<code>ar</code>) locale sets <code>dir="rtl"</code> on <code>&lt;html&gt;</code>. All layout must use RTL-safe utilities.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="card-demo">
+          <div class="card-demo-header" style="background:#FEF2F2"><div class="card-demo-title" style="color:#991B1B">❌ Don't use</div></div>
+          <div class="card-demo-body" style="font-family:'DM Mono',monospace;font-size:11.5px;display:flex;flex-direction:column;gap:6px">
+            <span>ml-4 mr-4</span>
+            <span>pl-3 pr-3</span>
+            <span>text-left text-right</span>
+            <span>left-0 right-0</span>
+            <span>float-left float-right</span>
+          </div>
+        </div>
+        <div class="card-demo">
+          <div class="card-demo-header" style="background:#F0FDF4"><div class="card-demo-title" style="color:#065F46">✓ Use instead</div></div>
+          <div class="card-demo-body" style="font-family:'DM Mono',monospace;font-size:11.5px;display:flex;flex-direction:column;gap:6px">
+            <span>ms-4 me-4</span>
+            <span>ps-3 pe-3</span>
+            <span>text-start text-end</span>
+            <span>start-0 end-0</span>
+            <span>— (use flex instead)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout info" style="margin-top:20px">
+        <span class="callout-icon">🌐</span>
+        <span><strong>All user-facing strings</strong> must go through <code>useTranslations()</code> in client components or <code>getTranslations()</code> in server components. Add new keys to both <code>messages/en.json</code> and <code>messages/ar.json</code> before committing.</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ══ GAPS ══ -->
+    <div class="section" id="gaps">
+      <div class="section-badge">Migration</div>
+      <h2 class="section-title">Gaps &amp; Migration Guide</h2>
+      <p class="section-desc">Known inconsistencies that need to be addressed. Work through these when touching the relevant screen.</p>
+
+      <div class="callout danger">
+        <span class="callout-icon">🚫</span>
+        <span><strong>6 screens use raw HTML tables</strong> instead of <code>components/ui/table.tsx</code>. Migrate them as you touch each screen — do not write more raw tables.</span>
+      </div>
+
+      <div class="component-card" style="margin-top:20px">
+        <div class="component-header">
+          <div class="component-name">Raw Table Screens — Migration Required</div>
+          <span class="component-status status-deprecated">Needs Migration</span>
+        </div>
+        <div class="component-props">
+          <table class="props-table">
+            <thead><tr><th>Screen</th><th>File</th><th>Priority</th></tr></thead>
+            <tbody>
+              <tr><td>Sales</td><td class="prop-type">sales/_components/SalesTableClient.tsx</td><td><span class="badge badge-warning" style="font-size:10px">Medium</span></td></tr>
+              <tr><td>Activity Logs</td><td class="prop-type">activity-logs/_components/ActivityFeed.tsx</td><td><span class="badge badge-warning" style="font-size:10px">Medium</span></td></tr>
+              <tr><td>Notification Logs</td><td class="prop-type">notifications/logs/_components/LogsTable.tsx</td><td><span class="badge badge-neutral" style="font-size:10px">Low</span></td></tr>
+              <tr><td>Notification Templates</td><td class="prop-type">notifications/templates/_components/TemplatesList.tsx</td><td><span class="badge badge-neutral" style="font-size:10px">Low</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="component-card" style="margin-top:16px">
+        <div class="component-header">
+          <div class="component-name">Deprecated Tokens — Replace When Found</div>
+          <span class="component-status status-deprecated">Deprecated</span>
+        </div>
+        <div class="component-props">
+          <table class="props-table">
+            <thead><tr><th>Deprecated token</th><th>Replace with</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">text-text-primary</td><td class="prop-type">text-foreground</td></tr>
+              <tr><td class="prop-name">text-text-secondary</td><td class="prop-type">text-muted-foreground</td></tr>
+              <tr><td class="prop-name">text-text-hint</td><td class="prop-type">text-muted-foreground/70</td></tr>
+              <tr><td class="prop-name">border-soft / border-muted</td><td class="prop-type">border-border</td></tr>
+              <tr><td class="prop-name">bg-surface-soft / bg-surface</td><td class="prop-type">bg-muted or bg-card</td></tr>
+              <tr><td class="prop-name">SudanPhoneField</td><td class="prop-type">PhoneInput (components/ui/PhoneInput.tsx)</td></tr>
+              <tr><td class="prop-name">PhoneNumberField (deprecated tokens)</td><td class="prop-type">PhoneInput (components/ui/PhoneInput.tsx)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="component-card" style="margin-top:16px">
+        <div class="component-header">
+          <div class="component-name">Missing Primitives — Add Before Creating Custom Versions</div>
+          <span class="component-status status-new">Planned</span>
+        </div>
+        <div class="component-props">
+          <table class="props-table">
+            <thead><tr><th>Component</th><th>Current workaround</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td class="prop-name">Select</td><td class="prop-type">Raw &lt;select&gt; with Tailwind classes</td><td class="prop-desc">Add a <code>Select</code> primitive to components/ui/ — use Radix Select</td></tr>
+              <tr><td class="prop-name">Checkbox</td><td class="prop-type">None</td><td class="prop-desc">Needed for bulk table actions</td></tr>
+              <tr><td class="prop-name">Toast / Notification</td><td class="prop-type">Inline error state</td><td class="prop-desc">Add sonner or shadcn/toast for success/error feedback</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+</div>
+
+<script>
+// Active nav highlight on scroll
+const navItems = document.querySelectorAll('.nav-item');
+const sections = document.querySelectorAll('.section[id]');
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    navItems.forEach(n => n.classList.remove('active'));
+    const match = document.querySelector(`.nav-item[href="#${e.target.id}"]`);
+    if (match) match.classList.add('active');
+  });
+}, { rootMargin: '-20% 0px -75% 0px' });
+
+sections.forEach(s => io.observe(s));
+</script>
+</body>
+</html>
