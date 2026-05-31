@@ -1124,7 +1124,17 @@
     "timeJustNow": "just now",
     "timeAgoMin": "m ago",
     "timeAgoHour": "h ago",
-    "timeAgoDay": "d ago"
+    "timeAgoDay": "d ago",
+    "fromDate": "From",
+    "toDate": "To",
+    "clearFilters": "Clear",
+    "colActor": "Actor",
+    "colAction": "Action",
+    "colEntity": "Entity",
+    "colTime": "Time",
+    "colIp": "IP",
+    "ipUnknown": "—",
+    "noPhone": "System"
   },
   "staff": {
     "searchPlaceholder": "Search by name or phone…",

@@ -69,6 +69,17 @@ class RegisterView(APIView):
             bankak_account_number=data.get("bankak_account_number") or None,
         )
 
+        from apps.activity_logs.service import log_activity
+        from apps.activity_logs.models import ActivityLog as AL
+        log_activity(
+            actor=request.user,
+            action=AL.ActionType.OWNER_CREATED,
+            entity_type="owner",
+            entity_id=user.id,
+            entity_label=user.full_name or user.phone,
+            request=request,
+        )
+
         bankak = get_default_bankak_account(user)
         return Response(
             {

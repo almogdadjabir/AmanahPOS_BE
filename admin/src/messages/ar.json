@@ -1124,7 +1124,17 @@
     "timeJustNow": "الآن",
     "timeAgoMin": "د",
     "timeAgoHour": "س",
-    "timeAgoDay": "ي"
+    "timeAgoDay": "ي",
+    "fromDate": "من",
+    "toDate": "إلى",
+    "clearFilters": "مسح",
+    "colActor": "المنفّذ",
+    "colAction": "الإجراء",
+    "colEntity": "الكيان",
+    "colTime": "الوقت",
+    "colIp": "IP",
+    "ipUnknown": "—",
+    "noPhone": "النظام"
   },
   "staff": {
     "searchPlaceholder": "بحث بالاسم أو رقم الهاتف…",
