@@ -21,4 +21,5 @@ urlpatterns = [
     path("plans/<uuid:pk>/",                views.AdminPlanDetailView.as_view(),        name="plan-detail"),
     path("plans/<uuid:pk>/toggle-active/",  views.AdminPlanToggleActiveView.as_view(),  name="plan-toggle-active"),
     path("notifications/",                  include("apps.notifications.admin_urls")),
+    path("system/",                         include("apps.admin_panel.system.urls")),
 ]

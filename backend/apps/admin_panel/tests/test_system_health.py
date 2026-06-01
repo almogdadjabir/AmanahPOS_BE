@@ -485,3 +485,145 @@ class BuildSystemOverviewTests(TestCase):
         get_cached_system_overview()
         # build_system_overview only called once — second call hit cache
         self.assertEqual(mock_build.call_count, 1)
+
+
+# ── API Tests ─────────────────────────────────────────────────────────────────
+
+MOCK_OVERVIEW_DATA = {
+    "overall_status": "healthy",
+    "generated_at": "2026-06-01T10:00:00+00:00",
+    "services": {
+        "backend":     {"status": "up", "message": "Backend is running"},
+        "database":    {"status": "up", "response_time_ms": 5, "message": "Database connection is healthy"},
+        "redis":       {"status": "up", "response_time_ms": 2, "message": "Redis connection is healthy"},
+        "celery":      {"status": "up", "active_workers": 2, "queues": {}},
+        "celery_beat": {"status": "up", "enabled_tasks": 4},
+        "storage":     {"status": "up", "provider": "minio"},
+    },
+    "operations": {
+        "pending_notifications": 0,
+        "failed_notifications_24h": 0,
+        "failed_offline_sync_24h": None,
+        "failed_celery_tasks_24h": None,
+        "audit_logs_24h": 10,
+        "error_logs_24h": 0,
+    },
+    "warnings": [],
+}
+
+
+class SystemOverviewAccessTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_anonymous_cannot_access_overview(self):
+        response = self.client.get(OVERVIEW_URL)
+        self.assertEqual(response.status_code, 401)
+
+    def test_regular_user_cannot_access_overview(self):
+        user = _make_regular_user()
+        self.client.force_authenticate(user=user)
+        response = self.client.get(OVERVIEW_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_anonymous_cannot_access_services(self):
+        response = self.client.get(SERVICES_URL)
+        self.assertEqual(response.status_code, 401)
+
+    def test_anonymous_cannot_access_warnings(self):
+        response = self.client.get(WARNINGS_URL)
+        self.assertEqual(response.status_code, 401)
+
+    @patch("apps.admin_panel.system.views.get_cached_system_overview", return_value=MOCK_OVERVIEW_DATA)
+    def test_admin_can_access_overview(self, _mock):
+        admin = _make_admin()
+        self.client.force_authenticate(user=admin)
+        response = self.client.get(OVERVIEW_URL)
+        self.assertEqual(response.status_code, 200)
+
+    @patch("apps.admin_panel.system.views.get_cached_system_overview", return_value=MOCK_OVERVIEW_DATA)
+    def test_overview_response_shape(self, _mock):
+        admin = _make_admin()
+        self.client.force_authenticate(user=admin)
+        response = self.client.get(OVERVIEW_URL)
+        data = response.json()
+        self.assertTrue(data["success"])
+        overview = data["data"]
+        self.assertIn("overall_status", overview)
+        self.assertIn("generated_at", overview)
+        self.assertIn("services", overview)
+        self.assertIn("operations", overview)
+        self.assertIn("warnings", overview)
+
+    @patch("apps.admin_panel.system.views.build_service_detail", return_value=MOCK_OVERVIEW_DATA["services"])
+    def test_services_response_shape(self, _mock):
+        admin = _make_admin()
+        self.client.force_authenticate(user=admin)
+        response = self.client.get(SERVICES_URL)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertIn("database", data["data"])
+        self.assertIn("redis", data["data"])
+        self.assertIn("celery", data["data"])
+
+    @patch("apps.admin_panel.system.views.build_warnings", return_value=[])
+    def test_warnings_response_is_list(self, _mock):
+        admin = _make_admin()
+        self.client.force_authenticate(user=admin)
+        response = self.client.get(WARNINGS_URL)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertIsInstance(data["data"], list)
+
+    @patch("apps.admin_panel.system.views.get_cached_system_overview", return_value=MOCK_OVERVIEW_DATA)
+    def test_no_secrets_in_overview_response(self, _mock):
+        admin = _make_admin()
+        self.client.force_authenticate(user=admin)
+        response = self.client.get(OVERVIEW_URL)
+        body = response.content.decode()
+        self.assertNotIn("PASSWORD", body)
+        self.assertNotIn("SECRET_KEY", body)
+        self.assertNotIn("redis://", body)
+        self.assertNotIn("AWS_SECRET", body)
+
+    def test_regular_user_cannot_access_services(self):
+        user = _make_regular_user(phone="+249900000003")
+        self.client.force_authenticate(user=user)
+        response = self.client.get(SERVICES_URL)
+        self.assertEqual(response.status_code, 403)
+
+    def test_regular_user_cannot_access_warnings(self):
+        user = _make_regular_user(phone="+249900000004")
+        self.client.force_authenticate(user=user)
+        response = self.client.get(WARNINGS_URL)
+        self.assertEqual(response.status_code, 403)
+
+
+class SystemOverviewCacheTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.admin = _make_admin(phone="+249900000099")
+        self.client.force_authenticate(user=self.admin)
+
+    @patch("apps.admin_panel.system.services._run_all_health_checks", return_value={
+        "backend":       {"status": "up", "message": "Backend is running"},
+        "database":      {"status": "up", "response_time_ms": 5, "message": "ok"},
+        "redis":         {"status": "up", "response_time_ms": 2, "message": "ok"},
+        "celery":        {"status": "up", "active_workers": 1, "message": "ok"},
+        "celery_queues": {"status": "up", "queues": {}, "message": "0 total pending task(s)"},
+        "celery_beat":   {"status": "up", "enabled_tasks": 4, "message": "ok"},
+        "storage":       {"status": "up", "provider": "local", "message": "ok"},
+    })
+    @patch("apps.admin_panel.system.services.get_notification_stats", return_value={"pending_notifications": 0, "failed_notifications_24h": 0})
+    @patch("apps.admin_panel.system.services.get_audit_log_stats", return_value={"audit_logs_24h": 0, "error_logs_24h": 0})
+    def test_overview_is_cached_on_second_call(self, _audit, _notif, mock_health):
+        from django.core.cache import cache
+        cache.delete("admin_system_overview")
+
+        self.client.get(OVERVIEW_URL)
+        self.client.get(OVERVIEW_URL)
+
+        # Health checks called only once — second request hit cache
+        self.assertEqual(mock_health.call_count, 1)
