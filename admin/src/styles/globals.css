@@ -171,3 +171,64 @@
   100% { box-shadow: 0 0 0 0 rgba(18,185,129,0); }
 }
 .online-dot { animation: online-ping 2.4s infinite; }
+
+/* ── Login page font override ─────────────────────────────────────────────── */
+/* Must beat [dir] body specificity, hence the !important */
+.login-wrapper {
+  font-family: var(--font-hanken), system-ui, sans-serif !important;
+}
+.login-wrapper input,
+.login-wrapper button,
+.login-wrapper label,
+.login-wrapper select,
+.login-wrapper textarea {
+  font-family: var(--font-hanken), system-ui, sans-serif;
+}
+
+/* ── Login page animations ─────────────────────────────────────────────────── */
+@keyframes login-float1 { to { transform: translate(40px, 30px) scale(1.12); } }
+@keyframes login-float2 { to { transform: translate(-36px, -24px) scale(1.08); } }
+@keyframes login-step-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes login-shake {
+  0%,100%  { transform: translateX(0); }
+  20%,60%  { transform: translateX(-5px); }
+  40%,80%  { transform: translateX(5px); }
+}
+@keyframes login-draw  { to { stroke-dashoffset: 0; } }
+@keyframes login-ring  {
+  0%   { transform: scale(1); opacity: .5; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+@keyframes login-spin  { to { transform: rotate(360deg); } }
+
+.login-aura-1 { animation: login-float1 22s ease-in-out infinite alternate; }
+.login-aura-2 { animation: login-float2 26s ease-in-out infinite alternate; }
+.login-aura-3 { animation: login-float1 30s ease-in-out infinite alternate-reverse; }
+.login-step-in { animation: login-step-in .45s cubic-bezier(.16,1,.3,1); }
+.login-otp-shake { animation: login-shake .4s cubic-bezier(.22,1,.36,.68); }
+.login-check-path {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: login-draw .6s .15s cubic-bezier(.16,1,.3,1) forwards;
+}
+.login-ring-pulse {
+  animation: login-ring 1.4s cubic-bezier(.16,1,.3,1) infinite;
+}
+.login-spinner {
+  display: inline-block;
+  border: 2.5px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: login-spin .7s linear infinite;
+}
+.login-bg-grid {
+  background-image:
+    linear-gradient(rgba(12,21,33,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(12,21,33,.022) 1px, transparent 1px);
+  background-size: 54px 54px;
+  -webkit-mask: radial-gradient(120% 90% at 50% 30%, #000 20%, transparent 75%);
+  mask: radial-gradient(120% 90% at 50% 30%, #000 20%, transparent 75%);
+}

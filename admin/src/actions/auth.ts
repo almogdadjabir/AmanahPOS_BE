@@ -93,11 +93,13 @@ export async function requestOtpAction(_prev: OtpSendState, formData: FormData):
 
   const phone = buildPhone(phoneLocal, countryCode);
 
+  const channel = (formData.get('channel') as string) || 'sms';
+
   try {
     const res = await fetch(`${API()}/api-public/v1/auth/login/otp/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone }),
+      body: JSON.stringify({ phone, channel }),
     });
 
     if (!res.ok) return { error: 'otp_send_failed' };
