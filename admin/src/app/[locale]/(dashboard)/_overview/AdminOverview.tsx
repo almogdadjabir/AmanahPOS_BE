@@ -19,60 +19,43 @@ export default async function AdminOverview() {
     ]);
 
     const now = new Date();
-
     const dateStr = now.toLocaleDateString(locale === "ar" ? "ar" : "en", {
       weekday: "long",
       month: "long",
       day: "numeric",
       year: "numeric",
     });
-    const hour = now.getHours();
-    const greeting =
-      hour < 12
-        ? t("greetingMorning")
-        : hour < 17
-          ? t("greetingAfternoon")
-          : t("greetingEvening");
 
     return (
       <OwnersDrawerShell>
-        <div className="space-y-5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
-                {greeting} 👋
-              </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                {t("platformOverview")} &mdash; {dateStr}
-              </p>
-            </div>
-
-            {/* Live indicator */}
-            <div className="flex items-center gap-2 shrink-0 mt-1">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-50" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-              </span>
-              <span className="text-[11px] font-semibold text-muted-foreground">
-                {t("live")}
-              </span>
-            </div>
+        {/* Fix #11: 16px gaps everywhere (gap-4 / space-y-4) */}
+        <div className="space-y-4">
+          {/* Fix #15: no emoji — "Platform overview" + metadata subline
+              Fix #12: Live indicator removed from here (now lives in the topbar) */}
+          <div>
+            <h1 className="text-[21px] font-semibold text-foreground tracking-[-.025em] leading-tight">
+              {t("platformOverview")}
+            </h1>
+            <p className="text-[13px] text-muted-foreground mt-1">
+              {dateStr}
+            </p>
           </div>
 
           <AdminKpiCards stats={stats} />
 
-          {/* ── Main content row: chart + recent owners ────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="lg:col-span-2 lg:h-[360px]">
+          {/* Fix #13: fixed row height anchors both cards to equal height;
+              min-h-0 on cells lets overflow-y-auto work inside Recent Owners */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[360px]">
+            <div className="lg:col-span-2 min-h-0">
               <AdminOwnerGrowthCard stats={stats} />
             </div>
-            <div className="lg:h-[360px]">
+            <div className="min-h-0">
               <AdminRecentOwners stats={stats} />
             </div>
           </div>
 
-          {/* ── Secondary row: actions + plans ────────────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Fix #11: gap-4 */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
               <AdminQuickActions />
             </div>
@@ -81,7 +64,6 @@ export default async function AdminOverview() {
             </div>
           </div>
 
-          {/* ── Recent transactions (full width) ──────────────────────────── */}
           <AdminRecentTransactions stats={stats} />
         </div>
       </OwnersDrawerShell>

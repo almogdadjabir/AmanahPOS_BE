@@ -28,39 +28,39 @@ export default function GrowthChartToggle({ data }: Props) {
   }, [data, locale]);
 
   const total   = chartData.reduce((sum, item) => sum + item.value, 0);
-  const hasData = total > 0;
   const peak    = chartData.reduce((a, b) => b.value > a.value ? b : a);
+  const hasData = total > 0;
 
   return (
     <div>
-      {/* Chart header row */}
-      <div className="flex items-end justify-between gap-3 mb-4">
+      {/* Fix #16: peak info on its own line on the LEFT, toggle alone on RIGHT — no crowding */}
+      <div className="flex items-start justify-between gap-3 mb-4">
         <div>
-          <p className="text-[28px] font-black text-foreground leading-none tabular-nums">
+          {/* Fix #7: font-semibold 27px tight tracking */}
+          <p className="text-[27px] font-semibold text-foreground leading-none tabular-nums tracking-[-.03em] num">
             {total.toLocaleString('en-US')}
           </p>
           <p className="text-xs text-muted-foreground mt-1.5">
             {t('growth.last6Months')}
           </p>
-        </div>
-
-        <div className="flex flex-col items-end gap-2">
-          <ChartTypeToggle value={type} onChange={setType} />
-          {hasData ? (
-            <p className="text-[11px] text-muted-foreground">
+          {/* Fix #16: peak on its own line below the subtext */}
+          {hasData && (
+            <p className="text-[11px] text-muted-foreground mt-1">
               {t('growth.peak')}{' '}
-              <span className="font-bold text-primary">
+              <span className="font-semibold text-foreground">
                 {peak.label} · {peak.value.toLocaleString('en-US')}
               </span>
             </p>
-          ) : (
-            <p className="text-[11px] italic text-muted-foreground">{t('growth.noRegistrations')}</p>
           )}
         </div>
+
+        {/* Toggle alone on the right — no peak crowding */}
+        <ChartTypeToggle value={type} onChange={setType} />
       </div>
 
+      {/* Fix #10: single teal color, no peak highlighting */}
       {type === 'bar'
-        ? <BarChart data={chartData} height={140} highlightPeak />
+        ? <BarChart data={chartData} height={140} color="#0F766E" highlightPeak={false} />
         : <LineChart data={chartData} height={140} filled />
       }
     </div>
@@ -70,7 +70,7 @@ export default function GrowthChartToggle({ data }: Props) {
 function ChartTypeToggle({ value, onChange }: { value: ChartType; onChange: (v: ChartType) => void }) {
   const t = useTranslations('dashboard');
   return (
-    <div className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5">
+    <div className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5 shrink-0">
       {([['bar', BarChart2], ['line', TrendingUp]] as const).map(([type, Icon]) => (
         <button
           key={type}
@@ -80,7 +80,7 @@ function ChartTypeToggle({ value, onChange }: { value: ChartType; onChange: (v: 
             'flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-semibold transition-all',
             '[&_svg]:size-3',
             value === type
-              ? 'bg-card text-foreground shadow-sm'
+              ? 'bg-card text-foreground shadow-xs'
               : 'text-muted-foreground hover:text-foreground',
           )}
         >

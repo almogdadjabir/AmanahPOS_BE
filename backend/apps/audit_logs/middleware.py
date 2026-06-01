@@ -70,8 +70,8 @@ class AuditLogMiddleware:
         if request.method not in self.LOGGED_METHODS:
             return False
 
-        # Only log non-trivial responses
-        if response.status_code < 200 or response.status_code >= 500:
+        # Skip only sub-200 responses (5xx are logged for error tracking)
+        if response.status_code < 200:
             return False
 
         return True

@@ -135,7 +135,8 @@
     "pageOf": "{page} من {total}",
     "items": "{count} عنصر",
     "showing": "عرض",
-    "of": "من"
+    "of": "من",
+    "live": "مباشر"
   },
   "dashboard": {
     "greetingMorning": "صباح الخير",
@@ -1423,6 +1424,66 @@
     "templates": {
       "title": "قوالب الإشعارات",
       "description": "إدارة قوالب الإشعارات ثنائية اللغة. التغييرات تُطبَّق عند الإرسال التالي."
+    }
+  },
+  "system": {
+    "title": "صحة النظام",
+    "description": "الحالة التشغيلية الحية لجميع خدمات المنصة",
+    "refresh": "تحديث",
+    "refreshing": "جارٍ التحديث…",
+    "autoRefresh": "تلقائي",
+    "lastChecked": "آخر فحص",
+    "generatedAt": "البيانات من",
+    "failedToLoad": "صحة النظام غير متاحة",
+    "failedDesc": "تعذّر الوصول إلى نقطة الفحص. تحقق من اتصال الواجهة البرمجية.",
+    "overall": {
+      "healthy": "سليم",
+      "degraded": "متدهور",
+      "critical": "حرج"
+    },
+    "services": {
+      "sectionTitle": "الخدمات",
+      "backend": "واجهة API",
+      "database": "قاعدة البيانات",
+      "redis": "Redis",
+      "celery": "عمال Celery",
+      "celery_beat": "Celery Beat",
+      "storage": "التخزين"
+    },
+    "status": {
+      "up": "يعمل",
+      "down": "متوقف",
+      "degraded": "متدهور",
+      "unknown": "غير معروف"
+    },
+    "responseTime": "{ms}ms",
+    "activeWorkers": "{n} عامل",
+    "activeWorkers_plural": "{n} عمال",
+    "enabledTasks": "{n} مهمة",
+    "enabledTasks_plural": "{n} مهام",
+    "queues": {
+      "title": "طوابير Celery",
+      "pending": "معلّق"
+    },
+    "operations": {
+      "sectionTitle": "العمليات (24 ساعة)",
+      "pendingNotifications": "إشعارات معلّقة",
+      "failedNotifications": "إشعارات فاشلة",
+      "auditLogs": "سجلات التدقيق",
+      "errorLogs": "أخطاء 5xx",
+      "failedSync": "مزامنات فاشلة",
+      "failedTasks": "مهام فاشلة",
+      "noData": "لا توجد بيانات"
+    },
+    "warnings": {
+      "sectionTitle": "التحذيرات",
+      "allClearTitle": "جميع الأنظمة تعمل",
+      "allClearDesc": "لا توجد تحذيرات نشطة — كل شيء يعمل بشكل طبيعي.",
+      "severity": {
+        "info": "معلومة",
+        "warning": "تحذير",
+        "critical": "حرج"
+      }
     }
   }
 }

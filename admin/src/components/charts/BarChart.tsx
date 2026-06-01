@@ -20,10 +20,11 @@ export interface BarChartDataPoint {
 interface BarChartProps {
   data: BarChartDataPoint[];
   height?: number;
+  // Fix #10: single teal default — no more two-color mint/teal split
   color?: string;
-  peakColor?: string;
   showGrid?: boolean;
   showTooltip?: boolean;
+  // Fix #10: highlightPeak removed from meaningful use — all bars same color
   highlightPeak?: boolean;
 }
 
@@ -31,15 +32,12 @@ function formatCompactNumber(value: number): string {
   if (Math.abs(value) >= 1_000_000_000) {
     return `${Number((value / 1_000_000_000).toFixed(1))}B`;
   }
-
   if (Math.abs(value) >= 1_000_000) {
     return `${Number((value / 1_000_000).toFixed(1))}M`;
   }
-
   if (Math.abs(value) >= 1_000) {
     return `${Number((value / 1_000).toFixed(1))}K`;
   }
-
   return String(value);
 }
 
@@ -54,9 +52,9 @@ function CustomTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-card-md text-[11px]">
+    <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-md text-[11px]">
       <p className="font-semibold text-foreground">{label}</p>
-      <p className="text-primary font-black text-sm mt-0.5">
+      <p className="text-primary font-semibold text-sm mt-0.5 tabular-nums">
         {payload[0].value.toLocaleString("en-US")}
       </p>
     </div>
@@ -66,17 +64,11 @@ function CustomTooltip({
 export default function BarChart({
   data,
   height = 130,
-  color = "#5eead4",
-  peakColor = "#0F766E",
+  color = "#0F766E",   // Fix #10: single brand teal
   showGrid = true,
   showTooltip = true,
-  highlightPeak = true,
+  highlightPeak = false,
 }: BarChartProps) {
-  const maxVal = Math.max(...data.map((d) => d.value), 1);
-  const peakLabel = highlightPeak
-    ? data.reduce((a, b) => (b.value > a.value ? b : a)).label
-    : null;
-
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ReBarChart
@@ -88,7 +80,7 @@ export default function BarChart({
         {showGrid && (
           <CartesianGrid
             vertical={false}
-            stroke="hsl(215 22% 91%)"
+            stroke="#ECEEF1"
             strokeDasharray="0"
           />
         )}
@@ -98,8 +90,8 @@ export default function BarChart({
           tickLine={false}
           tick={{
             fontSize: 10,
-            fontWeight: 700,
-            fill: "hsl(215 16% 60%)",
+            fontWeight: 500,
+            fill: "#AEB6C2",
             fontFamily: "inherit",
           }}
         />
@@ -111,7 +103,7 @@ export default function BarChart({
           tickFormatter={(value) => formatCompactNumber(Number(value))}
           tick={{
             fontSize: 10,
-            fill: "hsl(215 16% 75%)",
+            fill: "#AEB6C2",
             fontFamily: "inherit",
           }}
           tickCount={4}
@@ -119,21 +111,17 @@ export default function BarChart({
         {showTooltip && (
           <Tooltip
             content={<CustomTooltip />}
-            cursor={{ fill: "hsl(215 28% 97%)", radius: 6 }}
+            cursor={{ fill: "#F4F5F7", radius: 6 }}
           />
         )}
-        <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={44}>
-          {data.map((d) => {
-            const isPeak = d.label === peakLabel && d.value === maxVal;
-            return (
-              <Cell
-                key={d.label}
-                fill={
-                  isPeak ? peakColor : d.value > 0 ? color : "hsl(215 22% 93%)"
-                }
-              />
-            );
-          })}
+        {/* Fix #10: all bars teal; 0-value bars get a 3px gray baseline tick via minPointSize */}
+        <Bar dataKey="value" radius={[5, 5, 0, 0]} maxBarSize={44} minPointSize={3}>
+          {data.map((d) => (
+            <Cell
+              key={d.label}
+              fill={d.value === 0 ? "#E1E4E9" : color}
+            />
+          ))}
         </Bar>
       </ReBarChart>
     </ResponsiveContainer>

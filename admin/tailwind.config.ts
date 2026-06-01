@@ -78,6 +78,9 @@ const config: Config = {
           light:   '#EDF3FE',
         },
 
+        /* ── Raise — near-white surface for table heads / inset panels ─────── */
+        raise: '#FCFCFD',
+
         /* ── Legacy surface aliases (kept for any remaining uses) ────────── */
         surface:          '#FFFFFF',
         'surface-soft':   '#F4F5F7',

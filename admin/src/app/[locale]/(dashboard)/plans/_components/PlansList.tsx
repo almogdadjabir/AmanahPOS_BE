@@ -11,6 +11,7 @@ import {
   Users,
   Clock,
   CreditCard,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -27,34 +28,27 @@ export default async function PlansList() {
     plans = await fetchAdminPlans();
   } catch (err) {
     const httpStatus = err instanceof ApiError ? err.status : null;
-    const body =
-      err instanceof ApiError ? JSON.stringify(err.body) : String(err);
-
-    console.error("[PlansList] fetch failed", { httpStatus, body });
 
     return (
-      <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-10 text-center">
-        <p className="text-sm font-semibold text-destructive">
-          {t("error.failedToLoad")}
-        </p>
-
-        <p className="text-xs text-destructive/70 mt-1">
-          {httpStatus ? `HTTP ${httpStatus}` : t("error.network")} —{" "}
-          {t("error.checkLogs")}
-        </p>
-
-        {process.env.NODE_ENV === "development" && (
-          <pre className="mt-3 text-left text-[10px] bg-destructive/10 rounded p-2 overflow-x-auto text-destructive/80 max-h-32">
-            {body}
-          </pre>
-        )}
+      <div className="bg-card rounded-xl border border-border shadow-xs p-8 flex flex-col items-center text-center gap-3">
+        <span className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+          <AlertTriangle className="size-4 text-muted-foreground" />
+        </span>
+        <div>
+          <p className="text-[13px] font-semibold text-foreground">
+            {t("error.failedToLoad")}
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            {httpStatus ? `HTTP ${httpStatus}` : t("error.network")} — {t("error.checkLogs")}
+          </p>
+        </div>
       </div>
     );
   }
 
   if (plans.length === 0) {
     return (
-      <div className="rounded-xl border border-border bg-card shadow-card">
+      <div className="rounded-xl border border-border bg-card shadow-xs">
         <EmptyState
           icon={<Package />}
           title={t("empty.title")}
@@ -68,17 +62,16 @@ export default async function PlansList() {
   const demoPlans = plans.filter((p) => p.is_free);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {paidPlans.length > 0 && (
         <section>
+          {/* Fix #8: uniform 32px rounded-[9px] section icon chip */}
           <div className="flex items-center gap-2 mb-3">
-            <span className="w-5 h-5 rounded-md bg-success/10 text-success flex items-center justify-center [&_svg]:size-3">
+            <span className="w-[32px] h-[32px] rounded-[9px] bg-success-light flex items-center justify-center [&_svg]:size-[15px] text-success shrink-0">
               <Package />
             </span>
-
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
-              {t("sections.paidPlans")} ·{" "}
-              {paidPlans.length.toLocaleString(locale)}
+            <p className="text-[11.5px] font-semibold uppercase tracking-widest text-muted-foreground select-none">
+              {t("sections.paidPlans")} · {paidPlans.length.toLocaleString(locale)}
             </p>
           </div>
 
@@ -93,13 +86,11 @@ export default async function PlansList() {
       {demoPlans.length > 0 && (
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <span className="w-5 h-5 rounded-md bg-info/10 text-info flex items-center justify-center [&_svg]:size-3">
+            <span className="w-[32px] h-[32px] rounded-[9px] bg-muted flex items-center justify-center [&_svg]:size-[15px] text-muted-foreground shrink-0">
               <Package />
             </span>
-
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em]">
-              {t("sections.demoAccess")} ·{" "}
-              {demoPlans.length.toLocaleString(locale)}
+            <p className="text-[11.5px] font-semibold uppercase tracking-widest text-muted-foreground select-none">
+              {t("sections.demoAccess")} · {demoPlans.length.toLocaleString(locale)}
             </p>
           </div>
 
@@ -127,53 +118,36 @@ function PlanCard({
   const formattedPrice = price % 1 === 0 ? price.toFixed(0) : price.toFixed(2);
 
   return (
+    // Fix #5: no border-t accent bar — border + shadow-xs only
+    // Fix #9: opacity-60 for inactive instead of separate styling
     <div
       className={cn(
-        "group relative rounded-xl border bg-card shadow-card overflow-hidden transition-shadow hover:shadow-md",
-        plan.is_active ? "border-border" : "border-border/40 opacity-60",
+        "bg-card rounded-xl border border-border shadow-xs overflow-hidden flex flex-col",
+        "hover:shadow-card hover:-translate-y-px transition-[box-shadow,transform] duration-200 cursor-default",
+        !plan.is_active && "opacity-60",
       )}
     >
-      <div
-        className={cn(
-          "h-1 w-full",
-          plan.is_free
-            ? "bg-gradient-to-r from-info/60 to-info/20"
-            : plan.is_active
-              ? "bg-gradient-to-r from-success/60 to-success/20"
-              : "bg-muted",
-        )}
-      />
-
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <div
+      <div className="p-5 flex flex-col gap-3 flex-1">
+        {/* Header: name + status badge */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            {/* Fix #8: 32px rounded-[9px] icon chip */}
+            <span
               className={cn(
-                "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
+                "w-[32px] h-[32px] rounded-[9px] flex items-center justify-center shrink-0 [&_svg]:size-[15px]",
                 plan.is_free
-                  ? "bg-info/10"
+                  ? "bg-muted [&_svg]:text-muted-foreground"
                   : plan.is_active
-                    ? "bg-success/10"
-                    : "bg-muted",
+                    ? "bg-success-light [&_svg]:text-success"
+                    : "bg-muted [&_svg]:text-muted-foreground",
               )}
             >
-              <Package
-                size={16}
-                className={
-                  plan.is_free
-                    ? "text-info"
-                    : plan.is_active
-                      ? "text-success"
-                      : "text-muted-foreground"
-                }
-              />
-            </div>
-
+              <Package />
+            </span>
             <div className="min-w-0">
-              <p className="text-[14px] font-bold text-foreground truncate leading-tight">
+              <p className="text-[13px] font-semibold text-foreground truncate leading-tight tracking-[-.015em]">
                 {plan.name}
               </p>
-
               {plan.description && (
                 <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                   {plan.description}
@@ -182,91 +156,57 @@ function PlanCard({
             </div>
           </div>
 
+          {/* Fix #9: clean Badge variant, no inline overrides */}
           <div className="flex flex-col items-end gap-1 shrink-0">
-            <Badge
-              variant={plan.is_active ? "success" : "warning"}
-              className={cn(
-                "rounded-full border px-2.5 py-0.5 text-[10px] font-semibold",
-                plan.is_active
-                  ? "bg-success/10 text-success border-success/20"
-                  : "bg-muted text-muted-foreground border-border",
-              )}
-            >
+            <Badge dot variant={plan.is_active ? "success" : "default"}>
               {plan.is_active ? t("status.active") : t("status.off")}
             </Badge>
-
             {plan.is_free && (
-              <Badge
-                variant="info"
-                className="rounded-full border border-info/20 bg-info/10 px-2 py-0.5 text-[9px] font-bold text-info"
-              >
+              <Badge variant="default" className="text-[10px]">
                 {t("plan.demo")}
               </Badge>
             )}
           </div>
         </div>
 
-        <div
-          className={cn(
-            "rounded-xl px-3 py-2.5 mb-3",
-            plan.is_free
-              ? "bg-info/5 border border-info/10"
-              : "bg-success/5 border border-success/10",
-          )}
-        >
+        {/* Price block — simplified, no colored border */}
+        <div className="bg-muted/40 rounded-lg px-3 py-2.5">
           {plan.is_free ? (
-            <p className="text-[13px] font-bold text-info">
+            <p className="text-[12px] font-semibold text-muted-foreground">
               {t("plan.freeDemo")}
             </p>
           ) : (
             <div className="flex items-baseline gap-1">
-              <p className="text-[22px] font-black text-success leading-none tabular-nums">
+              {/* Fix #7: tabular, tracking tight */}
+              <p className="text-[22px] font-semibold text-foreground leading-none tabular-nums tracking-[-.03em] num">
                 {formattedPrice}
               </p>
-
-              <p className="text-[11px] font-semibold text-muted-foreground">
-                {plan.currency} /{" "}
-                {t("duration.short", { count: plan.duration_days })}
+              <p className="text-[11px] text-muted-foreground">
+                {plan.currency} / {t("duration.short", { count: plan.duration_days })}
               </p>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-1.5 mb-3">
-          <LimitBadge
-            icon={<Store size={10} />}
-            label={t("limits.shops")}
-            value={plan.max_shops}
-          />
-          <LimitBadge
-            icon={<ShoppingBag size={10} />}
-            label={t("limits.products")}
-            value={plan.max_products}
-          />
-          <LimitBadge
-            icon={<Users size={10} />}
-            label={t("limits.users")}
-            value={plan.max_users}
-          />
+        {/* Limits row */}
+        <div className="grid grid-cols-3 gap-1.5">
+          <LimitBadge icon={<Store />}       label={t("limits.shops")}    value={plan.max_shops} />
+          <LimitBadge icon={<ShoppingBag />} label={t("limits.products")} value={plan.max_products} />
+          <LimitBadge icon={<Users />}       label={t("limits.users")}    value={plan.max_users} />
         </div>
 
-        <div className="flex items-center justify-between pt-2.5 border-t border-border/60">
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-2.5 border-t border-border/60 mt-auto">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Clock size={10} />
+              <Clock className="size-[10px]" />
               <span>{t("duration.short", { count: plan.duration_days })}</span>
             </div>
-
             <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <CreditCard size={10} />
-              <span>
-                {t("subscriptionCount", {
-                  count: plan.subscription_count,
-                })}
-              </span>
+              <CreditCard className="size-[10px]" />
+              <span>{t("subscriptionCount", { count: plan.subscription_count })}</span>
             </div>
           </div>
-
           <ViewPlanButton planId={plan.id} />
         </div>
       </div>
@@ -284,14 +224,10 @@ function LimitBadge({
   value: number;
 }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 rounded-lg border border-border bg-muted/20 px-2 py-1.5">
-      <div className="flex items-center gap-1 text-muted-foreground">
-        {icon}
-      </div>
-
-      <p className="text-[12px] font-bold text-foreground">{value}</p>
-
-      <p className="text-[9px] text-muted-foreground uppercase tracking-[0.05em]">
+    <div className="flex flex-col items-center gap-0.5 rounded-lg bg-muted/60 px-2 py-1.5">
+      <span className="[&_svg]:size-[10px] text-muted-foreground">{icon}</span>
+      <p className="text-[12px] font-semibold text-foreground tabular-nums num">{value}</p>
+      <p className="text-[9px] text-muted-foreground uppercase tracking-[0.05em] select-none">
         {label}
       </p>
     </div>

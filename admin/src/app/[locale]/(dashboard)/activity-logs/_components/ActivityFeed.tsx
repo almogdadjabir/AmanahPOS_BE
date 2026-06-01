@@ -1,31 +1,35 @@
 import { Link } from '@/i18n/navigation';
 import { getTranslations } from 'next-intl/server';
+import { History } from 'lucide-react';
 import type { ActivityLog, ActivityAction, ActivityEntityType } from '@/types/api';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 
-// ── Action badge config ───────────────────────────────────────────────────────
+// ── Action badge config — DS tokens only (Fix #6: no raw emerald/sky/rose/violet) ──
 
 type ActionCfg = { bg: string; text: string; dot: string; label: string };
 
 const ACTION_CFG: Record<ActivityAction, ActionCfg> = {
-  owner_created:            { bg: 'bg-emerald-50',  text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'owner created' },
-  owner_updated:            { bg: 'bg-sky-50',      text: 'text-sky-700',     dot: 'bg-sky-500',     label: 'owner updated' },
-  owner_activated:          { bg: 'bg-emerald-50',  text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'owner activated' },
-  owner_deactivated:        { bg: 'bg-rose-50',     text: 'text-rose-700',    dot: 'bg-rose-500',    label: 'owner deactivated' },
-  business_created:         { bg: 'bg-violet-50',   text: 'text-violet-700',  dot: 'bg-violet-500',  label: 'biz created' },
-  business_updated:         { bg: 'bg-sky-50',      text: 'text-sky-700',     dot: 'bg-sky-500',     label: 'biz updated' },
-  business_activated:       { bg: 'bg-emerald-50',  text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'biz activated' },
-  business_deactivated:     { bg: 'bg-rose-50',     text: 'text-rose-700',    dot: 'bg-rose-500',    label: 'biz deactivated' },
-  subscription_created:     { bg: 'bg-amber-50',    text: 'text-amber-700',   dot: 'bg-amber-500',   label: 'sub created' },
-  subscription_updated:     { bg: 'bg-sky-50',      text: 'text-sky-700',     dot: 'bg-sky-500',     label: 'sub updated' },
-  subscription_deactivated: { bg: 'bg-rose-50',     text: 'text-rose-700',    dot: 'bg-rose-500',    label: 'sub deactivated' },
-  plan_created:             { bg: 'bg-violet-50',   text: 'text-violet-700',  dot: 'bg-violet-500',  label: 'plan created' },
-  plan_updated:             { bg: 'bg-sky-50',      text: 'text-sky-700',     dot: 'bg-sky-500',     label: 'plan updated' },
-  plan_activated:           { bg: 'bg-emerald-50',  text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'plan activated' },
-  plan_deactivated:         { bg: 'bg-rose-50',     text: 'text-rose-700',    dot: 'bg-rose-500',    label: 'plan deactivated' },
+  // Created → success (teal-green)
+  owner_created:            { bg: 'bg-success-light',  text: 'text-success',          dot: 'bg-[#12B981]', label: 'Owner Created' },
+  owner_activated:          { bg: 'bg-success-light',  text: 'text-success',          dot: 'bg-[#12B981]', label: 'Owner Activated' },
+  business_created:         { bg: 'bg-success-light',  text: 'text-success',          dot: 'bg-[#12B981]', label: 'Business Created' },
+  business_activated:       { bg: 'bg-success-light',  text: 'text-success',          dot: 'bg-[#12B981]', label: 'Business Activated' },
+  plan_created:             { bg: 'bg-success-light',  text: 'text-success',          dot: 'bg-[#12B981]', label: 'Plan Created' },
+  plan_activated:           { bg: 'bg-success-light',  text: 'text-success',          dot: 'bg-[#12B981]', label: 'Plan Activated' },
+  // Updated → info (blue)
+  owner_updated:            { bg: 'bg-info-light',     text: 'text-info',             dot: 'bg-[#4A82F0]', label: 'Owner Updated' },
+  business_updated:         { bg: 'bg-info-light',     text: 'text-info',             dot: 'bg-[#4A82F0]', label: 'Business Updated' },
+  subscription_updated:     { bg: 'bg-info-light',     text: 'text-info',             dot: 'bg-[#4A82F0]', label: 'Sub Updated' },
+  plan_updated:             { bg: 'bg-info-light',     text: 'text-info',             dot: 'bg-[#4A82F0]', label: 'Plan Updated' },
+  // Subscription created → warning (amber)
+  subscription_created:     { bg: 'bg-warning-light',  text: 'text-warning',          dot: 'bg-[#E89923]', label: 'Sub Created' },
+  // Deactivated → danger (red) — Fix #9: red reserved for true errors/deactivations
+  owner_deactivated:        { bg: 'bg-danger-light',   text: 'text-danger',           dot: 'bg-[#EC5B45]', label: 'Owner Deactivated' },
+  business_deactivated:     { bg: 'bg-danger-light',   text: 'text-danger',           dot: 'bg-[#EC5B45]', label: 'Business Deactivated' },
+  subscription_deactivated: { bg: 'bg-danger-light',   text: 'text-danger',           dot: 'bg-[#EC5B45]', label: 'Sub Deactivated' },
+  plan_deactivated:         { bg: 'bg-danger-light',   text: 'text-danger',           dot: 'bg-[#EC5B45]', label: 'Plan Deactivated' },
 };
 
-// plan has no detail page yet — only owner, business, subscription are linkable
 const ENTITY_HREF: Partial<Record<ActivityEntityType, (id: string) => string>> = {
   owner:        (id) => `/owners/${id}`,
   business:     (id) => `/businesses/${id}`,
@@ -40,7 +44,7 @@ function Initials({ name }: { name: string }) {
     ? `${parts[0][0]}${parts[1][0]}`
     : name.slice(0, 2);
   return (
-    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-[10px] font-bold shrink-0 uppercase">
+    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-tint text-primary-700 text-[10px] font-semibold shrink-0 uppercase select-none">
       {init}
     </span>
   );
@@ -48,10 +52,7 @@ function Initials({ name }: { name: string }) {
 
 // ── Relative time ─────────────────────────────────────────────────────────────
 
-function relativeTime(
-  isoDate: string,
-  t: { (k: string): string },
-): string {
+function relativeTime(isoDate: string, t: { (k: string): string }): string {
   const diff = Date.now() - new Date(isoDate).getTime();
   if (diff < 60_000)     return t('timeJustNow');
   if (diff < 3_600_000)  return `${Math.floor(diff / 60_000)}${t('timeAgoMin')}`;
@@ -61,10 +62,10 @@ function relativeTime(
 
 // ── Single row ────────────────────────────────────────────────────────────────
 
-async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
+async function LogRow({ log }: { log: ActivityLog }) {
   const t   = await getTranslations('activityLog');
   const cfg = ACTION_CFG[log.action] ?? {
-    bg: 'bg-muted', text: 'text-muted-foreground', dot: 'bg-border', label: log.action,
+    bg: 'bg-muted', text: 'text-muted-foreground', dot: 'bg-muted-foreground', label: log.action,
   };
 
   const entityHref = log.entity_id
@@ -76,11 +77,7 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
   const fullDate   = new Date(log.created_at).toLocaleString();
 
   return (
-    <TableRow
-      className={`group border-b border-border/40 hover:bg-primary/[.025] ${
-        idx % 2 === 0 ? '' : 'bg-muted/20'
-      }`}
-    >
+    <TableRow className="border-b border-border/40 hover:bg-muted/40 transition-colors">
       {/* Actor */}
       <TableCell className="px-4 py-2.5">
         <div className="flex items-center gap-2 min-w-0">
@@ -98,9 +95,9 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
         </div>
       </TableCell>
 
-      {/* Action badge */}
+      {/* Action badge — Fix #6: DS token colors */}
       <TableCell className="px-4 py-2.5 whitespace-nowrap">
-        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold ${cfg.bg} ${cfg.text}`}>
+        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${cfg.bg} ${cfg.text}`}>
           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dot}`} />
           {cfg.label}
         </span>
@@ -117,7 +114,7 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
               {log.entity_label || log.entity_id}
             </Link>
           ) : (
-            <span className="text-[12px] font-medium text-foreground/80 truncate block max-w-[160px]">
+            <span className="text-[12px] font-medium text-foreground truncate block max-w-[160px]">
               {log.entity_label || log.entity_id || '—'}
             </span>
           )}
@@ -135,7 +132,7 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
 
       {/* IP */}
       <TableCell className="px-4 py-2.5 whitespace-nowrap">
-        <span className="text-[11px] font-mono text-muted-foreground/70">
+        <span className="text-[11px] font-mono text-muted-foreground">
           {log.ip_address ?? t('ipUnknown')}
         </span>
       </TableCell>
@@ -145,7 +142,7 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
         <time
           dateTime={log.created_at}
           title={fullDate}
-          className="text-[11px] font-mono text-muted-foreground cursor-default"
+          className="text-[11px] text-muted-foreground tabular-nums cursor-default"
         >
           {ago}
         </time>
@@ -156,20 +153,19 @@ async function LogRow({ log, idx }: { log: ActivityLog; idx: number }) {
 
 // ── Feed ──────────────────────────────────────────────────────────────────────
 
-interface Props {
-  logs: ActivityLog[];
-}
+interface Props { logs: ActivityLog[] }
 
 export default async function ActivityFeed({ logs }: Props) {
   const t = await getTranslations('activityLog');
 
   if (logs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground text-lg">
-          📋
-        </div>
-        <p className="text-[13px] text-muted-foreground">{t('empty')}</p>
+      // Fix #15: no emoji — use Lucide icon
+      <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+        <span className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+          <History className="size-4 text-muted-foreground" />
+        </span>
+        <p className="text-[13px] font-semibold text-foreground">{t('empty')}</p>
       </div>
     );
   }
@@ -178,22 +174,18 @@ export default async function ActivityFeed({ logs }: Props) {
     <div className="overflow-x-auto -mx-5 px-5">
       <Table className="min-w-[640px]">
         <TableHeader>
+          {/* Fix #18: use TableHead's built-in style, no inline font-black override */}
           <TableRow className="border-b border-border">
             {[t('colActor'), t('colAction'), t('colEntity'), t('colIp'), t('colTime')].map((h, i) => (
-              <TableHead
-                key={h}
-                className={`px-4 py-2 text-[10px] font-black tracking-[.12em] uppercase text-muted-foreground/60 text-start whitespace-nowrap ${
-                  i === 4 ? 'text-end' : ''
-                }`}
-              >
+              <TableHead key={h} className={i === 4 ? 'text-end' : ''}>
                 {h}
               </TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {logs.map((log, idx) => (
-            <LogRow key={log.id} log={log} idx={idx} />
+          {logs.map((log) => (
+            <LogRow key={log.id} log={log} />
           ))}
         </TableBody>
       </Table>

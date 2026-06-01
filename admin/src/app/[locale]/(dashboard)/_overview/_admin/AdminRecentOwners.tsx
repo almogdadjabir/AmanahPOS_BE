@@ -15,11 +15,12 @@ export default async function AdminRecentOwners({ stats }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between px-5 pt-5 pb-4 border-b border-border/60">
         <div className="flex items-center gap-2">
-          <span className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center [&_svg]:size-3.5 text-muted-foreground">
+          {/* Fix #8: 32px rounded-[9px] bg-muted neutral chip */}
+          <span className="w-[32px] h-[32px] rounded-[9px] bg-muted flex items-center justify-center [&_svg]:size-[15px] text-muted-foreground shrink-0">
             <Clock />
           </span>
           <div>
-            <p className="text-sm font-bold text-foreground leading-tight">{t('recentOwners.title')}</p>
+            <p className="text-sm font-semibold text-foreground tracking-[-.015em] leading-tight">{t('recentOwners.title')}</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">{t('recentOwners.sub')}</p>
           </div>
         </div>
@@ -78,10 +79,11 @@ async function OwnerRow({ owner }: { owner: AdminOwner }) {
   );
 }
 
-function getOwnerStatusVariant(owner: AdminOwner): 'success' | 'warning' | 'danger' {
+// Fix #9: inactive = neutral gray — red is reserved for error/refund/expired-overdue only
+function getOwnerStatusVariant(owner: AdminOwner): 'success' | 'warning' | 'default' {
   if (owner.has_active_subscription) return 'success';
   if (owner.is_active)               return 'warning';
-  return 'danger';
+  return 'default';
 }
 
 function RecentOwnersSkeleton() {

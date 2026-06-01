@@ -633,3 +633,52 @@ export interface DeliveryLog {
   failed_at:           string | null;
   created_at:          string;
 }
+
+// ── System Health ─────────────────────────────────────────────────────────────
+export type ServiceStatus  = 'up' | 'down' | 'degraded' | 'unknown';
+export type OverallStatus  = 'healthy' | 'degraded' | 'critical';
+export type WarningSeverity = 'info' | 'warning' | 'critical';
+
+export interface ServiceCheck {
+  status:            ServiceStatus;
+  message?:          string;
+  response_time_ms?: number | null;
+  active_workers?:   number;
+  enabled_tasks?:    number;
+  provider?:         string;
+  queues?:           Record<string, { pending: number }>;
+}
+
+export interface SystemServices {
+  backend:     ServiceCheck;
+  database:    ServiceCheck;
+  redis:       ServiceCheck;
+  celery:      ServiceCheck;
+  celery_beat: ServiceCheck;
+  storage:     ServiceCheck;
+}
+
+export interface SystemOperations {
+  pending_notifications:    number;
+  failed_notifications_24h: number;
+  failed_offline_sync_24h:  number | null;
+  failed_celery_tasks_24h:  number | null;
+  audit_logs_24h:           number;
+  error_logs_24h:           number;
+}
+
+export interface SystemWarning {
+  severity:   WarningSeverity;
+  code:       string;
+  title:      string;
+  message:    string;
+  created_at: string;
+}
+
+export interface SystemOverview {
+  overall_status: OverallStatus;
+  generated_at:   string;
+  services:        SystemServices;
+  operations:      SystemOperations;
+  warnings:        SystemWarning[];
+}

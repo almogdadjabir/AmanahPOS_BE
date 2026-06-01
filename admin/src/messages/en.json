@@ -135,7 +135,8 @@
     "pageOf": "{page} of {total}",
     "items": "{count} items",
     "showing": "Showing",
-    "of": "of"
+    "of": "of",
+    "live": "Live"
   },
   "dashboard": {
     "greetingMorning": "Good morning",
@@ -1423,6 +1424,66 @@
     "templates": {
       "title": "Notification Templates",
       "description": "Manage bilingual push notification templates. Changes take effect on the next send."
+    }
+  },
+  "system": {
+    "title": "System Health",
+    "description": "Live operational status of all platform services",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing…",
+    "autoRefresh": "Auto",
+    "lastChecked": "Checked",
+    "generatedAt": "Data as of",
+    "failedToLoad": "System health unavailable",
+    "failedDesc": "Could not reach the health endpoint. Check the API connection.",
+    "overall": {
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "critical": "Critical"
+    },
+    "services": {
+      "sectionTitle": "Services",
+      "backend": "Backend API",
+      "database": "PostgreSQL",
+      "redis": "Redis",
+      "celery": "Celery Workers",
+      "celery_beat": "Celery Beat",
+      "storage": "Storage (MinIO)"
+    },
+    "status": {
+      "up": "Up",
+      "down": "Down",
+      "degraded": "Degraded",
+      "unknown": "Unknown"
+    },
+    "responseTime": "{ms}ms",
+    "activeWorkers": "{n} worker",
+    "activeWorkers_plural": "{n} workers",
+    "enabledTasks": "{n} task",
+    "enabledTasks_plural": "{n} tasks",
+    "queues": {
+      "title": "Celery Queues",
+      "pending": "pending"
+    },
+    "operations": {
+      "sectionTitle": "Operations (24h)",
+      "pendingNotifications": "Pending Notifications",
+      "failedNotifications": "Failed Notifications",
+      "auditLogs": "Audit Logs",
+      "errorLogs": "Error Logs (5xx)",
+      "failedSync": "Failed Offline Syncs",
+      "failedTasks": "Failed Tasks",
+      "noData": "No data"
+    },
+    "warnings": {
+      "sectionTitle": "Warnings",
+      "allClearTitle": "All systems operational",
+      "allClearDesc": "No active warnings — everything is running normally.",
+      "severity": {
+        "info": "Info",
+        "warning": "Warning",
+        "critical": "Critical"
+      }
     }
   }
 }

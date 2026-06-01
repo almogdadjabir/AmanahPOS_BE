@@ -3,18 +3,18 @@
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import { X } from 'lucide-react';
+import { X, Search } from 'lucide-react';
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from '@/components/ui/select';
 import type { ActivityAction, ActivityEntityType } from '@/types/api';
 
 export default function ActivityFilters() {
-  const t           = useTranslations('activityLog');
-  const router      = useRouter();
-  const pathname    = usePathname();
+  const t            = useTranslations('activityLog');
+  const router       = useRouter();
+  const pathname     = usePathname();
   const searchParams = useSearchParams();
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const action     = searchParams.get('action')      ?? '';
   const entityType = searchParams.get('entity_type') ?? '';
@@ -75,75 +75,87 @@ export default function ActivityFilters() {
     router.push(pathname);
   }, [router, pathname]);
 
-  const inputCls = 'h-9 rounded-lg border border-input bg-background px-3 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 transition-shadow';
-  const selectCls = `${inputCls} cursor-pointer`;
+  const inputCls = 'h-9 w-full rounded-lg border border-input bg-background px-3 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 transition-shadow';
+  const labelCls = 'text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground select-none mb-1 block';
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-5">
-      {/* Search */}
-      <input
-        type="search"
-        placeholder={t('searchPlaceholder')}
-        defaultValue={search}
-        onChange={(e) => handleSearch(e.target.value)}
-        className={`${inputCls} flex-1 min-w-[180px] max-w-xs`}
-      />
-
-      {/* Action filter */}
-      <Select value={action} onValueChange={(v) => update('action', v === '__all__' ? '' : v)}>
-        <SelectTrigger className="h-9 min-w-[160px]">
-          <SelectValue placeholder={t('actions.all')} />
-        </SelectTrigger>
-        <SelectContent>
-          {ACTIONS.map((a) => (
-            <SelectItem key={a.value} value={a.value || '__all__'}>{a.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Entity type filter */}
-      <Select value={entityType} onValueChange={(v) => update('entity_type', v === '__all__' ? '' : v)}>
-        <SelectTrigger className="h-9 min-w-[140px]">
-          <SelectValue placeholder={t('entities.all')} />
-        </SelectTrigger>
-        <SelectContent>
-          {ENTITY_TYPES.map((e) => (
-            <SelectItem key={e.value} value={e.value || '__all__'}>{e.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      {/* Date range */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-[11px] text-muted-foreground font-medium shrink-0">{t('fromDate')}</span>
+    <div className="space-y-2">
+      {/* Row 1: search — always full width */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
         <input
-          type="date"
-          value={fromDate}
-          onChange={(e) => update('from_date', e.target.value)}
-          className={`${inputCls} w-36`}
+          type="search"
+          placeholder={t('searchPlaceholder')}
+          defaultValue={search}
+          onChange={(e) => handleSearch(e.target.value)}
+          className={`${inputCls} pl-8`}
         />
       </div>
 
-      <div className="flex items-center gap-1.5">
-        <span className="text-[11px] text-muted-foreground font-medium shrink-0">{t('toDate')}</span>
-        <input
-          type="date"
-          value={toDate}
-          onChange={(e) => update('to_date', e.target.value)}
-          className={`${inputCls} w-36`}
-        />
-      </div>
+      {/* Row 2: selects + date range + clear — wraps on small screens */}
+      <div className="flex flex-wrap items-end gap-2">
+        {/* Action filter */}
+        <div className="flex-1 min-w-[150px] max-w-[220px]">
+          <Select value={action} onValueChange={(v) => update('action', v === '__all__' ? '' : v)}>
+            <SelectTrigger className="h-9 w-full">
+              <SelectValue placeholder={t('actions.all')} />
+            </SelectTrigger>
+            <SelectContent>
+              {ACTIONS.map((a) => (
+                <SelectItem key={a.value} value={a.value || '__all__'}>{a.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {/* Clear button — only when filters are active */}
-      {hasFilters && (
-        <button
-          onClick={clearAll}
-          className="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-border text-[12px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        >
-          <X size={13} />
-          {t('clearFilters')}
-        </button>
-      )}
+        {/* Entity type filter */}
+        <div className="flex-1 min-w-[130px] max-w-[180px]">
+          <Select value={entityType} onValueChange={(v) => update('entity_type', v === '__all__' ? '' : v)}>
+            <SelectTrigger className="h-9 w-full">
+              <SelectValue placeholder={t('entities.all')} />
+            </SelectTrigger>
+            <SelectContent>
+              {ENTITY_TYPES.map((e) => (
+                <SelectItem key={e.value} value={e.value || '__all__'}>{e.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Date range — paired group that wraps together */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex flex-col">
+            <span className={labelCls}>{t('fromDate')}</span>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => update('from_date', e.target.value)}
+              className="h-9 rounded-lg border border-input bg-background px-2.5 text-[12px] text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 transition-shadow w-[130px]"
+            />
+          </div>
+          <span className="text-muted-foreground text-[11px] mt-4 shrink-0">—</span>
+          <div className="flex flex-col">
+            <span className={labelCls}>{t('toDate')}</span>
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => update('to_date', e.target.value)}
+              className="h-9 rounded-lg border border-input bg-background px-2.5 text-[12px] text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 transition-shadow w-[130px]"
+            />
+          </div>
+        </div>
+
+        {/* Clear — only when filters active */}
+        {hasFilters && (
+          <button
+            onClick={clearAll}
+            className="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-border text-[12px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0 self-end"
+          >
+            <X size={13} />
+            {t('clearFilters')}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

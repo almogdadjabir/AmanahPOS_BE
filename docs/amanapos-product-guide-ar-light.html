@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>أمانة POS — دليل المنتج</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #f9f7f4;
+    --bg-2:      #f2efe9;
+    --bg-3:      #ede9e1;
+    --border:    #e2ddd5;
+    --border-2:  #cdc8be;
+    --text:      #1c1a17;
+    --text-2:    #4a4540;
+    --text-3:    #9a9088;
+    --gold:      #a07820;
+    --gold-dim:  #d4b870;
+    --gold-bg:   #fdf6e3;
+    --gold-glow: rgba(160,120,32,.08);
+    --green:     #237a55;
+    --green-bg:  #edf7f2;
+    --green-bd:  rgba(35,122,85,.2);
+    --red:       #b03020;
+    --red-bg:    #fdf0ee;
+    --red-bd:    rgba(176,48,32,.18);
+    --amber:     #b05010;
+    --amber-bg:  #fdf4ec;
+    --amber-bd:  rgba(176,80,16,.2);
+    --blue:      #1a5fa0;
+    --blue-bg:   #eef4fb;
+    --blue-bd:   rgba(26,95,160,.2);
+    --muted-bg:  #f0ece6;
+    --muted-bd:  #cdc8be;
+    --radius:    7px;
+    --mono:      'DM Mono', monospace;
+    --sans:      'Cairo', sans-serif;
+    --shadow:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ──────────────────────────────────── */
+  .shell { display: flex; min-height: 100vh; max-width: 1300px; margin: 0 auto; }
+
+  /* ── Sidebar ──────────────────────────────────── */
+  .sidebar {
+    width: 224px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 36px 0 36px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow-y: auto;
+    border-left: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .sidebar-brand {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    padding: 0 14px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+
+  .nav-group {
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding: 10px 14px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: var(--radius);
+    font-size: 12.5px;
+    color: var(--text-3);
+    text-decoration: none;
+    transition: all .12s;
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover { color: var(--text-2); background: var(--bg-2); }
+
+  .nav-item.active {
+    color: var(--gold);
+    background: var(--gold-bg);
+    border-color: var(--gold-dim);
+    font-weight: 600;
+  }
+
+  .nav-num { font-family: var(--mono); font-size: 10px; color: var(--text-3); min-width: 20px; }
+
+  /* ── PDF button ───────────────────────────────── */
+  .pdf-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: auto 14px 0;
+    padding: 9px 14px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+  }
+
+  .pdf-btn:hover { background: #333; transform: translateY(-1px); }
+
+  /* ── Main ─────────────────────────────────────── */
+  .main { flex: 1; padding: 52px 64px 100px 64px; min-width: 0; }
+
+  /* ── Hero ─────────────────────────────────────── */
+  .hero {
+    margin-bottom: 56px;
+    padding-bottom: 40px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--gold);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    padding: 5px 12px;
+    background: var(--gold-bg);
+    border: 1px solid var(--gold-dim);
+    border-radius: 100px;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+
+  .hero h1 {
+    font-size: clamp(26px, 3.2vw, 44px);
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .hero h1 span { color: var(--gold); }
+  .hero-sub { font-size: 15px; color: var(--text-3); }
+
+  /* ── Divider between big sections ─────────────── */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to left, transparent, var(--border-2), transparent);
+    margin: 12px 0 56px;
+  }
+
+  /* ── Section ──────────────────────────────────── */
+  .section {
+    margin-bottom: 56px;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity .4s ease, transform .4s ease;
+  }
+
+  .section.visible { opacity: 1; transform: none; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: .12em;
+    padding: 2px 7px;
+    border: 1px solid var(--border-2);
+    border-radius: 4px;
+    background: var(--bg-2);
+  }
+
+  .section-header h2 { font-size: 19px; font-weight: 700; color: var(--text); }
+
+  .section-body { color: var(--text-2); font-size: 14.5px; line-height: 1.85; }
+  .section-body p { margin-bottom: 12px; }
+  .section-body p:last-child { margin-bottom: 0; }
+
+  /* ── Big intro cards ──────────────────────────── */
+  .intro-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .intro-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .intro-card-icon { font-size: 22px; margin-bottom: 10px; }
+  .intro-card-label { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+  .intro-card-value { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.4; }
+  .intro-card-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+
+  /* ── Market target cards ──────────────────────── */
+  .market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .market-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    transition: box-shadow .15s;
+  }
+
+  .market-card:hover { box-shadow: var(--shadow-md); }
+  .market-card-flag { font-size: 28px; margin-bottom: 8px; }
+  .market-card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .market-card-body { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+
+  /* ── Revenue stream cards ─────────────────────── */
+  .revenue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+
+  .revenue-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .revenue-card-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .revenue-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 100px;
+    letter-spacing: .04em;
+  }
+
+  .revenue-badge.live    { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+  .revenue-badge.soon    { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-bd); }
+  .revenue-badge.planned { background: var(--muted-bg); color: var(--text-3); border: 1px solid var(--muted-bd); }
+
+  .revenue-card-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+  .revenue-card-body  { font-size: 12.5px; color: var(--text-2); line-height: 1.65; }
+
+  /* ── Sub concept ─────────────────────────────── */
+  .sub-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 18px 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .sub-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+
+  .sub-step:last-child { border-bottom: none; }
+  .sub-step:hover { background: var(--bg-2); }
+
+  .sub-step-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gold);
+    background: var(--gold-bg);
+    border: 1px solid var(--gold-dim);
+    border-radius: 4px;
+    padding: 2px 7px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .sub-step-text { font-size: 13.5px; color: var(--text-2); line-height: 1.7; }
+  .sub-step-text strong { color: var(--text); }
+
+  /* ── Pain point list ──────────────────────────── */
+  .pain-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 18px 0;
+  }
+
+  .pain-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    font-size: 13.5px;
+  }
+
+  .pain-before { color: var(--red); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .pain-after  { color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .pain-arrow  { color: var(--text-3); flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Tables ───────────────────────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 18px 0;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    background: #fff;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead tr { background: var(--bg-2); border-bottom: 1px solid var(--border-2); }
+
+  th {
+    padding: 11px 16px;
+    text-align: right;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    white-space: nowrap;
+  }
+
+  td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--text-2); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background .1s; }
+  tbody tr:hover { background: var(--bg-2); }
+
+  .role-head { text-align: center !important; color: var(--text-2) !important; }
+  .role-col  { text-align: center !important; }
+  .check-yes { color: var(--green); font-size: 15px; font-weight: 700; }
+  .check-no  { color: var(--border-2); font-size: 15px; }
+  .check-ro  { font-family: var(--mono); font-size: 11px; color: var(--amber); font-weight: 600; }
+
+  /* ── Code ─────────────────────────────────────── */
+  code {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    color: var(--gold);
+    padding: 1px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── Callouts ─────────────────────────────────── */
+  .callout {
+    display: flex;
+    gap: 12px;
+    padding: 13px 16px;
+    border-radius: var(--radius);
+    margin: 16px 0;
+    font-size: 13.5px;
+    line-height: 1.7;
+    border: 1px solid;
+  }
+
+  .callout-icon { font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+  .callout.tip  { background: var(--gold-bg); border-color: var(--gold-dim); color: var(--text-2); }
+  .callout.warn { background: var(--amber-bg); border-color: var(--amber-bd); color: var(--text-2); }
+  .callout.info { background: var(--blue-bg); border-color: var(--blue-bd); color: var(--text-2); }
+
+  /* ── Badges ───────────────────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  .badge::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+  .badge-muted { background: var(--muted-bg); color: var(--text-3); border: 1px solid var(--muted-bd); }
+
+  /* ── Feature grid ─────────────────────────────── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 13px;
+    margin: 18px 0;
+  }
+
+  .feature-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    transition: box-shadow .15s;
+  }
+
+  .feature-card:hover { box-shadow: var(--shadow-md); }
+  .feature-card-title { font-size: 13.5px; font-weight: 700; color: var(--text); margin-bottom: 10px; display: flex; align-items: center; gap: 7px; }
+  .feature-card ul { list-style: none; font-size: 12.5px; color: var(--text-2); display: flex; flex-direction: column; gap: 5px; }
+  .feature-card li { display: flex; gap: 7px; align-items: baseline; }
+  .feature-card li::before { content: '–'; color: var(--text-3); flex-shrink: 0; font-size: 11px; }
+
+  /* ── Flag box ─────────────────────────────────── */
+  .flag-box { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 18px 0; box-shadow: var(--shadow); }
+  .flag-header { display: flex; align-items: center; gap: 12px; padding: 14px 18px; background: var(--bg-2); border-bottom: 1px solid var(--border); }
+  .flag-key { font-family: var(--mono); font-size: 12px; color: var(--gold); background: var(--gold-bg); border: 1px solid var(--gold-dim); padding: 2px 9px; border-radius: 4px; }
+  .flag-name { font-size: 13.5px; font-weight: 700; color: var(--text); }
+  .flag-states { display: grid; grid-template-columns: 1fr 1fr; }
+  .flag-state { padding: 14px 18px; font-size: 12.5px; color: var(--text-2); line-height: 1.7; }
+  .flag-state:first-child { border-left: 1px solid var(--border); }
+  .flag-state-title { font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 9px; display: flex; align-items: center; gap: 5px; }
+  .flag-state.on  .flag-state-title { color: var(--green); }
+  .flag-state.off .flag-state-title { color: var(--red); }
+  .flag-state ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .flag-state li { display: flex; gap: 8px; align-items: baseline; }
+  .flag-state.on  li::before { content:'✓'; color:var(--green); font-size:11px; flex-shrink:0; }
+  .flag-state.off li::before { content:'✕'; color:var(--red);   font-size:11px; flex-shrink:0; }
+
+  /* ── Steps ────────────────────────────────────── */
+  .steps { display: flex; flex-direction: column; background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin: 16px 0; box-shadow: var(--shadow); }
+  .step { display: flex; gap: 14px; align-items: flex-start; padding: 14px 18px; border-bottom: 1px solid var(--border); transition: background .1s; }
+  .step:last-child { border-bottom: none; }
+  .step:hover { background: var(--bg-2); }
+  .step-num { font-family: var(--mono); font-size: 10.5px; font-weight: 600; color: var(--gold); background: var(--gold-bg); border: 1px solid var(--gold-dim); border-radius: 4px; padding: 2px 7px; flex-shrink: 0; margin-top: 2px; }
+  .step-text { font-size: 13.5px; color: var(--text-2); line-height: 1.7; }
+  .step-text strong { color: var(--text); }
+
+  /* ── Payment rows ─────────────────────────────── */
+  .pay-soon td { color: var(--text-3); }
+  .pay-soon td:first-child { text-decoration: line-through; text-decoration-color: var(--border-2); }
+
+  /* ── Dashboard access ─────────────────────────── */
+  .access-owner { color: var(--gold); font-size: 12px; font-weight: 700; }
+  .access-admin { color: #3d6b9a; font-size: 12px; font-weight: 700; }
+  .access-both  { color: var(--text-2); font-size: 12px; }
+  .support-table td:first-child { font-style: italic; color: var(--text); font-size: 13px; }
+
+  /* ── Scrollbar ────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; }
+
+  /* ════════════════════════════════════════════════
+     PRINT STYLES
+  ════════════════════════════════════════════════ */
+  @media print {
+    @page { size: A4; margin: 16mm 14mm 16mm 14mm; }
+
+    body { background: #fff; font-size: 10.5pt; }
+    .sidebar, .pdf-btn { display: none !important; }
+    .shell { display: block; max-width: 100%; }
+    .main { padding: 0; max-width: 100%; }
+
+    .hero { margin-bottom: 24pt; padding-bottom: 16pt; }
+    .hero h1 { font-size: 24pt; }
+    .hero-badge { display: none; }
+    .section-divider { margin: 0 0 24pt; }
+
+    .section { opacity: 1 !important; transform: none !important; margin-bottom: 22pt; page-break-inside: avoid; }
+
+    .intro-grid, .market-grid, .revenue-grid, .feature-grid { grid-template-columns: repeat(3, 1fr); gap: 6pt; }
+    .intro-card, .market-card, .revenue-card, .feature-card, .flag-box, .steps, .sub-flow, .pain-item { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+
+    .table-wrap { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; }
+    table { font-size: 8.5pt; }
+    th { font-size: 7.5pt; padding: 6px 10px; }
+    td { padding: 7px 10px; }
+
+    .callout { border: 1px solid #ccc; }
+
+    .check-yes { color: #237a55 !important; }
+    .badge-green { background: #edf7f2 !important; color: #237a55 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge-muted { background: #f0ece6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    code { background: #f2efe9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .flag-state.on .flag-state-title { color: #237a55 !important; }
+    .flag-state.off .flag-state-title { color: #b03020 !important; }
+    .flag-state.on li::before { color: #237a55 !important; }
+    .flag-state.off li::before { color: #b03020 !important; }
+    .revenue-badge.live { background: #edf7f2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .revenue-badge.soon { background: #fdf4ec !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    #target, #revenue, #roles, #features, #support { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ══ Sidebar ══ -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">أمانة POS</div>
+
+    <span class="nav-group">نظرة عامة</span>
+    <a class="nav-item active" href="#intro"><span class="nav-num">00</span>عن المنتج</a>
+    <a class="nav-item" href="#target"><span class="nav-num">01</span>السوق المستهدف</a>
+    <a class="nav-item" href="#revenue"><span class="nav-num">02</span>نموذج الأعمال</a>
+    <a class="nav-item" href="#subscription"><span class="nav-num">03</span>مفهوم الاشتراك</a>
+
+    <span class="nav-group">المرجع التقني</span>
+    <a class="nav-item" href="#types"><span class="nav-num">04</span>أنواع الأعمال</a>
+    <a class="nav-item" href="#roles"><span class="nav-num">05</span>أدوار المستخدمين</a>
+    <a class="nav-item" href="#plans"><span class="nav-num">06</span>خطط الاشتراك</a>
+    <a class="nav-item" href="#flags"><span class="nav-num">07</span>الخصائص المميزة</a>
+    <a class="nav-item" href="#features"><span class="nav-num">08</span>الميزات الأساسية</a>
+    <a class="nav-item" href="#payments"><span class="nav-num">09</span>طرق الدفع</a>
+    <a class="nav-item" href="#statuses"><span class="nav-num">10</span>حالات المبيعة</a>
+    <a class="nav-item" href="#auth"><span class="nav-num">11</span>تسجيل الدخول</a>
+    <a class="nav-item" href="#dashboard"><span class="nav-num">12</span>لوحة الإدارة</a>
+    <a class="nav-item" href="#support"><span class="nav-num">13</span>دعم فني</a>
+
+    <button class="pdf-btn" onclick="window.print()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M5 1a2 2 0 0 0-2 2v1h-.5A2.5 2.5 0 0 0 0 6.5v4A2.5 2.5 0 0 0 2.5 13H3v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h.5A2.5 2.5 0 0 0 16 10.5v-4A2.5 2.5 0 0 0 13.5 4H13V3a2 2 0 0 0-2-2H5zm0 1h6a1 1 0 0 1 1 1v1H4V3a1 1 0 0 1 1-1zm7 9H4v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3zm-1-5a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5z"/></svg>
+      تصدير PDF
+    </button>
+  </nav>
+
+  <!-- ══ Main ══ -->
+  <main class="main">
+
+    <!-- Hero -->
+    <header class="hero" id="intro">
+      <div class="hero-badge">دليل المنتج الداخلي — الإصدار 1.0</div>
+      <h1>أمانة <span>POS</span></h1>
+      <p class="hero-sub">مرجع شامل لفرق المبيعات والدعم الفني — نظرة عامة على الأعمال، نموذج الإيرادات، والمرجع التقني</p>
+    </header>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 00 — ABOUT
+    ══════════════════════════════════════════ -->
+    <section class="section visible" id="intro-body">
+      <div class="section-body">
+        <p>
+          <strong>أمانة POS</strong> هو نظام نقاط بيع متكامل (SaaS) متعدد المستأجرين، يعمل في بيئات
+          ضعيفة الاتصال بالإنترنت أو منقطعة كليًا. صُمِّم خصيصًا للشركات الصغيرة والمتوسطة في
+          السودان ومنطقة الشرق الأوسط وشمال أفريقيا، يُقدَّم كخدمة قائمة على الاشتراك الشهري أو
+          السنوي عبر تطبيق جوال + لوحة تحكم ويب.
+        </p>
+        <div class="intro-grid">
+          <div class="intro-card">
+            <div class="intro-card-icon">📱</div>
+            <div class="intro-card-label">تطبيق الجوال</div>
+            <div class="intro-card-value">للكاشيرين والمديرين</div>
+            <div class="intro-card-sub">يعمل بدون إنترنت</div>
+          </div>
+          <div class="intro-card">
+            <div class="intro-card-icon">🖥️</div>
+            <div class="intro-card-label">لوحة الإدارة</div>
+            <div class="intro-card-value">للمالكين ومديري النظام</div>
+            <div class="intro-card-sub">تقارير وإدارة شاملة</div>
+          </div>
+          <div class="intro-card">
+            <div class="intro-card-icon">🏗️</div>
+            <div class="intro-card-label">البنية التحتية</div>
+            <div class="intro-card-value">Multi-tenant SaaS</div>
+            <div class="intro-card-sub">عزل تام لكل عميل</div>
+          </div>
+          <div class="intro-card">
+            <div class="intro-card-icon">🔌</div>
+            <div class="intro-card-label">الاتصال</div>
+            <div class="intro-card-value">Offline-First</div>
+            <div class="intro-card-sub">مبيعات بدون نت، تزامن لاحق</div>
+          </div>
+          <div class="intro-card">
+            <div class="intro-card-icon">🌍</div>
+            <div class="intro-card-label">اللغات</div>
+            <div class="intro-card-value">عربي + إنجليزي</div>
+            <div class="intro-card-sub">دعم كامل للـ RTL</div>
+          </div>
+          <div class="intro-card">
+            <div class="intro-card-icon">💳</div>
+            <div class="intro-card-label">الدفع المحلي</div>
+            <div class="intro-card-value">تكامل بنكاك</div>
+            <div class="intro-card-sub">نظام الدفع السوداني</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 01 — TARGET MARKET
+    ══════════════════════════════════════════ -->
+    <section class="section" id="target">
+      <div class="section-header"><span class="section-num">01</span><h2>السوق المستهدف</h2></div>
+      <div class="section-body">
+        <p>نستهدف أصحاب الشركات الصغيرة والمتوسطة الذين يحتاجون إلى نظام POS موثوق وبسعر في متناول اليد، في بيئات تتسم بانقطاع الإنترنت وضعف البنية التحتية الرقمية.</p>
+
+        <div class="market-grid">
+          <div class="market-card">
+            <div class="market-card-flag">🇸🇩</div>
+            <div class="market-card-title">السودان — السوق الأساسي</div>
+            <div class="market-card-body">
+              متاجر التجزئة، المطاعم، الصيدليات، محلات الأدوات المنزلية.
+              بيئة نقدية بالدرجة الأولى مع انتشار واسع لبنكاك.
+              اتصال إنترنت متقطع في كثير من المناطق — الـ Offline-First ميزة حاسمة.
+            </div>
+          </div>
+          <div class="market-card">
+            <div class="market-card-flag">🌍</div>
+            <div class="market-card-title">منطقة MENA — التوسع المستقبلي</div>
+            <div class="market-card-body">
+              مصر، الأردن، العراق، اليمن، ليبيا — أسواق مشابهة في الخصائص.
+              الواجهة العربية والدعم الكامل للـ RTL يُسرّعان الانتشار.
+            </div>
+          </div>
+          <div class="market-card">
+            <div class="market-card-flag">🏪</div>
+            <div class="market-card-title">أنواع الأعمال المستهدفة</div>
+            <div class="market-card-body">
+              متاجر بيع بالتجزئة، مطاعم وكافيهات، صيدليات، محلات إلكترونيات.
+              من فرع واحد إلى سلاسل بمتعدد فروع.
+            </div>
+          </div>
+        </div>
+
+        <p style="margin-top: 6px; font-weight: 700; color: var(--text);">المشاكل التي نحلها</p>
+        <div class="pain-list">
+          <div class="pain-item">
+            <span class="pain-before">✕</span>
+            <span style="flex:1; color:var(--text-2)">أنظمة POS تقليدية باهظة التكلفة تحتاج أجهزة خاصة وعقود طويلة</span>
+            <span class="pain-arrow">→</span>
+            <span class="pain-after">✓</span>
+            <span style="flex:1; color:var(--text-2)">اشتراك شهري ميسور على أي جهاز أندرويد</span>
+          </div>
+          <div class="pain-item">
+            <span class="pain-before">✕</span>
+            <span style="flex:1; color:var(--text-2)">توقف الكاشير عن العمل عند انقطاع الإنترنت</span>
+            <span class="pain-arrow">→</span>
+            <span class="pain-after">✓</span>
+            <span style="flex:1; color:var(--text-2)">مبيعات تعمل أوفلاين تمامًا وتتزامن تلقائيًا عند عودة الإنترنت</span>
+          </div>
+          <div class="pain-item">
+            <span class="pain-before">✕</span>
+            <span style="flex:1; color:var(--text-2)">تتبع المخزون يدويًا في ملفات إكسل</span>
+            <span class="pain-arrow">→</span>
+            <span class="pain-after">✓</span>
+            <span style="flex:1; color:var(--text-2)">مخزون حي لكل فرع، يُخصم تلقائيًا مع كل بيعة</span>
+          </div>
+          <div class="pain-item">
+            <span class="pain-before">✕</span>
+            <span style="flex:1; color:var(--text-2)">لا رؤية للأرقام — المبيعات ومستوى المخزون غير واضحين</span>
+            <span class="pain-arrow">→</span>
+            <span class="pain-after">✓</span>
+            <span style="flex:1; color:var(--text-2)">لوحة تحكم ويب بمؤشرات الأداء الرئيسية لحظيًا</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 02 — BUSINESS MODEL
+    ══════════════════════════════════════════ -->
+    <section class="section" id="revenue">
+      <div class="section-header"><span class="section-num">02</span><h2>نموذج الأعمال — كيف نربح؟</h2></div>
+      <div class="section-body">
+        <p>
+          أمانة POS يعمل كنموذج <strong>SaaS (البرمجيات كخدمة)</strong> — العميل يدفع اشتراكًا
+          دوريًا مقابل الوصول إلى النظام، دون شراء ترخيص أو تحمّل تكاليف بنية تحتية.
+          الإيرادات تأتي من عدة مصادر:
+        </p>
+
+        <div class="revenue-grid">
+          <div class="revenue-card">
+            <div class="revenue-card-top">
+              <span class="revenue-badge live">متاح الآن</span>
+            </div>
+            <div class="revenue-card-title">💰 رسوم الاشتراك الشهري / السنوي</div>
+            <div class="revenue-card-body" style="margin-top:8px">
+              كل نشاط تجاري يدفع رسومًا دورية على أساس الخطة المختارة.
+              كلما كانت الخطة أكبر (فروع أكثر، منتجات أكثر، موظفون أكثر) كانت الرسوم أعلى.
+            </div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-card-top">
+              <span class="revenue-badge live">متاح الآن</span>
+            </div>
+            <div class="revenue-card-title">⭐ الميزات المميزة (Add-ons)</div>
+            <div class="revenue-card-body" style="margin-top:8px">
+              بعض الميزات مقفلة افتراضيًا ولا تُفتح إلا في الخطط الأعلى.
+              مثال: استقبال البضاعة الواردة من الموردين.
+              هذا يُشجّع على الترقية.
+            </div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-card-top">
+              <span class="revenue-badge soon">قريبًا</span>
+            </div>
+            <div class="revenue-card-title">💳 عمولة على معالجة المدفوعات</div>
+            <div class="revenue-card-body" style="margin-top:8px">
+              عند تكامل بوابات دفع إضافية، يُمكن أخذ نسبة صغيرة من كل عملية دفع رقمي.
+            </div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-card-top">
+              <span class="revenue-badge soon">قريبًا</span>
+            </div>
+            <div class="revenue-card-title">📊 اشتراكات التقارير المتقدمة</div>
+            <div class="revenue-card-body" style="margin-top:8px">
+              تقارير تحليلية متقدمة (تنبؤ بالمبيعات، تحليل الموردين، تقارير الربحية) كباقة منفصلة.
+            </div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-card-top">
+              <span class="revenue-badge planned">مستقبلي</span>
+            </div>
+            <div class="revenue-card-title">🏢 خطط Enterprise للسلاسل الكبيرة</div>
+            <div class="revenue-card-body" style="margin-top:8px">
+              حزم مخصصة للشركات ذات الفروع الكثيرة والمتطلبات الخاصة بعقود سنوية.
+            </div>
+          </div>
+          <div class="revenue-card">
+            <div class="revenue-card-top">
+              <span class="revenue-badge planned">مستقبلي</span>
+            </div>
+            <div class="revenue-card-title">🔧 الإعداد والتدريب</div>
+            <div class="revenue-card-body" style="margin-top:8px">
+              رسوم إعداد لمرة واحدة وجلسات تدريب مدفوعة للعملاء الكبار.
+            </div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-icon">ℹ️</span>
+          <span><strong>للفريق:</strong> المصدر الأساسي للإيراد <em>الآن</em> هو رسوم الاشتراك الشهري + الترقية للميزات المميزة. ركّزوا على إقناع العميل بقيمة الترقية بدلًا من الخصم على السعر الحالي.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 03 — SUBSCRIPTION CONCEPT
+    ══════════════════════════════════════════ -->
+    <section class="section" id="subscription">
+      <div class="section-header"><span class="section-num">03</span><h2>مفهوم الاشتراك</h2></div>
+      <div class="section-body">
+        <p>
+          كل نشاط تجاري مرتبط بـ <strong>خطة اشتراك واحدة نشطة</strong>. الخطة تحدد ما يستطيع العميل
+          فعله في النظام — ليس فقط الوصول إلى الميزات، بل أيضًا حجم استخدامه.
+        </p>
+
+        <div class="sub-flow">
+          <div class="sub-step">
+            <span class="sub-step-num">01</span>
+            <span class="sub-step-text">يشترك النشاط التجاري في خطة → تُسجَّل <code>Subscription</code> بتاريخ بداية ونهاية</span>
+          </div>
+          <div class="sub-step">
+            <span class="sub-step-num">02</span>
+            <span class="sub-step-text">النظام يتحقق من الخطة قبل كل عملية تجاوز للحدود — إضافة فرع، منتج، موظف، أو ميزة مميزة</span>
+          </div>
+          <div class="sub-step">
+            <span class="sub-step-num">03</span>
+            <span class="sub-step-text"><strong>عند الوصول للحد:</strong> تُرفض العملية بخطأ واضح — النظام لا يقطع الخدمة القائمة، فقط يمنع الإضافة الجديدة</span>
+          </div>
+          <div class="sub-step">
+            <span class="sub-step-num">04</span>
+            <span class="sub-step-text">مهمة Celery يومية تتحقق من انتهاء الاشتراكات → تضع علامة <code>is_expired</code> عند الانتهاء</span>
+          </div>
+          <div class="sub-step">
+            <span class="sub-step-num">05</span>
+            <span class="sub-step-text"><strong>عند انتهاء الاشتراك:</strong> العميل يمكنه الاستمرار في العرض والبيع، لكن لا يستطيع إضافة موارد جديدة حتى التجديد</span>
+          </div>
+          <div class="sub-step">
+            <span class="sub-step-num">06</span>
+            <span class="sub-step-text">يجدد مدير النظام الاشتراك من لوحة الإدارة → الخطة تُعاد تفعيلها فورًا</span>
+          </div>
+        </div>
+
+        <p style="margin-top: 6px; font-weight: 700; color: var(--text);">حدود الخطة وكيف تعمل</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الحد</th><th>ما الذي يتحكم فيه</th><th>ماذا يحدث عند الوصول إليه</th></tr></thead>
+            <tbody>
+              <tr><td><code>max_shops</code></td><td>عدد الفروع النشطة</td><td>خطأ عند محاولة إنشاء فرع جديد</td></tr>
+              <tr><td><code>max_products</code></td><td>عدد المنتجات النشطة</td><td>خطأ عند محاولة إضافة منتج جديد</td></tr>
+              <tr><td><code>max_users</code></td><td>عدد الموظفين (مديرون + كاشيرون)</td><td>خطأ عند محاولة دعوة موظف جديد</td></tr>
+              <tr><td><code>features</code></td><td>الميزات المميزة المفعّلة</td><td>خطأ 403 عند الوصول لنقطة اتصال مميزة</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">🎯</span>
+          <span><strong>نقطة بيع للمبيعات:</strong> أبرز للعميل أن <strong>القيمة = الحد × الميزة</strong>. متجر بفرعين يحتاج خطة تسمح بـ<code>max_shops ≥ 2</code>. سلسلة بـ10 موظفين تحتاج خطة تسمح بـ<code>max_users ≥ 10</code>. كلما نما العمل، كلما كان الترقية منطقية.</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 04 — BUSINESS TYPES
+    ══════════════════════════════════════════ -->
+    <section class="section" id="types">
+      <div class="section-header"><span class="section-num">04</span><h2>أنواع الأعمال التجارية</h2></div>
+      <div class="section-body">
+        <p>يختار كل نشاط تجاري نوعًا عند التسجيل — يحدد آلية تتبع المخزون.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>النوع</th><th>التسمية</th><th>تتبع المخزون</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>shop</code></td>
+                <td>متجر بيع بالتجزئة</td>
+                <td><span class="badge badge-green">مفعّل</span>&nbsp; يُخصم المخزون تلقائيًا عند كل عملية بيع</td>
+              </tr>
+              <tr>
+                <td><code>restaurant</code></td>
+                <td>مطعم</td>
+                <td><span class="badge badge-muted">معطّل</span>&nbsp; لا يُخصم المخزون عند البيع</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <span class="callout-icon">💡</span>
+          <span><strong>تلميح للدعم:</strong> إذا اشتكى صاحب مطعم من أن مخزونه ينخفض عند البيع، فحسابه مسجّل كـ <code>shop</code>. تحقق من النوع وقم بتعديله.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 05 — ROLES
+    ══════════════════════════════════════════ -->
+    <section class="section" id="roles">
+      <div class="section-header"><span class="section-num">05</span><h2>أدوار المستخدمين</h2></div>
+      <div class="section-body">
+        <p>ثلاثة أدوار داخل كل نشاط تجاري. مدير النظام الأعلى يقع خارج هذا التسلسل.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>الصلاحية</th>
+                <th class="role-head">كاشير</th>
+                <th class="role-head">مدير</th>
+                <th class="role-head">مالك</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>إنشاء ومعالجة المبيعات</td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>عرض العملاء ونقاط الولاء</td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>عرض المنتجات ومستويات المخزون</td><td class="role-col"><span class="check-ro">قراءة</span></td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>إدارة المنتجات والفئات</td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>تعديل المخزون ونقله بين الفروع</td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>استقبال بضاعة واردة من الموردين</td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>إصدار المسترجعات</td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>إدارة الموظفين (دعوة، تعطيل)</td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>إنشاء الفروع وإدارتها</td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>عرض تقارير المبيعات ومؤشرات الأداء</td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-yes">✓</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>إدارة الاشتراك</td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+              <tr><td>تعيين كلمة مرور (لوحة الإدارة)</td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-no">—</span></td><td class="role-col"><span class="check-yes">✓</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:18px; font-weight:700; color:var(--text);">مدير النظام الأعلى <code>is_staff</code></p>
+        <p>صلاحية منفصلة خارج الأدوار التجارية — يملك وصولًا كاملًا لإدارة الملاك والخطط والاشتراكات وإرسال الإشعارات وإصدار المسترجعات.</p>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 06 — PLANS
+    ══════════════════════════════════════════ -->
+    <section class="section" id="plans">
+      <div class="section-header"><span class="section-num">06</span><h2>خطط الاشتراك</h2></div>
+      <div class="section-body">
+        <p>تُهيَّأ الخطط من قِبَل مديري النظام. القيمة <code>0</code> في أي حد تعني غير محدود.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الحد</th><th>ما الذي يتحكم فيه</th><th>0 =</th></tr></thead>
+            <tbody>
+              <tr><td><code>max_shops</code></td><td>الحد الأقصى للفروع النشطة</td><td>غير محدود</td></tr>
+              <tr><td><code>max_products</code></td><td>الحد الأقصى للمنتجات النشطة</td><td>غير محدود</td></tr>
+              <tr><td><code>max_users</code></td><td>الحد الأقصى للموظفين (مديرون + كاشيرون؛ المالك مستثنى)</td><td>غير محدود</td></tr>
+              <tr><td><code>duration_days</code></td><td>مدة الاشتراك بالأيام</td><td>—</td></tr>
+              <tr><td><code>features</code></td><td>قاموس JSON لخصائص الباقة المميزة</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip">
+          <span class="callout-icon">🎯</span>
+          <span><strong>تلميح للمبيعات:</strong> أبرز هذه الفوارق — عدد الفروع، المنتجات، مقاعد الموظفين، والوصول للميزات المتميزة.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 07 — FEATURE FLAGS
+    ══════════════════════════════════════════ -->
+    <section class="section" id="flags">
+      <div class="section-header"><span class="section-num">07</span><h2>الخصائص المميزة</h2></div>
+      <div class="section-body">
+        <p>تُخزَّن على الخطة وتظهر في ملف المستخدم. الميزة المطبقة حاليًا:</p>
+        <div class="flag-box">
+          <div class="flag-header">
+            <span class="flag-key">inventory_inbound_receiving</span>
+            <span class="flag-name">استقبال البضاعة الواردة</span>
+          </div>
+          <div class="flag-states">
+            <div class="flag-state on">
+              <div class="flag-state-title">مفعّل</div>
+              <ul>
+                <li>سير عمل كامل لاستقبال الواردات</li>
+                <li>قائمة الموردين وتاريخ مشترياتهم</li>
+                <li>تقارير حركات الاستقبال</li>
+              </ul>
+            </div>
+            <div class="flag-state off">
+              <div class="flag-state-title">معطّل</div>
+              <ul>
+                <li>نقاط الاتصال تُعيد خطأ 403</li>
+                <li>إدارة الموردين غير متاحة</li>
+                <li>لوحة الاستقبال تظهر مقفلة</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 08 — CORE FEATURES
+    ══════════════════════════════════════════ -->
+    <section class="section" id="features">
+      <div class="section-header"><span class="section-num">08</span><h2>الميزات الأساسية</h2></div>
+      <div class="section-body">
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-card-title">🧾 المبيعات</div>
+            <ul>
+              <li>إنشاء مبيعات بعنصر واحد أو متعدد</li>
+              <li>8 طرق دفع مدعومة</li>
+              <li>ربط العميل بالفاتورة لتتبع الولاء</li>
+              <li>إلغاء أو استرداد كلي / جزئي</li>
+              <li>مبيعات دون اتصال — تزامن تلقائي</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-title">📦 المنتجات والفئات</div>
+            <ul>
+              <li>فئات هرمية (رئيسية → فرعية)</li>
+              <li>SKU، باركود، سعر بيع وتكلفة، صورة</li>
+              <li>9 وحدات قياس مدعومة</li>
+              <li>تفعيل/تعطيل كل منتج على حدة</li>
+              <li>خيار إيقاف تتبع المخزون لمنتج بعينه</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-title">🏪 المخزون</div>
+            <ul>
+              <li>تتبع لكل منتج في كل فرع</li>
+              <li>تسجيل تلقائي لجميع الحركات</li>
+              <li>تسوية يدوية ونقل بين الفروع</li>
+              <li>تتبع الدُفعات وتواريخ الانتهاء</li>
+              <li>استقبال واردات من موردين (مميز)</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-title">👥 العملاء والموظفون</div>
+            <ul>
+              <li>بيانات العميل + نقاط الولاء</li>
+              <li>سجل المشتريات الكامل</li>
+              <li>دعوة الموظفين عبر رقم الهاتف</li>
+              <li>تعطيل دون حذف البيانات</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-title">🏢 الفروع</div>
+            <ul>
+              <li>فروع متعددة (محددة بالخطة)</li>
+              <li>مخزون مستقل لكل فرع</li>
+              <li>تحديد فرع رئيسي واحد</li>
+            </ul>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-title">🔔 الإشعارات</div>
+            <ul>
+              <li>إشعارات فورية (أندرويد، iOS، ويب)</li>
+              <li>9 أنواع إشعارات مختلفة</li>
+              <li>إشعارات جماعية من الإدارة</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 09 — PAYMENTS
+    ══════════════════════════════════════════ -->
+    <section class="section" id="payments">
+      <div class="section-header"><span class="section-num">09</span><h2>طرق الدفع</h2></div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الطريقة</th><th>المفتاح</th><th>الجوال — MVP</th><th>ملاحظات</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>نقدي</td><td><code>cash</code></td>
+                <td><span class="badge badge-green">مدعوم</span></td>
+                <td>الافتراضي</td>
+              </tr>
+              <tr>
+                <td>بنكاك</td><td><code>bankak</code></td>
+                <td><span class="badge badge-green">مدعوم</span></td>
+                <td>يُحفظ رقم الحساب لحظة البيع</td>
+              </tr>
+              <tr class="pay-soon"><td>بطاقة</td><td><code>card</code></td><td><span class="badge badge-muted">قريبًا</span></td><td>غير متاح حاليًا</td></tr>
+              <tr class="pay-soon"><td>تحويل بنكي</td><td><code>bank_transfer</code></td><td><span class="badge badge-muted">قريبًا</span></td><td>غير متاح حاليًا</td></tr>
+              <tr class="pay-soon"><td>محفظة إلكترونية</td><td><code>mobile_wallet</code></td><td><span class="badge badge-muted">قريبًا</span></td><td>غير متاح حاليًا</td></tr>
+              <tr class="pay-soon"><td>نقاط الولاء</td><td><code>loyalty_points</code></td><td><span class="badge badge-muted">قريبًا</span></td><td>غير متاح حاليًا</td></tr>
+              <tr class="pay-soon"><td>دفع مقسّم</td><td><code>split</code></td><td><span class="badge badge-muted">قريبًا</span></td><td>غير متاح حاليًا</td></tr>
+              <tr class="pay-soon"><td>آجل</td><td><code>credit</code></td><td><span class="badge badge-muted">قريبًا</span></td><td>غير متاح حاليًا</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <span class="callout-icon">⚠️</span>
+          <span>الطرق المعلّمة بـ "قريبًا" مُجهَّزة في النظام لكنها <strong>غير متاحة في تطبيق الجوال حاليًا</strong>. لا تَعِد بها العميل في هذه المرحلة.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 10 — SALE STATUSES
+    ══════════════════════════════════════════ -->
+    <section class="section" id="statuses">
+      <div class="section-header"><span class="section-num">10</span><h2>حالات المبيعة</h2></div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>الحالة</th><th>المعنى</th><th>يمكن الاسترداد؟</th></tr></thead>
+            <tbody>
+              <tr><td><code>pending</code></td><td>تم الإنشاء ولم يكتمل بعد</td><td><span class="badge badge-muted">لا</span></td></tr>
+              <tr><td><code>completed</code></td><td>تمت معالجة الدفع بنجاح</td><td><span class="badge badge-green">نعم — كلي أو جزئي</span></td></tr>
+              <tr><td><code>partial_refund</code></td><td>تم إرجاع بعض العناصر</td><td><span class="badge badge-green">نعم — يمكن إرجاع المزيد</span></td></tr>
+              <tr><td><code>refunded</code></td><td>استُرد كامل مبلغ الفاتورة</td><td><span class="badge badge-muted">لا — مسترد بالكامل</span></td></tr>
+              <tr><td><code>cancelled</code></td><td>تم إلغاء الفاتورة</td><td><span class="badge badge-muted">لا</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 11 — AUTH
+    ══════════════════════════════════════════ -->
+    <section class="section" id="auth">
+      <div class="section-header"><span class="section-num">11</span><h2>المصادقة وتسجيل الدخول</h2></div>
+      <div class="section-body">
+        <p style="margin-bottom:14px; font-weight:700; color:var(--text);">تطبيق الجوال — رمز OTP</p>
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">أدخل رقم الهاتف ← يصل رمز OTP عبر <strong>SMS</strong> أو <strong>واتساب</strong></span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">الرمز صالح لـ <strong>5 دقائق</strong> — إعادة الإرسال بعد <strong>60 ثانية</strong> — الحد الأقصى <strong>5 محاولات</strong></span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">عند النجاح: رمز وصول JWT صالح <strong>60 دقيقة</strong> + رمز تحديث صالح <strong>30 يومًا</strong></span></div>
+        </div>
+        <p style="margin: 22px 0 14px; font-weight:700; color:var(--text);">لوحة تحكم الإدارة — كلمة مرور</p>
+        <div class="steps">
+          <div class="step"><span class="step-num">01</span><span class="step-text">يُعيَّن المالك كلمة مروره <strong>مرة واحدة</strong> عبر تطبيق الجوال</span></div>
+          <div class="step"><span class="step-num">02</span><span class="step-text">الدخول باستخدام <strong>رقم الهاتف + كلمة المرور</strong> من لوحة الإدارة</span></div>
+          <div class="step"><span class="step-num">03</span><span class="step-text">يتجدد الرمز تلقائيًا — الجلسة تنتهي بعد <strong>30 يومًا</strong> من عدم النشاط</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 12 — DASHBOARD
+    ══════════════════════════════════════════ -->
+    <section class="section" id="dashboard">
+      <div class="section-header"><span class="section-num">12</span><h2>لوحة تحكم الإدارة</h2></div>
+      <div class="section-body">
+        <p>مخصصة للـ<strong>مالكين</strong> و<strong>مديري النظام</strong> فقط.</p>
+        <div class="table-wrap" style="margin-top:16px">
+          <table>
+            <thead><tr><th>القسم</th><th>من يراه</th><th>ما يفعله</th></tr></thead>
+            <tbody>
+              <tr><td>الرئيسية</td><td><span class="access-both">مالك + مدير نظام</span></td><td>مؤشرات الإيرادات، مخطط المبيعات، تنبيهات المخزون</td></tr>
+              <tr><td>المبيعات</td><td><span class="access-both">مالك + مدير نظام</span></td><td>سجل المبيعات، مسترجعات، مؤشر المسترجعات اليومية</td></tr>
+              <tr><td>المنتجات</td><td><span class="access-both">مالك + مدير نظام</span></td><td>إدارة المنتجات والفئات</td></tr>
+              <tr><td>المخزون</td><td><span class="access-both">مالك + مدير نظام</span></td><td>مستويات المخزون، الحركات، الدُفعات وتواريخ الانتهاء</td></tr>
+              <tr><td>العملاء</td><td><span class="access-both">مالك + مدير نظام</span></td><td>قائمة العملاء، نقاط الولاء</td></tr>
+              <tr><td>المستخدمون</td><td><span class="access-owner">مالك فقط</span></td><td>إدارة الموظفين (دعوة، تعطيل)</td></tr>
+              <tr><td>الملاك</td><td><span class="access-admin">مدير نظام فقط</span></td><td>جميع حسابات الملاك</td></tr>
+              <tr><td>الأعمال التجارية</td><td><span class="access-admin">مدير نظام فقط</span></td><td>جميع الأعمال، تفعيل/تعطيل</td></tr>
+              <tr><td>الاشتراكات</td><td><span class="access-admin">مدير نظام فقط</span></td><td>إدارة جميع الاشتراكات</td></tr>
+              <tr><td>الخطط</td><td><span class="access-admin">مدير نظام فقط</span></td><td>إنشاء الخطط وتهيئة الخصائص</td></tr>
+              <tr><td>سجلات النشاط</td><td><span class="access-admin">مدير نظام فقط</span></td><td>سجل تدقيق كامل للمنصة</td></tr>
+              <tr><td>النظام</td><td><span class="access-admin">مدير نظام فقط</span></td><td>إعدادات المنصة</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════
+         SECTION 13 — SUPPORT
+    ══════════════════════════════════════════ -->
+    <section class="section" id="support">
+      <div class="section-header"><span class="section-num">13</span><h2>سيناريوهات الدعم الشائعة</h2></div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table class="support-table">
+            <thead><tr><th>الشكوى</th><th>السبب المحتمل</th><th>الحل</th></tr></thead>
+            <tbody>
+              <tr><td>"لا أستطيع إضافة المزيد من المنتجات"</td><td>الوصول إلى حد <code>max_products</code></td><td>ترقية الخطة أو تعطيل منتجات غير مستخدمة</td></tr>
+              <tr><td>"لا أستطيع إنشاء فرع جديد"</td><td>الوصول إلى حد <code>max_shops</code></td><td>ترقية الخطة</td></tr>
+              <tr><td>"لا أستطيع دعوة المزيد من الموظفين"</td><td>الوصول إلى حد <code>max_users</code></td><td>ترقية الخطة أو تعطيل موظفين غير نشطين</td></tr>
+              <tr><td>"خيار استقبال البضاعة غير موجود"</td><td><code>inventory_inbound_receiving</code> غير مفعّل</td><td>تفعيل مفتاح الميزة في خطتهم</td></tr>
+              <tr><td>"المخزون لا ينخفض عند البيع"</td><td>نوع النشاط <code>restaurant</code></td><td>تغيير النوع إلى <code>shop</code></td></tr>
+              <tr><td>"لا أستطيع الدخول إلى لوحة الإدارة"</td><td>لم تُعيَّن كلمة مرور أو رقم خاطئ</td><td>يعيّن المالك كلمة مرور أولًا من التطبيق</td></tr>
+              <tr><td>"الفاتورة 'مسترد جزئيًا' والعميل يريد كاملًا"</td><td>سبق إصدار استرداد جزئي</td><td>أصدر استردادًا آخر للعناصر المتبقية</td></tr>
+              <tr><td>"رمز OTP لا يصل"</td><td>مشكلة في SMS أو واتساب</td><td>جرّب القناة الأخرى، تأكد من صحة الرقم</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Fade-in on scroll
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.section:not(.visible)').forEach(s => io.observe(s));
+
+  // Active nav
+  const navIds = ['intro','target','revenue','subscription','types','roles','plans','flags','features','payments','statuses','auth','dashboard','support'];
+  const navItems = document.querySelectorAll('.nav-item');
+
+  const sio = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      navItems.forEach(n => n.classList.toggle('active', n.getAttribute('href') === '#' + e.target.id));
+    });
+  }, { rootMargin: '-30% 0px -65% 0px' });
+
+  navIds.forEach(id => { const el = document.getElementById(id); if (el) sio.observe(el); });
+</script>
+</body>
+</html>

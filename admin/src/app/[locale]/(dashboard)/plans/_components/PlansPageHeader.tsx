@@ -1,26 +1,27 @@
-import { Package } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import CreatePlanButton from "./CreatePlanButton";
 
 export default async function PlansPageHeader() {
-  const t = await getTranslations("plans");
+  const [t, locale] = await Promise.all([
+    getTranslations("plans"),
+    getLocale(),
+  ]);
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 
   return (
-    <div className="flex items-start justify-between mb-6 gap-4">
-      <div className="flex items-center gap-3">
-        <span className="w-10 h-10 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0 [&_svg]:size-5">
-          <Package />
-        </span>
-
-        <div>
-          <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
-            {t("title")}
-          </h1>
-
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {t("description")}
-          </p>
-        </div>
+    <div className="flex items-start justify-between mb-4 gap-4">
+      <div>
+        <h1 className="text-[21px] font-semibold text-foreground tracking-[-.025em] leading-tight">
+          {t("title")}
+        </h1>
+        <p className="text-[13px] text-muted-foreground mt-1">{dateStr}</p>
       </div>
 
       <div className="shrink-0 mt-0.5">

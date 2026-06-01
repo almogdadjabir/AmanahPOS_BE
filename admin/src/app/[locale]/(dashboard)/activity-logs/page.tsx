@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
-import { History } from 'lucide-react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { fetchActivityLogs } from '@/services/admin';
 import type { ActivityAction, ActivityEntityType } from '@/types/api';
 import ActivityFeed       from './_components/ActivityFeed';
@@ -49,39 +48,43 @@ async function ActivityContent({ searchParams }: Props) {
 }
 
 export default async function ActivityLogsPage(props: Props) {
-  const t = await getTranslations('activityLog');
+  const [t, locale] = await Promise.all([
+    getTranslations('activityLog'),
+    getLocale(),
+  ]);
+
+  const now = new Date();
+  const dateStr = now.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+  });
+
   return (
-    <div>
-      {/* Page header */}
-      <div className="flex items-start gap-3 mb-6">
-        <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 [&_svg]:size-5">
-          <History />
-        </span>
-        <div>
-          <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">
-            {t('title')}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {t('description')}
-          </p>
-        </div>
+    <div className="space-y-4">
+      {/* Fix: simple title header, no big icon */}
+      <div>
+        <h1 className="text-[21px] font-semibold text-foreground tracking-[-.025em] leading-tight">
+          {t('title')}
+        </h1>
+        <p className="text-[13px] text-muted-foreground mt-1">{dateStr}</p>
       </div>
 
-      {/* Filters (client — needs useSearchParams) */}
+      {/* Filters */}
       <Suspense fallback={
-        <div className="flex flex-wrap gap-2 mb-5">
-          <Bone className="h-9 flex-1 min-w-[180px] max-w-xs rounded-lg" />
-          <Bone className="h-9 w-36 rounded-lg" />
-          <Bone className="h-9 w-32 rounded-lg" />
-          <Bone className="h-9 w-32 rounded-lg" />
-          <Bone className="h-9 w-32 rounded-lg" />
+        <div className="space-y-2">
+          <Bone className="h-9 w-full rounded-lg" />
+          <div className="flex flex-wrap gap-2">
+            <Bone className="h-9 flex-1 min-w-[140px] rounded-lg" />
+            <Bone className="h-9 flex-1 min-w-[120px] rounded-lg" />
+            <Bone className="h-9 flex-1 min-w-[140px] rounded-lg" />
+            <Bone className="h-9 flex-1 min-w-[140px] rounded-lg" />
+          </div>
         </div>
       }>
         <ActivityFilters />
       </Suspense>
 
-      {/* Feed */}
-      <div className="rounded-xl border border-border/50 bg-card p-5 shadow-sm">
+      {/* Feed card — Fix: shadow-xs + solid border */}
+      <div className="rounded-xl border border-border bg-card shadow-xs p-5">
         <Suspense fallback={<TableSkeleton rows={8} cols={1} />}>
           <ActivityContent searchParams={props.searchParams} />
         </Suspense>

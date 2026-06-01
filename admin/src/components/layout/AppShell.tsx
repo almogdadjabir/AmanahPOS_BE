@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { Menu, ChevronRight } from "lucide-react";
 import type { UserProfile, BusinessType } from "@/types/api";
 import { cn } from "@/lib/utils";
 import Sidebar from "./Sidebar";
@@ -40,7 +40,6 @@ interface Props {
 
 export default function AppShell({ profile, businessType, children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const t = useTranslations("nav");
   const tCommon = useTranslations("common");
   const locale = useLocale() as "ar" | "en";
   const router = useRouter();
@@ -92,7 +91,11 @@ export default function AppShell({ profile, businessType, children }: Props) {
       />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="sticky top-0 z-10 h-14 bg-card border-b border-border flex items-center gap-3 px-4 shrink-0">
+        {/* Fix #1: h-[60px] matches sidebar brand block → one continuous top hairline
+            Fix #17: breadcrumbs on desktop
+            Fix #3: EN|ع segmented control
+            Fix #12: Live pill first in right cluster */}
+        <header className="sticky top-0 z-10 h-[60px] bg-background/80 backdrop-saturate-[180%] backdrop-blur-md border-b border-border flex items-center gap-3 px-6 shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
             className={cn(
@@ -109,24 +112,53 @@ export default function AppShell({ profile, businessType, children }: Props) {
             <Logo size={24} />
           </div>
 
-          <div className="flex items-center gap-2 ms-auto">
-            {/* Locale switcher */}
-            <button
-              onClick={switchLocale}
-              disabled={isPending}
-              className={cn(
-                "h-8 px-3 rounded-md border border-border",
-                "text-xs font-semibold text-muted-foreground",
-                "hover:bg-muted hover:text-foreground",
-                "transition-all disabled:opacity-40",
-              )}
-            >
-              {tCommon("switchLocale")}
-            </button>
+          {/* Fix #17: breadcrumb — desktop only */}
+          <nav className="hidden lg:flex items-center gap-1.5 flex-1 text-[13px]" aria-label="breadcrumb">
+            <span className="text-muted-foreground font-[450]">
+              {isAdmin ? "Platform" : "AmanaPOS"}
+            </span>
+            <ChevronRight size={13} className="text-icon-rest shrink-0 flip-rtl" />
+            <span className="font-medium text-foreground">{pageTitle}</span>
+          </nav>
 
-            <div className="w-px h-5 bg-border mx-1" />
+          <div className="flex items-center gap-2 ms-auto lg:ms-0">
+            {/* Fix #12: Live pill — admin only, first in right cluster */}
+            {isAdmin && (
+              <div className="hidden sm:inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full bg-success-light text-success text-[12px] font-[550] shrink-0">
+                <span className="w-[7px] h-[7px] rounded-full bg-[#12B981] online-dot shrink-0" />
+                {tCommon("live")}
+              </div>
+            )}
 
-            {/* User menu */}
+            {/* Fix #3: EN|ع proper segmented control, 34px, aligned in cluster */}
+            <div className="flex border border-input rounded-md overflow-hidden h-[34px] shrink-0">
+              <button
+                onClick={locale === "ar" ? undefined : switchLocale}
+                disabled={isPending}
+                className={cn(
+                  "px-2.5 text-[12px] font-[550] transition-[background,color] duration-150 disabled:opacity-40",
+                  locale === "ar"
+                    ? "bg-primary-tint text-primary-700"
+                    : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                ع
+              </button>
+              <div className="w-px bg-border shrink-0" />
+              <button
+                onClick={locale === "en" ? undefined : switchLocale}
+                disabled={isPending}
+                className={cn(
+                  "px-2.5 text-[12px] font-[550] transition-[background,color] duration-150 disabled:opacity-40",
+                  locale === "en"
+                    ? "bg-primary-tint text-primary-700"
+                    : "bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+              >
+                EN
+              </button>
+            </div>
+
             <UserMenu profile={profile} />
           </div>
         </header>

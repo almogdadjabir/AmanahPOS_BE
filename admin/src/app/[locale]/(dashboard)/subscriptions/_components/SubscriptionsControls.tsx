@@ -15,7 +15,7 @@ function TabGroup<T extends string>({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.08em] shrink-0">
+      <span className="text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider shrink-0 select-none">
         {label}
       </span>
       <div className="flex items-center gap-0.5 bg-muted rounded-lg p-0.5">
@@ -40,7 +40,7 @@ function TabGroup<T extends string>({
 }
 
 export default function SubscriptionsControls() {
-  const t = useTranslations('subscriptions');
+  const t            = useTranslations('subscriptions');
   const router       = useRouter();
   const pathname     = usePathname();
   const searchParams = useSearchParams();
@@ -62,11 +62,8 @@ export default function SubscriptionsControls() {
   ] as const;
 
   return (
-    <div className="flex items-center gap-4 flex-wrap mb-5 p-3 bg-card rounded-xl border border-border shadow-card">
-      <SearchInput
-        placeholder={t('searchPlaceholder')}
-        className="w-full sm:w-72"
-      />
+    <div className="flex items-center gap-4 flex-wrap mb-4 p-3 bg-card rounded-xl border border-border shadow-xs">
+      <SearchInput placeholder={t('searchPlaceholder')} className="w-full sm:w-72" />
       <div className="h-4 w-px bg-border hidden sm:block" />
       <TabGroup
         label={t('statusLabel')}

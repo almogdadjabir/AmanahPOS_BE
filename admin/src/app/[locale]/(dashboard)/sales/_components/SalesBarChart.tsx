@@ -17,9 +17,7 @@ export default function SalesBarChart({ data }: Props) {
     <BarChart
       data={data}
       height={120}
-      color="#5eead4"
-      peakColor="#0F766E"
-      highlightPeak
+      color="#0F766E"
     />
   );
 }

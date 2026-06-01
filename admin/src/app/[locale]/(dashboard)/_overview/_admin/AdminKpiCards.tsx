@@ -11,26 +11,27 @@ interface KpiConfig {
   value: string;
   sub: string;
   icon: React.ReactNode;
-  topColor: string;
   iconClass: string;
 }
 
-function KpiCard({ label, value, sub, icon, topColor, iconClass }: KpiConfig) {
+function KpiCard({ label, value, sub, icon, iconClass }: KpiConfig) {
   return (
+    // Fix #5: no border-t accent bar — border + shadow-xs only
     <div
       className={cn(
-        "relative bg-card rounded-xl border border-border border-t-[3px] overflow-hidden",
-        "shadow-card p-5 flex flex-col gap-3 group hover:shadow-card-md transition-shadow duration-200",
-        topColor,
+        "bg-card rounded-xl border border-border shadow-xs p-5 flex flex-col gap-3",
+        "hover:shadow-card hover:-translate-y-px transition-[box-shadow,transform] duration-200 cursor-default",
       )}
     >
       <div className="flex items-start justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground leading-none pt-0.5 select-none">
+        {/* Fix #18: table-header-style label */}
+        <p className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground leading-none pt-0.5 select-none">
           {label}
         </p>
+        {/* Fix #8: unified icon chip — 32px, rounded-[9px] */}
         <span
           className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+            "w-[32px] h-[32px] rounded-[9px] flex items-center justify-center shrink-0",
             "[&_svg]:size-[15px]",
             iconClass,
           )}
@@ -40,7 +41,8 @@ function KpiCard({ label, value, sub, icon, topColor, iconClass }: KpiConfig) {
       </div>
 
       <div>
-        <p className="text-[32px] font-black text-foreground leading-none tabular-nums tracking-tight">
+        {/* Fix #7: font-semibold 600, 27px, tight tracking, tabular */}
+        <p className="text-[27px] font-semibold text-foreground leading-none tabular-nums tracking-[-.03em] num">
           {value}
         </p>
         <p className="text-[11px] text-muted-foreground mt-2 leading-snug">
@@ -56,44 +58,41 @@ export default async function AdminKpiCards({ stats }: Props) {
 
   const t = await getTranslations("dashboard");
   const fmt = new Intl.NumberFormat("en-US");
-  const hasExpired = stats.expired_subscriptions > 0;
 
+  // Fix #6: no blue anywhere — neutral/teal/amber set only
   const cards: KpiConfig[] = [
     {
       label: t("kpi.totalOwners"),
       value: fmt.format(stats.total_owners),
       sub: `+${fmt.format(stats.new_owners_this_month)} ${t("kpi.totalOwnersSub")}`,
       icon: <Users />,
-      topColor: "border-t-primary",
-      iconClass: "bg-primary/10 text-primary",
+      iconClass: "bg-primary-tint [&_svg]:text-primary",
     },
     {
       label: t("kpi.totalBusinesses"),
       value: fmt.format(stats.total_businesses),
       sub: `${fmt.format(stats.total_shops)} ${t("kpi.totalBusinessesSub")}`,
       icon: <Store />,
-      topColor: "border-t-info",
-      iconClass: "bg-info/10 text-info",
+      // Fix #6: no blue — neutral gray
+      iconClass: "bg-muted [&_svg]:text-muted-foreground",
     },
     {
       label: t("kpi.activeSubscriptions"),
       value: fmt.format(stats.active_subscriptions),
       sub: t("kpi.activeSubscriptionsSub"),
       icon: <CreditCard />,
-      topColor: "border-t-success",
-      iconClass: "bg-success/10 text-success",
+      iconClass: "bg-success-light [&_svg]:text-success",
     },
     {
       label: t("kpi.expiredSubscriptions"),
       value: fmt.format(stats.expired_subscriptions),
-      sub: hasExpired
-        ? t("kpi.expiredSubscriptionsSub")
-        : t("kpi.noExpiredSub"),
+      sub:
+        stats.expired_subscriptions > 0
+          ? t("kpi.expiredSubscriptionsSub")
+          : t("kpi.noExpiredSub"),
       icon: <AlertTriangle />,
-      topColor: hasExpired ? "border-t-destructive" : "border-t-success",
-      iconClass: hasExpired
-        ? "bg-destructive/10 text-destructive"
-        : "bg-success/10 text-success",
+      // Fix #6: neutral gray — the value itself communicates severity, not the chip
+      iconClass: "bg-muted [&_svg]:text-muted-foreground",
     },
   ];
 

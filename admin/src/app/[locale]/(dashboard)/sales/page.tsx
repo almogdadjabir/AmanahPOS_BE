@@ -1,11 +1,13 @@
 import { Suspense, cache } from 'react';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { apiGet } from '@/lib/api';
 import { withUserCache } from '@/lib/serverCache';
 import { CACHE_TAGS } from '@/lib/cacheTags';
-import { fetchBusiness, fetchUserProfile } from '@/services/owner';
+import { fetchBusiness } from '@/services/owner';
 import { ShopSwitcherBar } from '@/components/ShopSwitcherBar';
 import SalesTableClient from './_components/SalesTableClient';
+import { Clock, Calendar, CreditCard, RotateCcw } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 import type { ApiList, ApiResponse, Sale, SalesSummary, SalesShopBreakdown } from '@/types/api';
@@ -21,13 +23,41 @@ function toISO(d: Date) { return d.toISOString().split('T')[0]; }
 function firstOfMonth()  { const d = new Date(); d.setDate(1); return toISO(d); }
 function daysAgo(n: number) { const d = new Date(); d.setDate(d.getDate() - n); return toISO(d); }
 
+// ── S4: Full grouped tabular figures — no K/M abbreviation (chart Y-axis only may abbreviate)
+function fmtMoney(v: number) {
+  return new Intl.NumberFormat('en-US').format(Math.round(v));
+}
+
+// ── S1: Method colors — no blue, slate for cash/card/neutral, teal for bankak ─
+// BAR class used for the stacked segment and legend dot
+const METHOD_BAR_CLASS: Record<string, string> = {
+  cash:           'bg-[#94A1B2]',           // slate-dot
+  bankak:         'bg-primary',              // teal
+  card:           'bg-muted-foreground/50',
+  bank_transfer:  'bg-warning/70',
+  mobile_wallet:  'bg-muted-foreground/40',
+  loyalty_points: 'bg-warning/60',
+  split:          'bg-muted-foreground/30',
+  credit:         'bg-danger/70',
+};
+// TEXT class for the legend amount
+const METHOD_TEXT: Record<string, string> = {
+  cash:           'text-[#536074]',
+  bankak:         'text-primary',
+  card:           'text-muted-foreground',
+  bank_transfer:  'text-warning',
+  mobile_wallet:  'text-muted-foreground',
+  loyalty_points: 'text-warning',
+  split:          'text-muted-foreground',
+  credit:         'text-danger',
+};
+const METHOD_LABEL: Record<string, string> = {
+  cash: 'Cash', bankak: 'Bankak', card: 'Card',
+  bank_transfer: 'Bank', mobile_wallet: 'Mobile',
+  loyalty_points: 'Points', split: 'Split', credit: 'Credit',
+};
+
 // ── Cached fetchers ───────────────────────────────────────────────────────────
-// Two-layer caching:
-//   • React.cache()   — deduplicates concurrent calls within the SAME render
-//     (SalesChartSection + SalesByShopSection get cache hits, no extra HTTP requests)
-//   • withUserCache() — persists results across navigations (30–60s TTL per user+shop)
-//     so rapid shop-switching hits the Next.js Data Cache instead of the API,
-//     preventing 429 rate-limit bursts.
 
 const _weekSales = cache(async (dateFrom: string, dateTo: string, shopId: string | undefined) =>
   withUserCache(
@@ -73,39 +103,42 @@ const _recentSales = cache(async (shopId: string | undefined, page: number) =>
   )
 );
 
-// ── Display helpers ───────────────────────────────────────────────────────────
+// ── S3: Shared KPI card structure — icon chip, neutral label, uniform padding ─
 
-function fmtMoney(v: number) {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(2)}M`;
-  if (v >= 1_000)     return `${(v / 1_000).toFixed(1)}K`;
-  return v.toFixed(0);
+function KpiCard({
+  label, value, footer, icon, chipClass,
+}: {
+  label: string;
+  value: number;
+  footer: React.ReactNode;
+  icon: React.ReactNode;
+  chipClass?: string;
+}) {
+  return (
+    <div className="bg-card rounded-xl border border-border shadow-xs p-4 hover:shadow-card hover:-translate-y-px transition-[box-shadow,transform] duration-200 cursor-default">
+      <div className="flex items-center justify-between mb-3">
+        {/* S2: all labels = identical neutral-gray uppercase — no color in label */}
+        <p className="text-[11px] font-semibold uppercase tracking-[.04em] text-muted-foreground select-none">
+          {label}
+        </p>
+        {/* S3: icon chip top-right — teal-tint by default, neutral for zero/empty states */}
+        <span className={cn(
+          "w-[30px] h-[30px] rounded-lg flex items-center justify-center [&_svg]:size-[15px] shrink-0",
+          chipClass ?? "bg-primary-tint [&_svg]:text-primary",
+        )}>
+          {icon}
+        </span>
+      </div>
+      {/* S4: full grouped tabular figures, not K */}
+      <p className="text-[28px] font-semibold text-foreground leading-none tabular-nums num">
+        {fmtMoney(value)}
+        <span className="text-[12.5px] font-medium text-muted-foreground ms-1.5">SDG</span>
+      </p>
+      <div className="text-[12px] text-muted-foreground mt-2">{footer}</div>
+    </div>
+  );
 }
 
-const METHOD_LABEL: Record<string, string> = {
-  cash: 'Cash', bankak: 'Bankak', card: 'Card',
-  bank_transfer: 'Bank', mobile_wallet: 'Mobile', loyalty_points: 'Points',
-  split: 'Split', credit: 'Credit',
-};
-const METHOD_COLOR: Record<string, string> = {
-  cash:           'bg-info/80',
-  bankak:         'bg-success/80',
-  card:           'bg-primary/80',
-  bank_transfer:  'bg-warning/80',
-  mobile_wallet:  'bg-purple-500/80',
-  loyalty_points: 'bg-orange-400/80',
-  split:          'bg-slate-400/80',
-  credit:         'bg-rose-400/80',
-};
-const METHOD_TEXT: Record<string, string> = {
-  cash:           'text-info',
-  bankak:         'text-success',
-  card:           'text-primary',
-  bank_transfer:  'text-warning',
-  mobile_wallet:  'text-purple-600',
-  loyalty_points: 'text-orange-500',
-  split:          'text-slate-500',
-  credit:         'text-rose-500',
-};
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function SalesPage({
@@ -113,9 +146,10 @@ export default async function SalesPage({
 }: {
   searchParams: Promise<{ shop_id?: string; page?: string }>;
 }) {
-  const [t, params] = await Promise.all([
+  const [t, params, locale] = await Promise.all([
     getTranslations('sales'),
     searchParams,
+    getLocale(),
   ]);
   const selectedShop = params.shop_id;
   const currentPage  = Math.max(1, Number(params.page) || 1);
@@ -123,19 +157,21 @@ export default async function SalesPage({
   const bizRes = await fetchBusiness();
   const shops  = bizRes?.data?.[0]?.shops ?? [];
 
-  const todayDate = new Date().toLocaleDateString(undefined, {
-    weekday: 'long', month: 'long', day: 'numeric',
+  const todayDate = new Date().toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
 
-      {/* ── Page header ───────────────────────────────────────────────────── */}
+      {/* S7: simple title header — same pattern as other pages */}
       <div>
         <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
           <div>
-            <h1 className="text-[22px] font-black text-foreground tracking-tight leading-tight">{t('title')}</h1>
-            <p className="text-[13px] text-muted-foreground mt-0.5">{todayDate}</p>
+            <h1 className="text-[21px] font-semibold text-foreground tracking-[-.025em] leading-tight">
+              {t('title')}
+            </h1>
+            <p className="text-[13px] text-muted-foreground mt-1">{todayDate}</p>
           </div>
         </div>
         <Suspense fallback={null}>
@@ -143,28 +179,28 @@ export default async function SalesPage({
         </Suspense>
       </div>
 
-      {/* ── KPI row ───────────────────────────────────────────────────────── */}
+      {/* KPI row */}
       <ErrorBoundary fallback={<SectionError message="Failed to load sales summary" />}>
         <Suspense fallback={<SalesKpiSkeleton />}>
           <SalesSummarySection shopId={selectedShop} />
         </Suspense>
       </ErrorBoundary>
 
-      {/* ── 7-day bar chart + payment breakdown ───────────────────────────── */}
+      {/* 7-day bar chart + payment breakdown */}
       <ErrorBoundary fallback={<SectionError message="Failed to load chart data" />}>
         <Suspense fallback={<ChartSkeleton />}>
           <SalesChartSection shopId={selectedShop} />
         </Suspense>
       </ErrorBoundary>
 
-      {/* ── Per-shop revenue breakdown ────────────────────────────────────── */}
+      {/* Per-shop revenue breakdown */}
       <ErrorBoundary fallback={<SectionError message="Failed to load shop breakdown" />}>
         <Suspense fallback={<ShopBreakdownSkeleton />}>
           <SalesByShopSection shopId={selectedShop} />
         </Suspense>
       </ErrorBoundary>
 
-      {/* ── Recent transactions ───────────────────────────────────────────── */}
+      {/* Recent transactions */}
       <ErrorBoundary fallback={<SectionError message="Failed to load recent transactions" />}>
         <Suspense fallback={<TableSkeleton rows={8} cols={7} />}>
           <SalesRecentSection shopId={selectedShop} page={currentPage} />
@@ -175,7 +211,7 @@ export default async function SalesPage({
   );
 }
 
-// ── Section: KPI cards (today + month + bankak) ───────────────────────────────
+// ── Section: KPI cards ────────────────────────────────────────────────────────
 
 async function SalesSummarySection({ shopId }: { shopId?: string }) {
   const t = await getTranslations('sales');
@@ -197,80 +233,74 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
   const bankakTotal = bankakSales.reduce((s, x) => s + parseFloat(x.net_amount), 0);
   const bankakAcct  = bankakSales.find(s => s.bankak_account_snapshot)?.bankak_account_snapshot ?? null;
 
+  const refundTotal  = parseFloat(todayData?.total_refunds ?? '0');
+  const refundCount  = todayData?.refund_count ?? 0;
+  const hasRefunds   = refundCount > 0;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
       {/* Today */}
-      <div className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[10px] font-black tracking-[.18em] uppercase text-muted-foreground mb-3">{t('today')}</p>
-        <p className="text-[32px] font-black text-foreground leading-none tabular-nums">
-          {fmtMoney(parseFloat(todayData?.total_revenue ?? '0'))}
-          <span className="text-[14px] font-semibold text-muted-foreground ml-1.5">SDG</span>
-        </p>
-        <p className="text-[12px] text-muted-foreground mt-2">
-          {todayData?.total_sales ?? 0} {todayData?.total_sales === 1 ? 'sale' : 'sales'}
-          {parseFloat(todayData?.total_discount ?? '0') > 0 && (
-            <span className="text-danger/70 ml-2">
-              −{fmtMoney(parseFloat(todayData?.total_discount ?? '0'))} disc.
-            </span>
-          )}
-        </p>
-      </div>
+      <KpiCard
+        label={t('today')}
+        value={parseFloat(todayData?.total_revenue ?? '0')}
+        icon={<Clock />}
+        footer={
+          <>
+            <b className="text-foreground/80 font-semibold">{todayData?.total_sales ?? 0}</b>
+            {' '}{todayData?.total_sales === 1 ? 'sale' : 'sales'}
+          </>
+        }
+      />
 
       {/* This month */}
-      <div className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[10px] font-black tracking-[.18em] uppercase text-muted-foreground mb-3">{t('thisMonth')}</p>
-        <p className="text-[32px] font-black text-foreground leading-none tabular-nums">
-          {fmtMoney(parseFloat(monthData?.total_revenue ?? '0'))}
-          <span className="text-[14px] font-semibold text-muted-foreground ml-1.5">SDG</span>
-        </p>
-        <p className="text-[12px] text-muted-foreground mt-2">
-          {monthData?.total_sales ?? 0} sales ·{' '}
-          avg {fmtMoney(parseFloat(monthData?.avg_sale_value ?? '0'))} SDG
-        </p>
-      </div>
+      <KpiCard
+        label={t('thisMonth')}
+        value={parseFloat(monthData?.total_revenue ?? '0')}
+        icon={<Calendar />}
+        footer={
+          <>
+            <b className="text-foreground/80 font-semibold">{monthData?.total_sales ?? 0}</b>
+            {' '}sales · avg{' '}
+            <b className="text-foreground/80 font-semibold">{fmtMoney(parseFloat(monthData?.avg_sale_value ?? '0'))}</b>
+            {' '}SDG
+          </>
+        }
+      />
 
-      {/* Bankak */}
-      <div className="relative overflow-hidden bg-card rounded-xl border border-success/20 shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-success/5 -translate-y-6 translate-x-6 pointer-events-none" />
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-black tracking-[.18em] uppercase text-success">{t('bankakBalance')}</p>
-          <span className="text-[9px] font-bold tracking-wide text-success/70 bg-success/8 border border-success/15 px-2 py-0.5 rounded-full">
-            {t('thisWeek')}
-          </span>
-        </div>
-        <p className="text-[32px] font-black text-foreground leading-none tabular-nums">
-          {fmtMoney(bankakTotal)}
-          <span className="text-[14px] font-semibold text-muted-foreground ml-1.5">SDG</span>
-        </p>
-        <p className="text-[12px] text-muted-foreground mt-2">
-          {bankakSales.length} Bankak {bankakSales.length === 1 ? 'payment' : 'payments'}
-          {bankakAcct && (
-            <span className="font-mono text-success/80 ml-1.5">· {bankakAcct}</span>
-          )}
-        </p>
-      </div>
+      {/* Bankak balance */}
+      <KpiCard
+        label={t('bankakBalance')}
+        value={bankakTotal}
+        icon={<CreditCard />}
+        footer={
+          <>
+            <b className="text-foreground/80 font-semibold">{bankakSales.length}</b>
+            {' '}Bankak {bankakSales.length === 1 ? 'payment' : 'payments'}
+            {/* S1: Bankak account ref = teal-700 mono, not success/blue */}
+            {bankakAcct && (
+              <a className="font-mono text-primary-700 ms-1.5 hover:underline cursor-pointer">
+                · {bankakAcct}
+              </a>
+            )}
+          </>
+        }
+      />
 
-      {/* Today's refunds */}
-      <div className="bg-card rounded-xl border border-orange-100 shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[10px] font-black tracking-[.18em] uppercase text-orange-500 mb-3">
-          {t('refunds.todayTitle')}
-        </p>
-        <p className="text-[32px] font-black text-foreground leading-none tabular-nums">
-          {fmtMoney(parseFloat(todayData?.total_refunds ?? '0'))}
-          <span className="text-[14px] font-semibold text-muted-foreground ml-1.5">SDG</span>
-        </p>
-        <p className="text-[12px] text-muted-foreground mt-2">
-          {(todayData?.refund_count ?? 0) === 0
-            ? t('refunds.noRefunds')
-            : `${todayData?.refund_count} ${
-                todayData?.refund_count === 1
-                  ? t('refunds.count')
-                  : t('refunds.counts')
-              }`
-          }
-        </p>
-      </div>
+      {/* Today's refunds — S3: neutral chip when 0 */}
+      <KpiCard
+        label={t('refunds.todayTitle')}
+        value={refundTotal}
+        icon={<RotateCcw />}
+        chipClass={hasRefunds
+          ? 'bg-warning-light [&_svg]:text-warning'
+          : 'bg-muted [&_svg]:text-muted-foreground'}
+        footer={
+          hasRefunds
+            ? <><b className="text-foreground/80 font-semibold">{refundCount}</b> {refundCount === 1 ? t('refunds.count') : t('refunds.counts')}</>
+            : <>{t('refunds.noRefunds')}</>
+        }
+      />
     </div>
   );
 }
@@ -281,7 +311,6 @@ async function SalesChartSection({ shopId }: { shopId?: string }) {
   const t = await getTranslations('sales');
   const today   = toISO(new Date());
   const weekAgo = daysAgo(6);
-  // Cache hit — SalesSummarySection already seeded this; no new HTTP request.
   const chartRes = await _weekSales(weekAgo, today, shopId);
   const chart = chartRes?.results ?? [];
 
@@ -308,43 +337,53 @@ async function SalesChartSection({ shopId }: { shopId?: string }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
-      <div className="lg:col-span-3 bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+      <div className="lg:col-span-3 bg-card rounded-xl border border-border shadow-xs p-5">
         <div className="flex items-center justify-between mb-4">
-          <p className="text-[13px] font-bold text-foreground">{t('revenueTitle')}</p>
+          <p className="text-[13px] font-semibold text-foreground">{t('revenueTitle')}</p>
           <p className="text-[11px] text-muted-foreground">SDG</p>
         </div>
         <SalesBarChart data={chartData} />
       </div>
 
-      <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
-        <p className="text-[13px] font-bold text-foreground mb-5">{t('byMethod')}</p>
+      <div className="lg:col-span-2 bg-card rounded-xl border border-border shadow-xs p-5">
+        <p className="text-[13px] font-semibold text-foreground mb-5">{t('byMethod')}</p>
 
         {pmGroups.length === 0 ? (
           <p className="text-[12px] text-muted-foreground">{t('noData')}</p>
         ) : (
           <>
+            {/* S1: stacked bar — teal for bankak, slate for cash, no blue */}
             <div className="flex h-2 rounded-full overflow-hidden mb-5 gap-px">
               {pmGroups.map(g => (
                 <div
                   key={g.method}
-                  className={`${METHOD_COLOR[g.method] ?? 'bg-slate-300'} transition-all`}
+                  className={cn(
+                    METHOD_BAR_CLASS[g.method] ?? 'bg-muted-foreground/30',
+                    'transition-all'
+                  )}
                   style={{ width: `${g.pct}%` }}
                 />
               ))}
             </div>
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {pmGroups.map(g => (
                 <div key={g.method} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${METHOD_COLOR[g.method] ?? 'bg-slate-300'}`} />
-                    <span className="text-[12px] text-muted-foreground font-medium">
+                    {/* S1: dot = slate for cash, teal for bankak */}
+                    <span className={cn(
+                      'w-2 h-2 rounded-full shrink-0',
+                      METHOD_BAR_CLASS[g.method] ?? 'bg-muted-foreground/30',
+                    )} />
+                    <span className="text-[13px] text-foreground font-medium">
                       {METHOD_LABEL[g.method] ?? g.method}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-muted-foreground">{g.pct.toFixed(0)}%</span>
-                    <span className={`text-[12px] font-bold tabular-nums ${METHOD_TEXT[g.method] ?? 'text-foreground'}`}>
-                      {fmtMoney(g.amount)} <span className="font-normal text-muted-foreground text-[10px]">SDG</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] text-muted-foreground tabular-nums">{g.pct.toFixed(0)}%</span>
+                    {/* S4: full numbers */}
+                    <span className={cn('text-[13px] font-semibold tabular-nums num', METHOD_TEXT[g.method] ?? 'text-foreground')}>
+                      {fmtMoney(g.amount)}
+                      <span className="font-normal text-muted-foreground text-[10px] ms-1">SDG</span>
                     </span>
                   </div>
                 </div>
@@ -362,7 +401,7 @@ async function SalesChartSection({ shopId }: { shopId?: string }) {
 async function SalesRecentSection({ shopId, page }: { shopId?: string; page: number }) {
   const [recentRes, profileRes] = await Promise.all([
     _recentSales(shopId, page),
-    fetchUserProfile(),
+    import('@/services/owner').then(m => m.fetchUserProfile()),
   ]);
   const recent    = recentRes?.results ?? [];
   const count     = recentRes?.count ?? 0;
@@ -377,12 +416,10 @@ async function SalesRecentSection({ shopId, page }: { shopId?: string; page: num
 }
 
 // ── Section: per-shop revenue breakdown ──────────────────────────────────────
-// Hides automatically when a single shop is selected (breakdown.length <= 1).
 
 async function SalesByShopSection({ shopId }: { shopId?: string }) {
   const t = await getTranslations('sales');
   const today = toISO(new Date());
-  // Cache hit — SalesSummarySection already seeded this; no new HTTP request.
   const res = await _monthSummary(firstOfMonth(), today, shopId);
   const breakdown = res?.data?.shops_breakdown ?? [];
 
@@ -390,14 +427,17 @@ async function SalesByShopSection({ shopId }: { shopId?: string }) {
 
   const maxTotal = Math.max(...breakdown.map(r => parseFloat(r.total) || 0)) || 1;
 
+  // S1: no blue (bg-info), no purple — use teal + slate + DS status tokens only
+  const SHOP_COLORS = ['bg-primary', 'bg-[#94A1B2]', 'bg-success', 'bg-warning', 'bg-[#94A1B2]/70', 'bg-danger/70'];
+
   return (
-    <div className="bg-card rounded-xl border border-border shadow-[0_1px_4px_0_rgb(0_0_0/.05)] p-5">
+    <div className="bg-card rounded-xl border border-border shadow-xs p-5">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className="text-[13px] font-bold text-foreground">{t('revenueByShop')}</p>
+          <p className="text-[13px] font-semibold text-foreground">{t('revenueByShop')}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5">{t('thisMonthSDG')}</p>
         </div>
-        <span className="text-[10px] font-bold text-muted-foreground bg-muted/40 border border-border px-2.5 py-1 rounded-full">
+        <span className="text-[10px] font-semibold text-muted-foreground bg-muted/60 border border-border px-2.5 py-1 rounded-full select-none">
           {breakdown.length} shops
         </span>
       </div>
@@ -406,14 +446,13 @@ async function SalesByShopSection({ shopId }: { shopId?: string }) {
         {breakdown.map((row, i) => {
           const amount = parseFloat(row.total) || 0;
           const pct    = (amount / maxTotal) * 100;
-          const colors = ['bg-primary', 'bg-info', 'bg-success', 'bg-warning', 'bg-purple-500', 'bg-rose-400'];
-          const color  = colors[i % colors.length];
+          const color  = SHOP_COLORS[i % SHOP_COLORS.length];
 
           return (
             <div key={row.shop_id}>
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${color}`} />
+                  <span className={cn('w-2 h-2 rounded-full shrink-0', color)} />
                   <span className="text-[12px] font-semibold text-foreground truncate">
                     {row.shop_name}
                   </span>
@@ -421,16 +460,14 @@ async function SalesByShopSection({ shopId }: { shopId?: string }) {
                     {row.count} {row.count === 1 ? 'sale' : 'sales'}
                   </span>
                 </div>
-                <span className="text-[13px] font-bold tabular-nums text-foreground ml-3 shrink-0">
+                {/* S4: full numbers */}
+                <span className="text-[13px] font-semibold tabular-nums text-foreground ms-3 shrink-0 num">
                   {fmtMoney(amount)}
-                  <span className="text-[10px] font-normal text-muted-foreground ml-1">SDG</span>
+                  <span className="text-[10px] font-normal text-muted-foreground ms-1">SDG</span>
                 </span>
               </div>
               <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${color} opacity-70 transition-all`}
-                  style={{ width: `${pct}%` }}
-                />
+                <div className={cn('h-full rounded-full opacity-70 transition-all', color)} style={{ width: `${pct}%` }} />
               </div>
             </div>
           );
@@ -469,9 +506,12 @@ function SalesKpiSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={i} className="bg-card rounded-xl border border-border p-5 space-y-3 animate-pulse">
-          <div className="h-2.5 w-16 rounded bg-muted" />
-          <div className="h-8 w-28 rounded bg-muted" />
+        <div key={i} className="bg-card rounded-xl border border-border p-4 space-y-3 animate-pulse">
+          <div className="flex items-center justify-between">
+            <div className="h-2.5 w-16 rounded bg-muted" />
+            <div className="w-[30px] h-[30px] rounded-lg bg-muted" />
+          </div>
+          <div className="h-7 w-28 rounded bg-muted" />
           <div className="h-2.5 w-24 rounded bg-muted" />
         </div>
       ))}
