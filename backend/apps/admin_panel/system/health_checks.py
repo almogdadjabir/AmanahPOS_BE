@@ -1,7 +1,6 @@
 import logging
 import time
 
-import boto3
 import redis
 from django.db import connections
 from django_redis import get_redis_connection
@@ -12,8 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 def check_database() -> dict:
-    from django.db.utils import OperationalError
-
     start = time.monotonic()
     try:
         conn = connections["default"]
@@ -22,7 +19,7 @@ def check_database() -> dict:
             cursor.execute("SELECT 1")
         ms = round((time.monotonic() - start) * 1000)
         return {"status": "up", "response_time_ms": ms, "message": "Database connection is healthy"}
-    except (OperationalError, Exception) as exc:
+    except Exception as exc:
         logger.error("DB health check failed: %s", exc)
         return {"status": "down", "response_time_ms": None, "message": "Database connection failed"}
 
@@ -40,16 +37,19 @@ def check_redis() -> dict:
 
 
 def check_celery_workers() -> dict:
+    # timeout=2.0 applies to the Celery broadcast wait, not the TCP handshake.
+    # A hung broker TCP connection can exceed this timeout.
     try:
         inspect = celery_app.control.inspect(timeout=2.0)
         pong = inspect.ping()
         if pong:
             count = len(pong)
             return {"status": "up", "active_workers": count, "message": f"{count} Celery worker(s) available"}
-        return {"status": "down", "active_workers": 0, "message": "No Celery workers responded"}
+        # Broker is reachable but no workers responded
+        return {"status": "degraded", "active_workers": 0, "message": "Broker reachable but no workers responded"}
     except Exception as exc:
         logger.error("Celery worker check failed: %s", exc)
-        return {"status": "down", "active_workers": 0, "message": "Celery worker check failed"}
+        return {"status": "down", "active_workers": 0, "message": "Celery worker check failed — broker may be unreachable"}
 
 
 def check_celery_queues() -> dict:
@@ -57,6 +57,8 @@ def check_celery_queues() -> dict:
     from .constants import CELERY_QUEUE_NAMES
 
     try:
+        # CELERY_BROKER_URL (Redis DB 1) differs from the cache Redis (DB 0),
+        # so we cannot reuse get_redis_connection("default") here.
         client = redis.from_url(
             settings.CELERY_BROKER_URL,
             socket_connect_timeout=2,
@@ -65,24 +67,46 @@ def check_celery_queues() -> dict:
         )
         client.ping()
         queues = {name: {"pending": client.llen(name)} for name in CELERY_QUEUE_NAMES}
-        return {"status": "up", "queues": queues}
+        total_pending = sum(q["pending"] for q in queues.values())
+        return {"status": "up", "queues": queues, "message": f"{total_pending} total pending task(s)"}
     except Exception as exc:
         logger.error("Celery queue check failed: %s", exc)
         return {"status": "down", "queues": {}, "message": "Celery broker unreachable"}
 
 
 def check_celery_beat() -> dict:
+    """
+    Checks Celery Beat configuration and last heartbeat.
+    Note: this verifies enabled task count and last run time via the DB,
+    not whether the beat process is alive (no liveness probe available without external tooling).
+    """
     try:
+        from django.utils import timezone
+        from datetime import timedelta
         from django_celery_beat.models import PeriodicTask
-        count = PeriodicTask.objects.filter(enabled=True).count()
+
+        enabled_count = PeriodicTask.objects.filter(enabled=True).count()
+        # Check if any task has run in the last 2 hours (beat heartbeat proxy)
+        recent_cutoff = timezone.now() - timedelta(hours=2)
+        recently_ran = PeriodicTask.objects.filter(
+            enabled=True,
+            last_run_at__gte=recent_cutoff,
+        ).exists()
+
+        if recently_ran:
+            return {
+                "status": "up",
+                "enabled_tasks": enabled_count,
+                "message": f"{enabled_count} periodic task(s) enabled, beat running",
+            }
         return {
-            "status": "up",
-            "enabled_tasks": count,
-            "message": f"{count} periodic task(s) enabled",
+            "status": "degraded",
+            "enabled_tasks": enabled_count,
+            "message": f"{enabled_count} periodic task(s) enabled but no recent runs detected (check beat process)",
         }
     except Exception as exc:
         logger.error("Celery beat check failed: %s", exc)
-        return {"status": "unknown", "message": "Celery beat health tracking is not configured yet"}
+        return {"status": "down", "message": "Celery beat check failed"}
 
 
 def check_storage() -> dict:
@@ -92,6 +116,7 @@ def check_storage() -> dict:
         return {"status": "up", "provider": "local", "message": "Local storage"}
 
     try:
+        import boto3
         from botocore.config import Config as BotoConfig
 
         client = boto3.client(

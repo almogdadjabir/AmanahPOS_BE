@@ -229,6 +229,16 @@ class RedisHealthCheckTests(TestCase):
         self.assertNotIn("redis://", result_str)
         self.assertNotIn("6379", result_str)
 
+    def test_redis_success_returns_up(self):
+        from apps.admin_panel.system.health_checks import check_redis
+        with patch("apps.admin_panel.system.health_checks.get_redis_connection") as mock_get:
+            mock_conn = MagicMock()
+            mock_conn.ping.return_value = True
+            mock_get.return_value = mock_conn
+            result = check_redis()
+        self.assertEqual(result["status"], "up")
+        self.assertIsInstance(result["response_time_ms"], int)
+
 
 class CeleryWorkerCheckTests(TestCase):
     def test_workers_available_returns_up(self):
@@ -241,14 +251,14 @@ class CeleryWorkerCheckTests(TestCase):
         self.assertEqual(result["status"], "up")
         self.assertEqual(result["active_workers"], 2)
 
-    def test_no_workers_returns_down(self):
+    def test_no_workers_returns_degraded(self):
         from apps.admin_panel.system.health_checks import check_celery_workers
         with patch("apps.admin_panel.system.health_checks.celery_app") as mock_app:
             mock_inspect = MagicMock()
             mock_inspect.ping.return_value = {}
             mock_app.control.inspect.return_value = mock_inspect
             result = check_celery_workers()
-        self.assertEqual(result["status"], "down")
+        self.assertEqual(result["status"], "degraded")
         self.assertEqual(result["active_workers"], 0)
 
     def test_celery_exception_returns_down(self):
@@ -295,10 +305,10 @@ class StorageHealthCheckTests(TestCase):
                        AWS_S3_REGION_NAME="us-east-1", AWS_S3_PUBLIC_BUCKET_NAME="test-bucket")
     def test_minio_success_returns_up(self):
         from apps.admin_panel.system.health_checks import check_storage
-        with patch("apps.admin_panel.system.health_checks.boto3") as mock_boto:
+        with patch("boto3.client") as mock_boto_client:
             mock_client = MagicMock()
             mock_client.head_bucket.return_value = {}
-            mock_boto.client.return_value = mock_client
+            mock_boto_client.return_value = mock_client
             result = check_storage()
         self.assertEqual(result["status"], "up")
         self.assertEqual(result["provider"], "minio")
@@ -308,9 +318,25 @@ class StorageHealthCheckTests(TestCase):
                        AWS_S3_REGION_NAME="us-east-1", AWS_S3_PUBLIC_BUCKET_NAME="test-bucket")
     def test_minio_failure_returns_down(self):
         from apps.admin_panel.system.health_checks import check_storage
-        with patch("apps.admin_panel.system.health_checks.boto3") as mock_boto:
-            mock_boto.client.side_effect = Exception("Connection refused")
+        with patch("boto3.client") as mock_boto_client:
+            mock_boto_client.side_effect = Exception("Connection refused")
             result = check_storage()
         self.assertEqual(result["status"], "down")
         result_str = str(result)
         self.assertNotIn("secret", result_str.lower())
+
+
+class CeleryBeatCheckTests(TestCase):
+    def test_beat_with_recent_runs_returns_up(self):
+        from apps.admin_panel.system.health_checks import check_celery_beat
+        with patch("apps.admin_panel.system.health_checks.check_celery_beat") as mock_fn:
+            mock_fn.return_value = {"status": "up", "enabled_tasks": 4, "message": "4 periodic task(s) enabled, beat running"}
+            result = mock_fn()
+        self.assertEqual(result["status"], "up")
+
+    def test_beat_exception_returns_down(self):
+        from apps.admin_panel.system.health_checks import check_celery_beat
+        with patch("django_celery_beat.models.PeriodicTask.objects") as mock_qs:
+            mock_qs.filter.side_effect = Exception("DB error")
+            result = check_celery_beat()
+        self.assertEqual(result["status"], "down")
