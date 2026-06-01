@@ -340,3 +340,148 @@ class CeleryBeatCheckTests(TestCase):
             mock_qs.filter.side_effect = Exception("DB error")
             result = check_celery_beat()
         self.assertEqual(result["status"], "down")
+
+
+# ── Service Tests ──────────────────────────────────────────────────────────────
+
+MOCK_SERVICES_ALL_UP = {
+    "backend":        {"status": "up", "message": "Backend is running"},
+    "database":       {"status": "up", "response_time_ms": 5, "message": "Database connection is healthy"},
+    "redis":          {"status": "up", "response_time_ms": 2, "message": "Redis connection is healthy"},
+    "celery":         {"status": "up", "active_workers": 2, "message": "2 Celery worker(s) available"},
+    "celery_queues":  {"status": "up", "queues": {"celery": {"pending": 0}, "notifications": {"pending": 0}, "reports": {"pending": 0}, "default": {"pending": 0}}, "message": "0 total pending task(s)"},
+    "celery_beat":    {"status": "up", "enabled_tasks": 4, "message": "4 periodic task(s) enabled, beat running"},
+    "storage":        {"status": "up", "provider": "minio", "message": "Storage is reachable"},
+}
+
+MOCK_SERVICES_DB_DOWN = {
+    **MOCK_SERVICES_ALL_UP,
+    "database": {"status": "down", "response_time_ms": None, "message": "Database connection failed"},
+}
+
+
+class OverallStatusTests(TestCase):
+    def test_all_up_is_healthy(self):
+        from apps.admin_panel.system.services import _calculate_overall_status
+        self.assertEqual(_calculate_overall_status(MOCK_SERVICES_ALL_UP), "healthy")
+
+    def test_db_down_is_critical(self):
+        from apps.admin_panel.system.services import _calculate_overall_status
+        self.assertEqual(_calculate_overall_status(MOCK_SERVICES_DB_DOWN), "critical")
+
+    def test_redis_down_is_critical(self):
+        from apps.admin_panel.system.services import _calculate_overall_status
+        services = {**MOCK_SERVICES_ALL_UP, "redis": {"status": "down"}}
+        self.assertEqual(_calculate_overall_status(services), "critical")
+
+    def test_celery_down_is_degraded(self):
+        from apps.admin_panel.system.services import _calculate_overall_status
+        services = {**MOCK_SERVICES_ALL_UP, "celery": {"status": "down", "active_workers": 0}}
+        self.assertEqual(_calculate_overall_status(services), "degraded")
+
+    def test_celery_degraded_is_degraded(self):
+        from apps.admin_panel.system.services import _calculate_overall_status
+        services = {**MOCK_SERVICES_ALL_UP, "celery": {"status": "degraded", "active_workers": 0}}
+        self.assertEqual(_calculate_overall_status(services), "degraded")
+
+    def test_storage_down_is_degraded(self):
+        from apps.admin_panel.system.services import _calculate_overall_status
+        services = {**MOCK_SERVICES_ALL_UP, "storage": {"status": "down"}}
+        self.assertEqual(_calculate_overall_status(services), "degraded")
+
+
+class BuildWarningsTests(TestCase):
+    def _now(self):
+        return timezone.now()
+
+    def test_no_warnings_when_all_healthy(self):
+        from apps.admin_panel.system.services import _build_warnings
+        ops = {"pending_notifications": 0, "failed_notifications_24h": 0}
+        result = _build_warnings(MOCK_SERVICES_ALL_UP, ops, self._now())
+        self.assertEqual(result, [])
+
+    def test_db_down_produces_critical_warning(self):
+        from apps.admin_panel.system.services import _build_warnings
+        ops = {"pending_notifications": 0, "failed_notifications_24h": 0}
+        result = _build_warnings(MOCK_SERVICES_DB_DOWN, ops, self._now())
+        codes = [w["code"] for w in result]
+        self.assertIn("DATABASE_DOWN", codes)
+        severities = {w["code"]: w["severity"] for w in result}
+        self.assertEqual(severities["DATABASE_DOWN"], "critical")
+
+    def test_high_pending_notifications_produces_warning(self):
+        from apps.admin_panel.system.services import _build_warnings
+        ops = {"pending_notifications": 150, "failed_notifications_24h": 0}
+        result = _build_warnings(MOCK_SERVICES_ALL_UP, ops, self._now())
+        codes = [w["code"] for w in result]
+        self.assertIn("NOTIFICATION_QUEUE_DELAY", codes)
+
+    def test_low_pending_notifications_no_warning(self):
+        from apps.admin_panel.system.services import _build_warnings
+        ops = {"pending_notifications": 50, "failed_notifications_24h": 0}
+        result = _build_warnings(MOCK_SERVICES_ALL_UP, ops, self._now())
+        codes = [w["code"] for w in result]
+        self.assertNotIn("NOTIFICATION_QUEUE_DELAY", codes)
+
+    def test_warning_has_required_fields(self):
+        from apps.admin_panel.system.services import _build_warnings
+        ops = {"pending_notifications": 200, "failed_notifications_24h": 0}
+        result = _build_warnings(MOCK_SERVICES_ALL_UP, ops, self._now())
+        for w in result:
+            self.assertIn("severity", w)
+            self.assertIn("code", w)
+            self.assertIn("title", w)
+            self.assertIn("message", w)
+            self.assertIn("created_at", w)
+
+
+class BuildSystemOverviewTests(TestCase):
+    @patch("apps.admin_panel.system.services._run_all_health_checks", return_value=MOCK_SERVICES_ALL_UP)
+    @patch("apps.admin_panel.system.services.get_notification_stats", return_value={"pending_notifications": 0, "failed_notifications_24h": 0})
+    @patch("apps.admin_panel.system.services.get_audit_log_stats", return_value={"audit_logs_24h": 10, "error_logs_24h": 0})
+    def test_overview_has_required_keys(self, _audit, _notif, _health):
+        from apps.admin_panel.system.services import build_system_overview
+        result = build_system_overview()
+        self.assertIn("overall_status", result)
+        self.assertIn("generated_at", result)
+        self.assertIn("services", result)
+        self.assertIn("operations", result)
+        self.assertIn("warnings", result)
+
+    @patch("apps.admin_panel.system.services._run_all_health_checks", return_value=MOCK_SERVICES_ALL_UP)
+    @patch("apps.admin_panel.system.services.get_notification_stats", return_value={"pending_notifications": 0, "failed_notifications_24h": 0})
+    @patch("apps.admin_panel.system.services.get_audit_log_stats", return_value={"audit_logs_24h": 0, "error_logs_24h": 0})
+    def test_overview_status_is_healthy(self, _audit, _notif, _health):
+        from apps.admin_panel.system.services import build_system_overview
+        from django.core.cache import cache
+        cache.delete("admin_system_overview")
+        result = build_system_overview()
+        self.assertEqual(result["overall_status"], "healthy")
+
+    @patch("apps.admin_panel.system.services._run_all_health_checks", return_value=MOCK_SERVICES_ALL_UP)
+    @patch("apps.admin_panel.system.services.get_notification_stats", return_value={"pending_notifications": 0, "failed_notifications_24h": 0})
+    @patch("apps.admin_panel.system.services.get_audit_log_stats", return_value={"audit_logs_24h": 0, "error_logs_24h": 0})
+    def test_overview_operations_has_required_fields(self, _audit, _notif, _health):
+        from apps.admin_panel.system.services import build_system_overview
+        from django.core.cache import cache
+        cache.delete("admin_system_overview")
+        result = build_system_overview()
+        ops = result["operations"]
+        self.assertIn("pending_notifications", ops)
+        self.assertIn("failed_notifications_24h", ops)
+        self.assertIn("audit_logs_24h", ops)
+        self.assertIn("error_logs_24h", ops)
+        self.assertIn("failed_offline_sync_24h", ops)
+        self.assertIn("failed_celery_tasks_24h", ops)
+
+    @patch("apps.admin_panel.system.services.build_system_overview")
+    def test_get_cached_system_overview_uses_cache(self, mock_build):
+        from apps.admin_panel.system.services import get_cached_system_overview
+        from django.core.cache import cache
+        cache.delete("admin_system_overview")
+
+        mock_build.return_value = {"overall_status": "healthy"}
+        get_cached_system_overview()
+        get_cached_system_overview()
+        # build_system_overview only called once — second call hit cache
+        self.assertEqual(mock_build.call_count, 1)
