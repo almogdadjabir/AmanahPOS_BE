@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 
 import Logo from '@/components/ui/Logo';
 import { loginAction, requestOtpAction, verifyOtpAction } from '@/actions/auth';
@@ -100,6 +101,8 @@ export default function LoginPage() {
   const locale = useLocale();
   const isRtl  = locale === 'ar';
 
+  const router = useRouter();
+
   const [step,       setStep]       = useState<Step>('enter');
   const [mode,       setMode]       = useState<Mode>('otp');
   const [otpKey,     setOtpKey]     = useState(0);
@@ -122,9 +125,25 @@ export default function LoginPage() {
     setResendSecs(30);
   }, [sentPhone]);
 
+  // OTP verified successfully → show success then navigate
+  useEffect(() => {
+    if (verifyState && 'ok' in verifyState && verifyState.ok) {
+      setStep('success');
+      router.push(`/${verifyState.locale}`);
+    }
+  }, [verifyState, router]);
+
+  // Password login success → navigate
+  useEffect(() => {
+    if (passState && 'ok' in passState && passState.ok) {
+      setStep('success');
+      router.push(`/${passState.locale}`);
+    }
+  }, [passState, router]);
+
   // Verification error → go back to OTP input
   useEffect(() => {
-    if (verifyState?.error) {
+    if (verifyState && 'error' in verifyState && verifyState.error) {
       setStep('otp');
       setOtpError(true);
     }
@@ -139,7 +158,6 @@ export default function LoginPage() {
 
   function handleOtpComplete(code: string) {
     setOtpError(false);
-    setStep('success');
     const fd = new FormData();
     fd.set('phone',  sentPhone);
     fd.set('otp',    code);
@@ -338,7 +356,7 @@ export default function LoginPage() {
                     </a>
                   </div>
 
-                  {passState?.error && (
+                  {passState && 'error' in passState && passState.error && (
                     <p role="alert" className="text-[13px] font-semibold text-[#DC4747]">
                       {t(`errors.${passState.error}` as Parameters<typeof t>[0])}
                     </p>
@@ -433,7 +451,7 @@ export default function LoginPage() {
                 onErrorReset={() => setOtpError(false)}
                 error={otpError}
                 errorMessage={
-                  verifyState?.error
+                  verifyState && 'error' in verifyState && verifyState.error
                     ? t(`errors.${verifyState.error}` as Parameters<typeof t>[0])
                     : ''
                 }

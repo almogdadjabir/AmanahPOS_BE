@@ -5,9 +5,9 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { setRefreshToken } from '@/lib/tokens';
 
-export type LoginState    = { error: 'invalid_credentials' | 'network_error' | 'required' | 'too_many_attempts' | 'no_password' | string } | null;
+export type LoginState    = { error: 'invalid_credentials' | 'network_error' | 'required' | 'too_many_attempts' | 'no_password' | string } | { ok: true; locale: string } | null;
 export type OtpSendState  = { error: string } | { sent: true; phone: string } | null;
-export type OtpVerifyState = { error: string } | null;
+export type OtpVerifyState = { error: string } | { ok: true; locale: string } | null;
 
 const API = () =>
   process.env.INTERNAL_API_URL ||
@@ -76,11 +76,10 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     await setAuthCookie(token);
     if (refresh) await setRefreshToken(refresh);
     await setProfileCookie(user);
+    return { ok: true as const, locale };
   } catch {
     return { error: 'network_error' };
   }
-
-  redirect(`/${locale}`);
 }
 
 // ── OTP step 1 — request code ─────────────────────────────────────────────────
@@ -136,11 +135,10 @@ export async function verifyOtpAction(_prev: OtpVerifyState, formData: FormData)
     await setAuthCookie(token);
     if (refresh) await setRefreshToken(refresh);
     await setProfileCookie(user);
+    return { ok: true as const, locale };
   } catch {
     return { error: 'network_error' };
   }
-
-  redirect(`/${locale}`);
 }
 
 // ── Logout ────────────────────────────────────────────────────────────────────
