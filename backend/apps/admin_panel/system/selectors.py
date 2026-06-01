@@ -12,7 +12,7 @@ def get_notification_stats() -> dict:
     ).count()
     failed_24h = NotificationDelivery.objects.filter(
         status=DeliveryStatus.FAILED,
-        updated_at__gte=cutoff,
+        failed_at__gte=cutoff,
     ).count()
     return {
         "pending_notifications": pending,

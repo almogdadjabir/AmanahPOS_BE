@@ -57,28 +57,65 @@ class NotificationStatsTests(TestCase):
         from apps.notifications.models.delivery import NotificationDelivery, DeliveryStatus
 
         user = _make_admin(phone="+249900000010")
+        before = get_notification_stats()["pending_notifications"]
         for _ in range(3):
             NotificationDelivery.objects.create(
                 recipient=user,
                 channel="push",
                 status=DeliveryStatus.PENDING,
             )
-
-        result = get_notification_stats()
-        self.assertEqual(result["pending_notifications"], 3)
+        after = get_notification_stats()["pending_notifications"]
+        self.assertEqual(after - before, 3)
 
     def test_failed_count_24h_only(self):
+        from django.utils import timezone
+        from datetime import timedelta
         from apps.admin_panel.system.selectors import get_notification_stats
         from apps.notifications.models.delivery import NotificationDelivery, DeliveryStatus
 
         user = _make_admin(phone="+249900000011")
+        now = timezone.now()
+
+        # Recent failure — should be counted
         NotificationDelivery.objects.create(
             recipient=user,
             channel="push",
             status=DeliveryStatus.FAILED,
+            failed_at=now,
         )
+
         result = get_notification_stats()
         self.assertGreaterEqual(result["failed_notifications_24h"], 1)
+
+    def test_failed_count_excludes_old_records(self):
+        from django.utils import timezone
+        from datetime import timedelta
+        from apps.admin_panel.system.selectors import get_notification_stats
+        from apps.notifications.models.delivery import NotificationDelivery, DeliveryStatus
+
+        user = _make_admin(phone="+249900000012")
+        # Old failure (25 hours ago) — should NOT be counted
+        old_time = timezone.now() - timedelta(hours=25)
+        old_record = NotificationDelivery.objects.create(
+            recipient=user,
+            channel="push",
+            status=DeliveryStatus.FAILED,
+            failed_at=old_time,
+        )
+        # Force the failed_at to the old time (create sets auto_now fields)
+        NotificationDelivery.objects.filter(pk=old_record.pk).update(failed_at=old_time)
+
+        before = get_notification_stats()["failed_notifications_24h"]
+        # Create a recent failure
+        NotificationDelivery.objects.create(
+            recipient=user,
+            channel="push",
+            status=DeliveryStatus.FAILED,
+            failed_at=timezone.now(),
+        )
+        after = get_notification_stats()["failed_notifications_24h"]
+        # Only the recent one should be counted (old one excluded)
+        self.assertEqual(after - before, 1)
 
 
 class AuditLogStatsTests(TestCase):
@@ -125,3 +162,22 @@ class AuditLogStatsTests(TestCase):
         )
         result = get_audit_log_stats()
         self.assertEqual(result["error_logs_24h"], 0)
+
+    def test_error_logs_numeric_boundary(self):
+        from apps.admin_panel.system.selectors import get_audit_log_stats
+        from apps.audit_logs.models.audit_log import AuditLog
+
+        user = _make_admin(phone="+249900000022")
+        # 499 should NOT be counted
+        AuditLog.objects.create(
+            user=user, action="other", model_name="test",
+            extra={"status_code": 499, "duration_ms": 5},
+        )
+        # 501 should be counted
+        AuditLog.objects.create(
+            user=user, action="other", model_name="test",
+            extra={"status_code": 501, "duration_ms": 5},
+        )
+        result = get_audit_log_stats()
+        # 499 excluded, 501 included
+        self.assertGreaterEqual(result["error_logs_24h"], 1)
