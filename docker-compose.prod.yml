@@ -77,7 +77,9 @@ services:
   celery_beat:
     <<: *app-common
     container_name: amanapos_celery_beat
-    command: celery -A config.celery beat --loglevel=warning --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    command: celery-beat
+    environment:
+      CELERY_BEAT_LOGLEVEL: "warning"
     depends_on:
       redis:
         condition: service_healthy

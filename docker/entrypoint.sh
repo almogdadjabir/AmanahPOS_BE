@@ -95,7 +95,7 @@ case "$CMD" in
     celery-beat)
         echo "[entrypoint] Starting Celery beat..."
         exec celery -A config.celery beat \
-            --loglevel=info \
+            --loglevel="${CELERY_BEAT_LOGLEVEL:-info}" \
             --scheduler django_celery_beat.schedulers:DatabaseScheduler
         ;;
     *)
