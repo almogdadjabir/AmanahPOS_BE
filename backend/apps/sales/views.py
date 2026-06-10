@@ -23,7 +23,7 @@ from .serializers import (
     RefundRequestSerializer,
     SaleSerializer,
 )
-from .services import cancel_sale, create_sale, process_refund
+from .services import cancel_sale, create_sale, get_sales_report, process_refund
 
 logger = logging.getLogger(__name__)
 
@@ -295,6 +295,85 @@ class SalesSummaryView(APIView):
             ]
 
         return Response({"success": True, "data": response_data})
+
+
+class SalesReportView(APIView):
+    """
+    GET /api/v1/sales/reports/
+
+    Aggregated sales analytics for the mobile dashboard's bento grid:
+    summary totals, trend series, payment method/category/product
+    breakdowns, and peak-hour / day-of-week heatmap data.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        import zoneinfo
+        from datetime import date as date_cls
+
+        tenant = get_tenant_from_request(request)
+        if not tenant:
+            raise BusinessLogicError("No active business found.")
+
+        date_from_str = request.query_params.get("date_from")
+        date_to_str = request.query_params.get("date_to")
+        if not date_from_str or not date_to_str:
+            return Response(
+                {"success": False, "message": "date_from and date_to are required (YYYY-MM-DD)."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            date_from = date_cls.fromisoformat(date_from_str)
+            date_to = date_cls.fromisoformat(date_to_str)
+        except ValueError:
+            return Response(
+                {"success": False, "message": "date_from and date_to must be in YYYY-MM-DD format."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if date_from > date_to:
+            return Response(
+                {"success": False, "message": "date_from must be on or before date_to."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        tz_name = request.query_params.get("timezone") or tenant.timezone
+        try:
+            tz = zoneinfo.ZoneInfo(tz_name)
+        except zoneinfo.ZoneInfoNotFoundError:
+            return Response(
+                {"success": False, "message": f"Unknown timezone: {tz_name}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ── Shop scoping (cashiers are locked to their assigned shop) ────────
+        user = request.user
+        shop = None
+        if user.role == RoleChoices.CASHIER:
+            if not user.default_shop_id:
+                return Response(
+                    {"success": False, "message": "Cashier has no assigned shop"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            shop = user.default_shop
+        else:
+            shop_id = request.query_params.get("shop_id")
+            if shop_id:
+                try:
+                    shop = Shop.objects.get(pk=shop_id, business=tenant, is_active=True)
+                except Shop.DoesNotExist:
+                    raise NotFound("Shop not found.")
+
+        report = get_sales_report(
+            tenant=tenant,
+            date_from=date_from,
+            date_to=date_to,
+            shop=shop,
+            tz=tz,
+            request=request,
+        )
+        return Response({"success": True, "data": report})
 
 
 class OfflineSyncView(APIView):

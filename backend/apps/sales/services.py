@@ -330,3 +330,226 @@ def process_refund(sale: Sale, items: list[dict], notes: str = "", refunded_by=N
         "returned_items": returned_items,
         "sale": sale,
     }
+
+
+def get_sales_report(
+    tenant: Business,
+    date_from,
+    date_to,
+    shop: Shop | None = None,
+    tz=None,
+    request=None,
+    top_n: int = 5,
+) -> dict:
+    """
+    Aggregate sales analytics for the mobile dashboard's bento grid:
+    summary totals, a trend series, payment method/category/product
+    breakdowns, and peak-hour / day-of-week heatmap data.
+
+    date_from/date_to are inclusive `date` objects in `tz` (defaults to
+    the tenant's timezone).
+    """
+    import zoneinfo
+    from datetime import datetime, time as dt_time, timedelta
+
+    from django.db.models import Count, Sum
+    from django.db.models.functions import (
+        ExtractHour,
+        ExtractIsoWeekDay,
+        TruncDate,
+        TruncHour,
+    )
+
+    from apps.core.image_service import build_image_url
+
+    tz = tz or zoneinfo.ZoneInfo(tenant.timezone)
+
+    local_start = datetime.combine(date_from, dt_time.min, tzinfo=tz)
+    local_end = datetime.combine(date_to, dt_time.min, tzinfo=tz) + timedelta(days=1)
+    start_utc = local_start.astimezone(zoneinfo.ZoneInfo("UTC"))
+    end_utc = local_end.astimezone(zoneinfo.ZoneInfo("UTC"))
+
+    base_filter = {
+        "tenant": tenant,
+        "status": SaleStatus.COMPLETED,
+        "created_at__gte": start_utc,
+        "created_at__lt": end_utc,
+    }
+    if shop:
+        base_filter["shop"] = shop
+    base_qs = Sale.objects.filter(**base_filter)
+
+    refund_filter = {
+        "tenant": tenant,
+        "status__in": [SaleStatus.REFUNDED, SaleStatus.PARTIAL_REFUND],
+        "created_at__gte": start_utc,
+        "created_at__lt": end_utc,
+    }
+    if shop:
+        refund_filter["shop"] = shop
+    refund_qs = Sale.objects.filter(**refund_filter)
+
+    # ── Summary ──────────────────────────────────────────────────────────────
+    totals = base_qs.aggregate(gross=Sum("total_amount"), net=Sum("net_amount"), count=Count("id"))
+    refund_totals = refund_qs.aggregate(amount=Sum("net_amount"), count=Count("id"))
+
+    gross = totals["gross"] or Decimal("0")
+    net = totals["net"] or Decimal("0")
+    sales_count = totals["count"] or 0
+    avg_sale = (net / sales_count) if sales_count else Decimal("0")
+
+    summary = {
+        "gross_sales_amount": float(gross),
+        "net_sales_amount": float(net),
+        "sales_count": sales_count,
+        "average_sale_amount": float(round(avg_sale, 2)),
+        "refund_amount": float(refund_totals["amount"] or 0),
+        "refund_count": refund_totals["count"] or 0,
+    }
+
+    # ── Trend ────────────────────────────────────────────────────────────────
+    if date_from == date_to:
+        rows = (
+            base_qs.annotate(bucket=TruncHour("created_at", tzinfo=tz))
+            .values("bucket")
+            .annotate(gross=Sum("total_amount"), net=Sum("net_amount"), count=Count("id"))
+        )
+        bucket_map = {row["bucket"].astimezone(tz).hour: row for row in rows}
+        points = [
+            {
+                "label": f"{hour:02d}:00",
+                "gross_amount": float(bucket_map.get(hour, {}).get("gross") or 0),
+                "net_amount": float(bucket_map.get(hour, {}).get("net") or 0),
+                "sales_count": bucket_map.get(hour, {}).get("count", 0),
+            }
+            for hour in range(24)
+        ]
+        interval = "hour"
+    else:
+        rows = (
+            base_qs.annotate(bucket=TruncDate("created_at", tzinfo=tz))
+            .values("bucket")
+            .annotate(gross=Sum("total_amount"), net=Sum("net_amount"), count=Count("id"))
+        )
+        bucket_map = {row["bucket"]: row for row in rows}
+        points = []
+        current = date_from
+        while current <= date_to:
+            row = bucket_map.get(current, {})
+            points.append({
+                "label": current.isoformat(),
+                "gross_amount": float(row.get("gross") or 0),
+                "net_amount": float(row.get("net") or 0),
+                "sales_count": row.get("count", 0),
+            })
+            current += timedelta(days=1)
+        interval = "day"
+
+    # ── Payment methods ──────────────────────────────────────────────────────
+    payment_methods = [
+        {
+            "method": row["payment_method"],
+            "amount": float(row["amount"] or 0),
+            "count": row["count"],
+        }
+        for row in (
+            base_qs.values("payment_method")
+            .annotate(amount=Sum("net_amount"), count=Count("id"))
+            .order_by("-amount")
+        )
+    ]
+
+    # ── Top products / categories (from sale items) ─────────────────────────
+    item_filter = {
+        "sale__tenant": tenant,
+        "sale__status": SaleStatus.COMPLETED,
+        "sale__created_at__gte": start_utc,
+        "sale__created_at__lt": end_utc,
+    }
+    if shop:
+        item_filter["sale__shop"] = shop
+
+    product_rows = list(
+        SaleItem.objects.filter(**item_filter)
+        .values("product_id")
+        .annotate(quantity_sold=Sum("quantity"), gross_amount=Sum("subtotal"))
+        .order_by("-gross_amount")[:top_n]
+    )
+    product_ids = [row["product_id"] for row in product_rows]
+    products_map = {p.id: p for p in Product.objects.filter(id__in=product_ids, tenant=tenant)}
+    top_products = [
+        {
+            "product_id": str(row["product_id"]),
+            "name": products_map[row["product_id"]].name,
+            "quantity_sold": float(row["quantity_sold"] or 0),
+            "gross_amount": float(row["gross_amount"] or 0),
+            "thumbnail_url": build_image_url(
+                products_map[row["product_id"]].thumbnail, request=request,
+            ),
+        }
+        for row in product_rows
+        if row["product_id"] in products_map
+    ]
+
+    top_categories = [
+        {
+            "category_id": str(row["product__category_id"]),
+            "name": row["product__category__name"],
+            "quantity_sold": float(row["quantity_sold"] or 0),
+            "gross_amount": float(row["gross_amount"] or 0),
+        }
+        for row in (
+            SaleItem.objects.filter(**item_filter, product__category__isnull=False)
+            .values("product__category_id", "product__category__name")
+            .annotate(quantity_sold=Sum("quantity"), gross_amount=Sum("subtotal"))
+            .order_by("-gross_amount")[:top_n]
+        )
+    ]
+
+    # ── Peak hours (0-23, local tz) ──────────────────────────────────────────
+    hour_map = {
+        row["hour"]: row
+        for row in (
+            base_qs.annotate(hour=ExtractHour("created_at", tzinfo=tz))
+            .values("hour")
+            .annotate(amount=Sum("net_amount"), count=Count("id"))
+        )
+    }
+    peak_hours = [
+        {
+            "hour": hour,
+            "sales_count": hour_map.get(hour, {}).get("count", 0),
+            "amount": float(hour_map.get(hour, {}).get("amount") or 0),
+        }
+        for hour in range(24)
+    ]
+
+    # ── Day of week (ISO 1=Mon..7=Sun, local tz) ─────────────────────────────
+    dow_map = {
+        row["weekday"]: row
+        for row in (
+            base_qs.annotate(weekday=ExtractIsoWeekDay("created_at", tzinfo=tz))
+            .values("weekday")
+            .annotate(amount=Sum("net_amount"), count=Count("id"))
+        )
+    }
+    day_of_week = [
+        {
+            "weekday": weekday,
+            "sales_count": dow_map.get(weekday, {}).get("count", 0),
+            "amount": float(dow_map.get(weekday, {}).get("amount") or 0),
+        }
+        for weekday in range(1, 8)
+    ]
+
+    return {
+        "range": {"from": date_from.isoformat(), "to": date_to.isoformat()},
+        "currency": tenant.currency,
+        "summary": summary,
+        "trend": {"interval": interval, "points": points},
+        "payment_methods": payment_methods,
+        "top_products": top_products,
+        "top_categories": top_categories,
+        "peak_hours": peak_hours,
+        "day_of_week": day_of_week,
+    }
