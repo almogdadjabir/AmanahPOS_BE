@@ -478,3 +478,56 @@ class TestSaleTaxSnapshotFields(TestCase):
         )
         self.assertEqual(sale.tax_rate, Decimal("0"))
         self.assertFalse(sale.tax_inclusive)
+
+
+# ─── Task 4: Sales service — server-side tax calculation ─────────────────────
+
+class TestSaleTaxCalculation(TestCase):
+    def setUp(self):
+        self.owner = make_owner(phone="+249900000021")
+        self.business = make_business(self.owner)
+        self.shop = make_shop(self.business)
+        self.product = make_product(self.business, price="100.00")
+        seed_stock(self.product, self.shop, qty=50)
+        self.client = make_auth_client(self.owner)
+
+    def test_tax_disabled_no_change(self):
+        resp = create_sale_via_api(self.client, self.shop, self.product, qty=2)
+        self.assertEqual(resp.status_code, 201)
+        sale = Sale.objects.get(pk=resp.data["data"]["id"])
+        self.assertEqual(sale.total_amount, Decimal("200.00"))
+        self.assertEqual(sale.tax_amount, Decimal("0"))
+        self.assertEqual(sale.net_amount, Decimal("200.00"))
+        self.assertEqual(sale.tax_rate, Decimal("0"))
+        self.assertFalse(sale.tax_inclusive)
+
+    def test_exclusive_tax_added_on_top(self):
+        self.business.tax_enabled = True
+        self.business.tax_rate = Decimal("17.00")
+        self.business.tax_inclusive = False
+        self.business.save()
+
+        resp = create_sale_via_api(self.client, self.shop, self.product, qty=2)
+        self.assertEqual(resp.status_code, 201)
+        sale = Sale.objects.get(pk=resp.data["data"]["id"])
+        self.assertEqual(sale.total_amount, Decimal("200.00"))
+        self.assertEqual(sale.tax_amount, Decimal("34.00"))
+        self.assertEqual(sale.net_amount, Decimal("234.00"))
+        self.assertEqual(sale.tax_rate, Decimal("17.00"))
+        self.assertFalse(sale.tax_inclusive)
+
+    def test_inclusive_tax_extracted_from_price(self):
+        self.business.tax_enabled = True
+        self.business.tax_rate = Decimal("17.00")
+        self.business.tax_inclusive = True
+        self.business.save()
+
+        resp = create_sale_via_api(self.client, self.shop, self.product, qty=2)
+        self.assertEqual(resp.status_code, 201)
+        sale = Sale.objects.get(pk=resp.data["data"]["id"])
+        self.assertEqual(sale.total_amount, Decimal("200.00"))
+        # 200 - (200 / 1.17) = 29.06 (rounded half-up to 2dp)
+        self.assertEqual(sale.tax_amount, Decimal("29.06"))
+        self.assertEqual(sale.net_amount, Decimal("200.00"))
+        self.assertEqual(sale.tax_rate, Decimal("17.00"))
+        self.assertTrue(sale.tax_inclusive)

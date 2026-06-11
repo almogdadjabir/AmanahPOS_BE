@@ -2,7 +2,7 @@
 Sales service: create_sale() orchestrates sale creation, stock deduction, receipt generation.
 """
 import logging
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import transaction
 
@@ -26,7 +26,6 @@ def create_sale(
     payment_method: str = PaymentMethod.CASH,
     customer=None,
     discount_amount: Decimal = Decimal("0"),
-    tax_amount: Decimal = Decimal("0"),
     notes: str = "",
     client_sale_id: str | None = None,
     synced_at=None,
@@ -42,7 +41,6 @@ def create_sale(
         payment_method: Payment method string.
         customer: Optional Customer instance.
         discount_amount: Overall sale discount.
-        tax_amount: Overall tax amount.
         notes: Optional notes.
         client_sale_id: Mobile UUID for offline idempotency (None for online sales).
         synced_at: Timestamp when this offline sale was received by the server.
@@ -103,8 +101,25 @@ def create_sale(
             "subtotal": subtotal,
         })
 
-    # Calculate net amount
-    net_amount = total_amount - discount_amount + tax_amount
+    # Calculate tax and net amount (server-side, single business-wide rate)
+    taxable_amount = total_amount - discount_amount
+
+    if tenant.tax_enabled:
+        rate = tenant.tax_rate / Decimal("100")
+        if tenant.tax_inclusive:
+            # Product price already includes tax — extract it for reporting.
+            tax_amount = taxable_amount - (taxable_amount / (Decimal("1") + rate))
+            net_amount = taxable_amount
+        else:
+            # Tax added on top of the listed price.
+            tax_amount = taxable_amount * rate
+            net_amount = taxable_amount + tax_amount
+
+        tax_amount = tax_amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        net_amount = net_amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    else:
+        tax_amount = Decimal("0")
+        net_amount = taxable_amount
 
     # Create the Sale record
     sale = Sale.objects.create(
@@ -116,6 +131,8 @@ def create_sale(
         total_amount=total_amount,
         discount_amount=discount_amount,
         tax_amount=tax_amount,
+        tax_rate=tenant.tax_rate,
+        tax_inclusive=tenant.tax_inclusive,
         net_amount=net_amount,
         payment_method=payment_method,
         bankak_account_snapshot=bankak_snapshot,

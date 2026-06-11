@@ -119,7 +119,6 @@ class SaleListCreateView(APIView):
             payment_method=data["payment_method"],
             customer=customer,
             discount_amount=data.get("discount_amount", Decimal("0")),
-            tax_amount=data.get("tax_amount", Decimal("0")),
             notes=data.get("notes", ""),
         )
 
@@ -463,7 +462,6 @@ def _sync_one_sale(request, tenant, sale_data: dict, synced_at) -> dict:
             payment_method=sale_data.get("payment_method", PaymentMethod.CASH),
             customer=customer,
             discount_amount=sale_data.get("discount_amount", Decimal("0")),
-            tax_amount=sale_data.get("tax_amount", Decimal("0")),
             notes=sale_data.get("notes", ""),
             client_sale_id=client_sale_id,
             synced_at=synced_at,
