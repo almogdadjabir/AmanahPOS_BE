@@ -460,3 +460,21 @@ class TestSalesSummaryRefundFields(TestCase):
         data = resp.json()["data"]
         self.assertEqual(data["refund_count"], 2)
         self.assertAlmostEqual(float(data["total_refunds"]), 1200.0, places=1)
+
+
+# ─── Task 2: Sale model tax snapshot fields ───────────────────────────────────
+
+class TestSaleTaxSnapshotFields(TestCase):
+    def test_sale_has_tax_snapshot_fields_with_defaults(self):
+        owner = make_owner(phone="+249900000020")
+        business = make_business(owner)
+        shop = make_shop(business)
+        sale = Sale.objects.create(
+            tenant=business,
+            shop=shop,
+            cashier=owner,
+            receipt_number=f"REC-{uuid.uuid4().hex[:8]}",
+            total_amount=Decimal("100.00"),
+        )
+        self.assertEqual(sale.tax_rate, Decimal("0"))
+        self.assertFalse(sale.tax_inclusive)

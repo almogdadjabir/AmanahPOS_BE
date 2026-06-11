@@ -35,6 +35,8 @@ class Sale(models.Model):
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(Decimal("0"))])
     discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(Decimal("0"))])
     tax_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(Decimal("0"))])
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    tax_inclusive = models.BooleanField(default=False)
     net_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(Decimal("0"))])
     payment_method = models.CharField(max_length=30, choices=PaymentMethod.choices, default=PaymentMethod.CASH, db_index=True)
     status = models.CharField(max_length=20, choices=SaleStatus.choices, default=SaleStatus.COMPLETED, db_index=True)
