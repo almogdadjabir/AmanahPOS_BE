@@ -47,6 +47,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         fields = [
             "id", "name", "slug", "business_type", "owner", "logo",
             "address", "phone", "email",
+            "tax_enabled", "tax_name", "tax_rate", "tax_inclusive",
             "active_subscription", "is_active", "shop_count", "shops",
             "created_at", "updated_at",
         ]
@@ -100,7 +101,15 @@ class BusinessUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Business
-        fields = ["name", "address", "phone", "email", "logo", "is_active", "business_type"]
+        fields = [
+            "name", "address", "phone", "email", "logo", "is_active", "business_type",
+            "tax_enabled", "tax_name", "tax_rate", "tax_inclusive",
+        ]
 
     def validate_email(self, value):
         return value or ""
+
+    def validate_tax_rate(self, value):
+        if value < 0 or value > 100:
+            raise serializers.ValidationError("Tax rate must be between 0 and 100.")
+        return value
