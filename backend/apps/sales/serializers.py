@@ -39,12 +39,12 @@ class SaleSerializer(serializers.ModelSerializer):
         fields = [
             "id", "tenant", "shop", "shop_name", "cashier", "cashier_name",
             "customer", "customer_name", "receipt_number",
-            "total_amount", "discount_amount", "tax_amount", "net_amount",
+            "total_amount", "discount_amount", "tax_amount", "tax_rate", "tax_inclusive", "net_amount",
             "payment_method", "bankak_account_snapshot", "status", "notes", "item_count",
             "items", "synced_at", "created_at", "updated_at",
         ]
         read_only_fields = [
-            "id", "tenant", "receipt_number", "net_amount",
+            "id", "tenant", "receipt_number", "tax_amount", "tax_rate", "tax_inclusive", "net_amount",
             "created_at", "updated_at", "synced_at",
         ]
 
@@ -56,17 +56,11 @@ class CreateSaleSerializer(serializers.Serializer):
     payment_method = serializers.ChoiceField(choices=PaymentMethod.choices, default=PaymentMethod.CASH)
     customer = serializers.UUIDField(required=False, allow_null=True)
     discount_amount = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, default=Decimal("0"))
-    tax_amount = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, default=Decimal("0"))
     notes = serializers.CharField(required=False, allow_blank=True, default="")
 
     def validate_discount_amount(self, value):
         if value < 0:
             raise serializers.ValidationError("Discount cannot be negative.")
-        return value
-
-    def validate_tax_amount(self, value):
-        if value < 0:
-            raise serializers.ValidationError("Tax cannot be negative.")
         return value
 
 
@@ -102,9 +96,6 @@ class OfflineSaleInputSerializer(serializers.Serializer):
     discount_amount = serializers.DecimalField(
         max_digits=12, decimal_places=2, required=False, default=Decimal("0"),
     )
-    tax_amount = serializers.DecimalField(
-        max_digits=12, decimal_places=2, required=False, default=Decimal("0"),
-    )
     notes = serializers.CharField(required=False, allow_blank=True, default="")
     # Client's claimed creation time (stored for reference; server timestamp used as DB created_at)
     created_at = serializers.DateTimeField(required=False, allow_null=True)
@@ -113,11 +104,6 @@ class OfflineSaleInputSerializer(serializers.Serializer):
     def validate_discount_amount(self, value):
         if value < 0:
             raise serializers.ValidationError("Discount cannot be negative.")
-        return value
-
-    def validate_tax_amount(self, value):
-        if value < 0:
-            raise serializers.ValidationError("Tax cannot be negative.")
         return value
 
 

@@ -531,3 +531,26 @@ class TestSaleTaxCalculation(TestCase):
         self.assertEqual(sale.net_amount, Decimal("200.00"))
         self.assertEqual(sale.tax_rate, Decimal("17.00"))
         self.assertTrue(sale.tax_inclusive)
+
+
+# ─── Task 5: Sales serializers — tax snapshot fields ──────────────────────────
+
+class TestSaleSerializerTaxFields(TestCase):
+    def test_sale_response_includes_tax_snapshot_fields(self):
+        owner = make_owner(phone="+249900000022")
+        business = make_business(owner)
+        business.tax_enabled = True
+        business.tax_rate = Decimal("17.00")
+        business.tax_inclusive = False
+        business.save()
+        shop = make_shop(business)
+        product = make_product(business, price="100.00")
+        seed_stock(product, shop, qty=10)
+        client = make_auth_client(owner)
+
+        resp = create_sale_via_api(client, shop, product, qty=1)
+        self.assertEqual(resp.status_code, 201)
+        data = resp.data["data"]
+        self.assertEqual(Decimal(data["tax_rate"]), Decimal("17.00"))
+        self.assertEqual(data["tax_inclusive"], False)
+        self.assertEqual(Decimal(data["tax_amount"]), Decimal("17.00"))
