@@ -407,7 +407,9 @@ def get_sales_report(
     refund_qs = Sale.objects.filter(**refund_filter)
 
     # ── Summary ──────────────────────────────────────────────────────────────
-    totals = base_qs.aggregate(gross=Sum("total_amount"), net=Sum("net_amount"), count=Count("id"))
+    totals = base_qs.aggregate(
+        gross=Sum("total_amount"), net=Sum("net_amount"), tax=Sum("tax_amount"), count=Count("id"),
+    )
     refund_totals = refund_qs.aggregate(amount=Sum("net_amount"), count=Count("id"))
 
     gross = totals["gross"] or Decimal("0")
@@ -418,6 +420,7 @@ def get_sales_report(
     summary = {
         "gross_sales_amount": float(gross),
         "net_sales_amount": float(net),
+        "total_tax_collected": float(totals["tax"] or 0),
         "sales_count": sales_count,
         "average_sale_amount": float(round(avg_sale, 2)),
         "refund_amount": float(refund_totals["amount"] or 0),

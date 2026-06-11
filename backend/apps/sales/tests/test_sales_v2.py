@@ -554,3 +554,34 @@ class TestSaleSerializerTaxFields(TestCase):
         self.assertEqual(Decimal(data["tax_rate"]), Decimal("17.00"))
         self.assertEqual(data["tax_inclusive"], False)
         self.assertEqual(Decimal(data["tax_amount"]), Decimal("17.00"))
+
+
+# ─── Task 6: Sales report — total_tax_collected summary field ────────────────
+
+class TestSalesReportTaxSummary(TestCase):
+    def test_total_tax_collected_in_summary(self):
+        import zoneinfo
+        from datetime import datetime
+
+        from apps.sales.services import get_sales_report
+
+        owner = make_owner(phone="+249900000023")
+        business = make_business(owner)
+        business.tax_enabled = True
+        business.tax_rate = Decimal("17.00")
+        business.tax_inclusive = False
+        business.save()
+        shop = make_shop(business)
+        product = make_product(business, price="100.00")
+        seed_stock(product, shop, qty=10)
+        client = make_auth_client(owner)
+
+        resp = create_sale_via_api(client, shop, product, qty=2)
+        self.assertEqual(resp.status_code, 201)
+
+        tz = zoneinfo.ZoneInfo(business.timezone)
+        today = datetime.now(tz).date()
+        report = get_sales_report(tenant=business, date_from=today, date_to=today)
+
+        self.assertIn("total_tax_collected", report["summary"])
+        self.assertEqual(report["summary"]["total_tax_collected"], 34.0)
