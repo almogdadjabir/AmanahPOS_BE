@@ -21,6 +21,7 @@ class BootstrapBusinessSerializer(serializers.ModelSerializer):
             "id", "name", "slug", "business_type",
             "address", "phone", "email",
             "currency", "timezone",
+            "tax_enabled", "tax_name", "tax_rate", "tax_inclusive",
             "is_active", "updated_at",
         ]
 
