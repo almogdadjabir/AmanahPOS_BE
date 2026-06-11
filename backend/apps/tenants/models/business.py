@@ -1,5 +1,7 @@
 import uuid
+from decimal import Decimal
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
 
@@ -39,6 +41,15 @@ class Business(models.Model):
     is_active = models.BooleanField(default=True, db_index=True)
     currency = models.CharField(max_length=10, default="SDG", blank=True)
     timezone = models.CharField(max_length=60, default="Africa/Khartoum", blank=True)
+    tax_enabled = models.BooleanField(default=False)
+    tax_name = models.CharField(max_length=50, default="VAT")
+    tax_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(Decimal("0")), MaxValueValidator(Decimal("100"))],
+    )
+    tax_inclusive = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
