@@ -6,7 +6,7 @@ import { CACHE_TAGS } from '@/lib/cacheTags';
 import { fetchBusiness } from '@/services/owner';
 import { ShopSwitcherBar } from '@/components/ShopSwitcherBar';
 import SalesTableClient from './_components/SalesTableClient';
-import { Clock, Calendar, CreditCard, RotateCcw } from 'lucide-react';
+import { Clock, Calendar, CreditCard, RotateCcw, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -219,10 +219,11 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
   const weekAgo = daysAgo(6);
   const month   = firstOfMonth();
 
-  const [todayRes, monthRes, chartRes] = await Promise.all([
+  const [todayRes, monthRes, chartRes, bizRes] = await Promise.all([
     _todaySummary(today, shopId),
     _monthSummary(month, today, shopId),
     _weekSales(weekAgo, today, shopId),
+    fetchBusiness(),
   ]);
 
   const todayData  = todayRes?.data ?? null;
@@ -237,8 +238,15 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
   const refundCount  = todayData?.refund_count ?? 0;
   const hasRefunds   = refundCount > 0;
 
+  const business    = bizRes?.data?.[0];
+  const taxEnabled  = business?.tax_enabled ?? false;
+  const taxTotal    = parseFloat(todayData?.total_tax ?? '0');
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={cn(
+      'grid grid-cols-1 sm:grid-cols-2 gap-4',
+      taxEnabled ? 'lg:grid-cols-5' : 'lg:grid-cols-4',
+    )}>
 
       {/* Today */}
       <KpiCard
@@ -301,6 +309,18 @@ async function SalesSummarySection({ shopId }: { shopId?: string }) {
             : <>{t('refunds.noRefunds')}</>
         }
       />
+
+      {/* Tax collected — only when tax is enabled for this business */}
+      {taxEnabled && (
+        <KpiCard
+          label={t('taxCollected')}
+          value={taxTotal}
+          icon={<Percent />}
+          footer={
+            <>{business?.tax_name} · {parseFloat(business?.tax_rate ?? '0')}%</>
+          }
+        />
+      )}
     </div>
   );
 }

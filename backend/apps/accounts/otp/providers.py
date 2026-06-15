@@ -40,11 +40,14 @@ class TwilioMessagingOtpSender(BaseOtpSender):
     """
     Delivers OTP via Twilio Programmable Messaging.
 
-    WhatsApp: uses TWILIO_WHATSAPP_FROM (e.g. 'whatsapp:+14155238886' for sandbox)
-    SMS:      uses TWILIO_SMS_FROM
+    WhatsApp: uses TWILIO_MESSAGING_SERVICE_SID + TWILIO_WHATSAPP_OTP_CONTENT_SID
+              (approved WhatsApp authentication template; variable {{1}} = OTP code)
+    SMS:      uses TWILIO_SMS_FROM with a plain-text body
     """
 
     def send_otp(self, phone: str, otp: str, channel: str) -> OtpSendResult:
+        import json
+
         try:
             from twilio.rest import Client
         except ImportError:
@@ -58,28 +61,31 @@ class TwilioMessagingOtpSender(BaseOtpSender):
             logger.error("TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN not configured")
             return OtpSendResult(success=False, error="Twilio credentials not configured")
 
-        minutes = settings.OTP_EXPIRY_SECONDS // 60
-        body = (
-            f"Your AmanaPOS verification code is {otp}. "
-            f"This code expires in {minutes} minutes."
-        )
-
         try:
             client = Client(account_sid, auth_token)
 
             if channel == "whatsapp":
-                from_number = getattr(settings, "TWILIO_WHATSAPP_FROM", "")
-                if not from_number:
-                    return OtpSendResult(success=False, error="TWILIO_WHATSAPP_FROM not configured")
+                messaging_service_sid = getattr(settings, "TWILIO_MESSAGING_SERVICE_SID", "")
+                content_sid           = getattr(settings, "TWILIO_WHATSAPP_OTP_CONTENT_SID", "")
+                if not messaging_service_sid:
+                    return OtpSendResult(success=False, error="TWILIO_MESSAGING_SERVICE_SID not configured")
+                if not content_sid:
+                    return OtpSendResult(success=False, error="TWILIO_WHATSAPP_OTP_CONTENT_SID not configured")
                 client.messages.create(
-                    body=body,
-                    from_=from_number,
+                    messaging_service_sid=messaging_service_sid,
+                    content_sid=content_sid,
+                    content_variables=json.dumps({"1": otp}),
                     to=f"whatsapp:{phone}",
                 )
             else:
                 from_number = getattr(settings, "TWILIO_SMS_FROM", "")
                 if not from_number:
                     return OtpSendResult(success=False, error="TWILIO_SMS_FROM not configured")
+                minutes = settings.OTP_EXPIRY_SECONDS // 60
+                body = (
+                    f"Your AmanaPOS verification code is {otp}. "
+                    f"This code expires in {minutes} minutes."
+                )
                 client.messages.create(
                     body=body,
                     from_=from_number,

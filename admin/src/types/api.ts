@@ -46,6 +46,8 @@ export interface Sale {
   total_amount: string;
   discount_amount: string;
   tax_amount: string;
+  tax_rate: string;
+  tax_inclusive: boolean;
   net_amount: string;
   payment_method: PaymentMethod;
   status: SaleStatus;
@@ -293,6 +295,10 @@ export interface Business {
   is_active: boolean;
   shop_count: number;
   shops: Shop[];
+  tax_enabled: boolean;
+  tax_name: string;
+  tax_rate: string;
+  tax_inclusive: boolean;
   created_at: string;
   updated_at: string;
 }

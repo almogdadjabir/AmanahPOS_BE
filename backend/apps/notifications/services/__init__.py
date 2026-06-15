@@ -68,3 +68,42 @@ def notify_user(
     transaction.on_commit(lambda: deliver_push_notification.delay(delivery_id))
 
     return notification
+
+
+def send_whatsapp_reply(to_phone: str, body: str) -> dict:
+    """
+    Send a free-form WhatsApp reply using the Twilio Messages API.
+
+    Only valid within the 24-hour customer service window (i.e. the recipient
+    sent an inbound message to our WhatsApp number within the last 24 hours).
+    Uses the Messaging Service SID — no Content SID / template required.
+
+    Returns:
+        {"message_sid": str, "status": str}
+
+    Raises:
+        RuntimeError: on Twilio API error or missing configuration.
+    """
+    from django.conf import settings
+
+    try:
+        from twilio.rest import Client
+    except ImportError:
+        raise RuntimeError("twilio package not installed")
+
+    account_sid          = getattr(settings, "TWILIO_ACCOUNT_SID", "")
+    auth_token           = getattr(settings, "TWILIO_AUTH_TOKEN", "")
+    messaging_service_sid = getattr(settings, "TWILIO_MESSAGING_SERVICE_SID", "")
+
+    if not all([account_sid, auth_token, messaging_service_sid]):
+        raise RuntimeError(
+            "TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_MESSAGING_SERVICE_SID must all be set"
+        )
+
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+        to=f"whatsapp:{to_phone}",
+        messaging_service_sid=messaging_service_sid,
+        body=body,
+    )
+    return {"message_sid": message.sid, "status": message.status}

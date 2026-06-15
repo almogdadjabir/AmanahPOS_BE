@@ -159,3 +159,44 @@ class DeviceListView(APIView):
     def get(self, request):
         devices = DeviceToken.objects.filter(user=request.user).order_by("-updated_at")
         return Response(DeviceTokenSerializer(devices, many=True).data)
+
+
+# ── TEMPORARY — remove after WhatsApp delivery testing ────────────────────────
+
+class TestWhatsAppReplyView(APIView):
+    """
+    POST /api-public/v1/notifications/test-whatsapp-reply/
+
+    Sends a free-form WhatsApp reply via Twilio within the 24-hour
+    customer-service window. No auth required — REMOVE AFTER TESTING.
+    """
+    permission_classes = []
+    authentication_classes = []
+
+    def post(self, request):
+        to = request.data.get("to", "").strip()
+        body = request.data.get("body", "").strip()
+
+        if not to or not body:
+            return Response(
+                {"success": False, "error": {"message": "'to' and 'body' are required"}},
+                status=400,
+            )
+
+        if not to.startswith("+"):
+            return Response(
+                {"success": False, "error": {"message": "'to' must be in E.164 format (e.g. +971XXXXXXXXX)"}},
+                status=400,
+            )
+
+        try:
+            from apps.notifications.services import send_whatsapp_reply
+            result = send_whatsapp_reply(to, body)
+        except Exception as exc:
+            logger.exception("TestWhatsAppReplyView failed: %s", exc)
+            return Response(
+                {"success": False, "error": {"message": str(exc)}},
+                status=502,
+            )
+
+        return Response({"success": True, **result})

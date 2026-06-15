@@ -82,6 +82,8 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
   const hasItems      = qtys.some(e => e.qty > 0);
   const isPending     = mode === 'pending';
   const isRefundMode  = mode === 'refund' || mode === 'pending';
+  const hasTax        = !isRefundMode && parseFloat(sale.tax_amount) > 0;
+  const taxableAmount = parseFloat(sale.total_amount) - parseFloat(sale.discount_amount);
   const canInitRefund = canRefund && (sale.status === 'completed' || sale.status === 'partial_refund');
   const statusCfg     = STATUS_CONFIG[sale.status] ?? { pill: 'bg-gray-50 text-gray-500 border-gray-100', dot: 'bg-gray-400' };
 
@@ -261,12 +263,25 @@ function DrawerContent({ sale, canRefund, onClose }: Props) {
 
       {/* ── Total card ────────────────────────────────────────────────── */}
       <div className="px-5 pt-5 pb-4">
+        {/* Tax breakdown — subtotal + tax, shown above the net total */}
+        {hasTax && (
+          <div className="mb-3 space-y-1.5">
+            <div className="flex items-center justify-between text-[12px] text-muted-foreground">
+              <span>{t('drawer.subtotal')}</span>
+              <span className="font-mono tabular-nums">{fmt(taxableAmount)} SDG</span>
+            </div>
+            <div className="flex items-center justify-between text-[12px] text-muted-foreground">
+              <span>{t('drawer.tax')} · {parseFloat(sale.tax_rate)}%</span>
+              <span className="font-mono tabular-nums">{fmt(parseFloat(sale.tax_amount))} SDG</span>
+            </div>
+          </div>
+        )}
         <div className={`rounded-xl px-5 py-4 flex items-end justify-between transition-colors duration-200 ${
           isRefundMode ? 'bg-orange-50 border border-orange-100' : 'bg-muted/40'
         }`}>
           <div>
             <p className="text-[10px] font-black tracking-[.14em] uppercase text-muted-foreground mb-1">
-              {isRefundMode ? t('drawer.refundTotal') : t('columns.amount')}
+              {isRefundMode ? t('drawer.refundTotal') : hasTax ? t('drawer.netTotal') : t('columns.amount')}
             </p>
             {isRefundMode && (
               <p className="text-[11px] text-orange-400 font-mono">

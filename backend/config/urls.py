@@ -21,6 +21,8 @@ urlpatterns = [
     # ── Public API — no token required ────────────────────────────────────────
     path("api-public/v1/", include([
         path("auth/", include("apps.accounts.public_urls", namespace="auth_public")),
+        # TEMPORARY — remove after WhatsApp delivery testing
+        path("notifications/", include("apps.notifications.public_urls", namespace="notifications_public")),
     ])),
 
     # ── Private API — valid JWT required ──────────────────────────────────────

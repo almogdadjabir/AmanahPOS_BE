@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AmanaPOS · Sign in (Light)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#0D7C72; --teal-600:#0D6B63; --teal-700:#0A5C55; --teal-ink:#064E47;
+  --teal-glow:#1FB7A6; --teal-soft:#F0FDFA;
+  --gold:#D4B675;
+  --bg:#F7F9FA; --surface:#FFFFFF;
+  --line:#E9EEF3; --line-2:#DBE3EB;
+  --ink:#0C1521; --ink-2:#46535F; --ink-3:#7A8794; --ink-4:#A6B0BC;
+  --danger:#DC4747;
+  --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:26px;
+  --ease:cubic-bezier(.22,1,.36,.68);
+  --easeOut:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Hanken Grotesk',system-ui,-apple-system,sans-serif;
+  color:var(--ink); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  font-feature-settings:"ss01";
+  position:relative; overflow-x:hidden;
+  background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  min-height:100dvh; padding:40px 20px;
+}
+.tnum{font-variant-numeric:tabular-nums;}
+button{font-family:inherit; cursor:pointer; border:none; background:none;}
+input{font-family:inherit;}
+
+/* ── airy animated backdrop ── */
+.bg-aura{position:fixed; inset:0; z-index:-2; overflow:hidden; pointer-events:none;}
+.bg-aura span{position:absolute; border-radius:50%; filter:blur(70px); opacity:.5;}
+.bg-aura .a1{width:560px; height:560px; top:-180px; inset-inline-start:-160px; background:radial-gradient(closest-side, rgba(31,183,166,.32), transparent); animation:float1 22s ease-in-out infinite alternate;}
+.bg-aura .a2{width:520px; height:520px; bottom:-200px; inset-inline-end:-140px; background:radial-gradient(closest-side, rgba(13,124,114,.22), transparent); animation:float2 26s ease-in-out infinite alternate;}
+.bg-aura .a3{width:360px; height:360px; top:40%; inset-inline-end:18%; background:radial-gradient(closest-side, rgba(212,182,117,.16), transparent); animation:float1 30s ease-in-out infinite alternate-reverse;}
+@keyframes float1{to{transform:translate(40px,30px) scale(1.12);}}
+@keyframes float2{to{transform:translate(-36px,-24px) scale(1.08);}}
+.bg-grid{position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background-image:linear-gradient(rgba(12,21,33,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(12,21,33,.025) 1px,transparent 1px);
+  background-size:54px 54px;
+  -webkit-mask:radial-gradient(120% 90% at 50% 30%,#000 20%,transparent 75%);
+  mask:radial-gradient(120% 90% at 50% 30%,#000 20%,transparent 75%);
+}
+
+/* ── lang ── */
+.lang{position:fixed; top:24px; inset-inline-end:28px; display:flex; gap:2px; padding:3px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.8); backdrop-filter:blur(8px); z-index:10;}
+.lang button{font-size:13px; font-weight:600; color:var(--ink-3); padding:6px 14px; border-radius:999px; transition:.2s var(--ease);}
+.lang button.on{background:var(--ink); color:#fff;}
+
+/* ── card ── */
+.shell{width:100%; max-width:432px; display:flex; flex-direction:column; align-items:center;}
+.brand{display:flex; flex-direction:column; align-items:center; gap:16px; margin-bottom:28px;}
+.logo-mark{width:56px; height:56px; border-radius:16px; position:relative; background:linear-gradient(150deg, var(--teal-glow), var(--teal) 55%, var(--teal-700)); display:grid; place-items:center;
+  box-shadow:0 10px 26px -10px rgba(13,124,114,.7), inset 0 1px 0 rgba(255,255,255,.4);}
+.logo-mark span{font-family:'Space Grotesk'; font-weight:700; font-size:30px; color:#fff;}
+.logo-mark .dot{position:absolute; right:9px; bottom:9px; width:9px; height:9px; border-radius:50%; background:var(--gold); box-shadow:0 0 0 3px rgba(255,255,255,.9);}
+.brand .name{font-family:'Space Grotesk'; font-weight:700; font-size:23px; letter-spacing:-.01em;}
+.brand .sub{font-size:13px; color:var(--ink-3); margin-top:-6px; letter-spacing:.01em;}
+
+.card{
+  width:100%; background:var(--surface); border:1px solid var(--line);
+  border-radius:var(--r-xl); padding:36px 34px;
+  box-shadow:0 1px 2px rgba(12,21,33,.04), 0 22px 50px -28px rgba(12,21,33,.22);
+}
+
+.title{font-family:'Space Grotesk'; font-weight:600; font-size:26px; letter-spacing:-.02em; line-height:1.15;}
+.lead{font-size:15px; color:var(--ink-2); margin-top:8px; line-height:1.5;}
+
+.seg{display:grid; grid-template-columns:1fr 1fr; gap:3px; background:#EFF3F6; border:1px solid var(--line); padding:4px; border-radius:13px; margin:24px 0 22px; position:relative;}
+.seg button{position:relative; z-index:2; padding:11px; border-radius:10px; font-size:14px; font-weight:600; color:var(--ink-3); transition:color .25s var(--ease);}
+.seg button.on{color:var(--ink);}
+.seg-pill{position:absolute; z-index:1; top:4px; bottom:4px; inset-inline-start:4px; width:calc(50% - 4px); border-radius:10px; background:var(--surface); box-shadow:0 1px 3px rgba(12,21,33,.1), 0 1px 1px rgba(12,21,33,.06); transition:transform .34s var(--easeOut);}
+.seg-pill.r{transform:translateX(calc(100% + 0px));}
+[dir=rtl] .seg-pill.r{transform:translateX(calc(-100% - 0px));}
+
+.field{margin-bottom:16px;}
+.label{display:block; font-size:13px; font-weight:600; color:var(--ink-2); margin-bottom:8px;}
+.phone-row{display:flex; gap:9px;}
+.cc{display:flex; align-items:center; gap:9px; padding:0 15px; height:52px; border:1px solid var(--line-2); border-radius:var(--r-md); background:var(--surface); font-weight:700; font-size:15px; white-space:nowrap; transition:.2s var(--ease);}
+.flag{width:24px; height:17px; border-radius:3px; overflow:hidden; flex:none; box-shadow:0 0 0 1px rgba(0,0,0,.05);}
+.inp{flex:1; height:52px; width:100%; padding:0 16px; border:1px solid var(--line-2); border-radius:var(--r-md); background:var(--surface); font-size:15.5px; font-weight:500; color:var(--ink); transition:.2s var(--ease); outline:none;}
+.inp::placeholder{color:var(--ink-4); font-weight:500;}
+.inp:focus, .pw-wrap:focus-within, .cc:focus-within{border-color:var(--teal); box-shadow:0 0 0 4px rgba(13,124,114,.12);}
+.pw-wrap{position:relative; display:flex; align-items:center;}
+.pw-wrap .inp{padding-inline-end:48px;}
+.pw-toggle{position:absolute; inset-inline-end:8px; width:36px; height:36px; border-radius:9px; display:grid; place-items:center; color:var(--ink-3); transition:.18s;}
+.pw-toggle:hover{background:#EFF3F6; color:var(--ink);}
+
+.row-between{display:flex; align-items:center; justify-content:space-between; margin:-2px 0 20px;}
+.check{display:flex; align-items:center; gap:9px; font-size:13.5px; color:var(--ink-2); cursor:pointer; user-select:none;}
+.check input{display:none;}
+.box{width:19px; height:19px; border-radius:6px; border:1.5px solid var(--line-2); display:grid; place-items:center; transition:.18s var(--ease); background:var(--surface);}
+.check input:checked + .box{background:var(--teal); border-color:var(--teal);}
+.box svg{opacity:0; transform:scale(.5); transition:.18s var(--ease);}
+.check input:checked + .box svg{opacity:1; transform:scale(1);}
+.link{font-size:13.5px; font-weight:600; color:var(--teal); transition:.15s;}
+.link:hover{color:var(--teal-700); text-decoration:underline; text-underline-offset:3px;}
+
+.btn{width:100%; height:52px; border-radius:var(--r-md); position:relative; overflow:hidden;
+  background:linear-gradient(180deg, var(--teal-glow) -40%, var(--teal) 40%, var(--teal-600)); color:#fff; font-size:15.5px; font-weight:700;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset, 0 10px 24px -12px rgba(13,124,114,.65);
+  transition:transform .12s var(--ease), box-shadow .2s var(--ease), filter .2s;}
+.btn:hover{filter:brightness(1.04); box-shadow:0 1px 0 rgba(255,255,255,.3) inset, 0 14px 30px -12px rgba(13,124,114,.75);}
+.btn:active{transform:translateY(1px) scale(.995);}
+.btn:disabled{opacity:.55; cursor:not-allowed; filter:grayscale(.2);}
+.btn .arrow{transition:transform .25s var(--ease);}
+.btn:hover .arrow{transform:translateX(3px);}
+[dir=rtl] .btn:hover .arrow{transform:translateX(-3px) scaleX(-1);}
+[dir=rtl] .btn .arrow{transform:scaleX(-1);}
+.spinner{width:19px; height:19px; border:2.5px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.alt{margin-top:14px; height:48px; width:100%; border-radius:var(--r-md); border:1px solid var(--line-2); background:var(--surface); display:flex; align-items:center; justify-content:center; gap:10px; font-size:14.5px; font-weight:600; color:var(--ink-2); transition:.18s var(--ease);}
+.alt:hover{background:#F4F7FA;}
+.wa-ico{width:19px; height:19px;}
+
+.foot-note{margin-top:24px; text-align:center; font-size:13px; color:var(--ink-3);}
+.foot-note a{color:var(--ink-2); font-weight:600; text-decoration:none;}
+.foot-note a:hover{color:var(--teal);}
+
+/* trust row */
+.trust{display:flex; align-items:center; justify-content:center; gap:16px; margin-top:24px; font-size:12px; color:var(--ink-4); flex-wrap:wrap;}
+.trust .it{display:flex; align-items:center; gap:6px;}
+.trust .sep{width:3px; height:3px; border-radius:50%; background:var(--ink-4); opacity:.6;}
+.trust svg{color:var(--teal);}
+
+/* steps */
+.step{display:none;}
+.step.active{display:block; animation:stepIn .5s var(--easeOut);}
+@keyframes stepIn{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
+.back{display:inline-flex; align-items:center; gap:7px; font-size:13.5px; font-weight:600; color:var(--ink-3); margin-bottom:18px; transition:.15s;}
+.back:hover{color:var(--ink);}
+[dir=rtl] .back svg{transform:scaleX(-1);}
+
+.sent-to{display:flex; align-items:center; gap:13px; padding:14px 16px; border-radius:var(--r-md); background:var(--teal-soft); border:1px solid #CCEFE9; margin:22px 0 24px;}
+.sent-ico{width:38px; height:38px; border-radius:11px; background:#fff; display:grid; place-items:center; flex:none; box-shadow:0 1px 3px rgba(13,124,114,.18); color:var(--teal);}
+.sent-to .t{font-size:12px; color:var(--teal-ink); font-weight:600; letter-spacing:.02em;}
+.sent-to .n{font-family:'Space Grotesk'; font-weight:600; font-size:16px; color:var(--teal-ink); margin-top:1px;}
+.sent-to .chg{margin-inline-start:auto; font-size:12.5px; font-weight:600; color:var(--teal); white-space:nowrap;}
+
+.otp-row{display:flex; gap:10px; justify-content:space-between; margin-bottom:8px;}
+.otp{width:100%; aspect-ratio:1/1.1; max-height:60px; text-align:center; font-family:'Space Grotesk'; font-weight:600; font-size:25px; color:var(--ink); border:1.5px solid var(--line-2); border-radius:var(--r-md); background:var(--surface); outline:none; transition:.18s var(--ease); font-variant-numeric:tabular-nums;}
+.otp:focus{border-color:var(--teal); box-shadow:0 0 0 4px rgba(13,124,114,.12); transform:translateY(-2px);}
+.otp.filled{border-color:var(--teal); background:var(--teal-soft);}
+.otp-row.error .otp{border-color:var(--danger); background:#FEF2F2; animation:shake .4s;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
+.err-msg{font-size:13px; color:var(--danger); font-weight:600; height:18px; margin-bottom:14px; opacity:0; transition:.2s;}
+.err-msg.show{opacity:1;}
+.resend{display:flex; align-items:center; justify-content:center; gap:6px; margin-top:20px; font-size:13.5px; color:var(--ink-3);}
+.resend button{font-size:13.5px; font-weight:700; color:var(--teal);}
+.resend button:disabled{color:var(--ink-4); cursor:default;}
+.resend .tnum{font-weight:700; color:var(--ink-2);}
+
+.success-wrap{display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:16px; padding:24px 0;}
+.success-wrap.active{display:flex; animation:stepIn .5s var(--easeOut);}
+.check-ring{width:84px; height:84px; border-radius:50%; background:var(--teal-soft); display:grid; place-items:center; position:relative;}
+.check-ring::before{content:''; position:absolute; inset:0; border-radius:50%; border:2px solid var(--teal); opacity:0; animation:ring 1.4s var(--easeOut) infinite;}
+@keyframes ring{0%{transform:scale(1); opacity:.5;}100%{transform:scale(1.35); opacity:0;}}
+.check-ring svg{width:42px; height:42px;}
+.check-ring path{stroke-dasharray:48; stroke-dashoffset:48; animation:draw .6s .15s var(--easeOut) forwards;}
+@keyframes draw{to{stroke-dashoffset:0;}}
+
+@media (max-width:480px){
+  body{padding:0; align-items:stretch;}
+  .shell{justify-content:center; padding:40px 0;}
+  .card{border-radius:var(--r-lg); padding:30px 22px; border-left:none; border-right:none;}
+  .otp-row{gap:8px;} .otp{font-size:22px;}
+}
+</style>
+</head>
+<body>
+<div class="bg-aura"><span class="a1"></span><span class="a2"></span><span class="a3"></span></div>
+<div class="bg-grid"></div>
+
+<div class="lang" id="lang">
+  <button class="on" data-lang="en">EN</button>
+  <button data-lang="ar">العربية</button>
+</div>
+
+<div class="shell">
+  <div class="brand">
+    <div class="logo-mark"><span>A</span><i class="dot"></i></div>
+    <div style="text-align:center;">
+      <div class="name">AmanaPOS</div>
+      <div class="sub">Point of Sale · Platform</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- STEP 1 -->
+    <section class="step active" id="stepEnter">
+      <h2 class="title">Welcome back</h2>
+      <p class="lead">Sign in to your dashboard to keep the day moving.</p>
+
+      <div class="seg" id="seg">
+        <div class="seg-pill" id="segPill"></div>
+        <button class="on" data-m="otp">One-time code</button>
+        <button data-m="pw">Password</button>
+      </div>
+
+      <div id="mOtp">
+        <div class="field">
+          <label class="label">Phone number</label>
+          <div class="phone-row">
+            <div class="cc"><span class="flag"><svg viewBox="0 0 24 17" width="24" height="17"><rect width="24" height="5.67" y="0" fill="#D21034"/><rect width="24" height="5.66" y="5.67" fill="#fff"/><rect width="24" height="5.67" y="11.33" fill="#000"/><path d="M0 0v17l9-8.5z" fill="#007A3D"/></svg></span>+249</div>
+            <input class="inp tnum" id="phone" inputmode="numeric" placeholder="912 345 678" maxlength="11" autocomplete="tel">
+          </div>
+        </div>
+        <button class="btn" id="sendBtn"><span class="lbl">Send verification code</span><svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <button class="alt" id="waBtn"><svg class="wa-ico" viewBox="0 0 24 24" fill="#25D366"><path d="M12 2a10 10 0 0 0-8.5 15.3L2 22l4.8-1.5A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.9.9-2.7-.2-.3A8 8 0 1 1 12 20zm4.4-6c-.2-.1-1.4-.7-1.6-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5 0a6.5 6.5 0 0 1-1.9-1.2 7.2 7.2 0 0 1-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.2 5.3 5.3 0 0 0 1.1 2.8 12 12 0 0 0 4.6 4 5 5 0 0 0 2.2.5 1.9 1.9 0 0 0 1.3-.9 1.5 1.5 0 0 0 .1-.9c0-.1-.2-.2-.4-.3z"/></svg>Send via WhatsApp instead</button>
+      </div>
+
+      <div id="mPw" style="display:none;">
+        <div class="field">
+          <label class="label">Phone number</label>
+          <div class="phone-row">
+            <div class="cc"><span class="flag"><svg viewBox="0 0 24 17" width="24" height="17"><rect width="24" height="5.67" y="0" fill="#D21034"/><rect width="24" height="5.66" y="5.67" fill="#fff"/><rect width="24" height="5.67" y="11.33" fill="#000"/><path d="M0 0v17l9-8.5z" fill="#007A3D"/></svg></span>+249</div>
+            <input class="inp tnum" inputmode="numeric" placeholder="912 345 678" maxlength="11" autocomplete="tel">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Password</label>
+          <div class="pw-wrap">
+            <input class="inp" id="pw" type="password" placeholder="Enter your password" autocomplete="current-password">
+            <button class="pw-toggle" id="pwToggle" type="button" aria-label="Show password"><svg id="eyeOn" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          </div>
+        </div>
+        <div class="row-between">
+          <label class="check"><input type="checkbox" checked><span class="box"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>Keep me signed in</label>
+          <a class="link" href="#">Forgot password?</a>
+        </div>
+        <button class="btn" id="pwBtn"><span class="lbl">Sign in</span><svg class="arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+
+      <p class="foot-note">New to AmanaPOS? <a href="#">Talk to sales →</a></p>
+    </section>
+
+    <!-- STEP 2 · OTP -->
+    <section class="step" id="stepOtp">
+      <button class="back" id="backBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>Back</button>
+      <h2 class="title">Enter your code</h2>
+      <p class="lead">We sent a 6-digit verification code to your phone.</p>
+      <div class="sent-to">
+        <div class="sent-ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 6l-10 7L2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg></div>
+        <div><div class="t">CODE SENT TO</div><div class="n tnum" id="sentNum">+249 912 345 678</div></div>
+        <button class="chg" id="changeNum">Change</button>
+      </div>
+      <div class="otp-row" id="otpRow">
+        <input class="otp tnum" inputmode="numeric" maxlength="1" autocomplete="one-time-code">
+        <input class="otp tnum" inputmode="numeric" maxlength="1">
+        <input class="otp tnum" inputmode="numeric" maxlength="1">
+        <input class="otp tnum" inputmode="numeric" maxlength="1">
+        <input class="otp tnum" inputmode="numeric" maxlength="1">
+        <input class="otp tnum" inputmode="numeric" maxlength="1">
+      </div>
+      <div class="err-msg" id="otpErr">That code didn't match. Try again.</div>
+      <button class="btn" id="verifyBtn" disabled><span class="lbl">Verify &amp; sign in</span></button>
+      <div class="resend"><span>Didn't get it?</span><button id="resendBtn" disabled>Resend in <span class="tnum" id="timer">30</span>s</button></div>
+      <p style="text-align:center; font-size:12px; color:var(--ink-4); margin-top:16px;">Hint: the demo code is <strong style="color:var(--ink-2);">123456</strong></p>
+    </section>
+
+    <!-- STEP 3 · SUCCESS -->
+    <div class="success-wrap" id="success">
+      <div class="check-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#0D7C72" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <h2 class="title">You're in</h2>
+      <p class="lead" style="margin-top:0;">Taking you to your dashboard…</p>
+    </div>
+  </div>
+
+  <div class="trust">
+    <span class="it"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>End-to-end encrypted</span>
+    <i class="sep"></i>
+    <span class="it tnum">2,400+ merchants</span>
+    <i class="sep"></i>
+    <span class="it">Khartoum</span>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+const segBtns = $$('#seg button');
+segBtns.forEach(b=>b.addEventListener('click',()=>{
+  const m=b.dataset.m;
+  segBtns.forEach(x=>x.classList.toggle('on', x===b));
+  $('#segPill').classList.toggle('r', m==='pw');
+  $('#mOtp').style.display = m==='otp'?'block':'none';
+  $('#mPw').style.display  = m==='pw'?'block':'none';
+}));
+
+const phone = $('#phone');
+function fmtPhone(v){ v=v.replace(/\D/g,'').slice(0,9); return [v.slice(0,3),v.slice(3,6),v.slice(6,9)].filter(Boolean).join(' '); }
+phone.addEventListener('input',()=>{ phone.value=fmtPhone(phone.value); });
+
+$('#pwToggle').addEventListener('click',()=>{
+  const pw=$('#pw'); const show=pw.type==='password'; pw.type=show?'text':'password';
+  $('#eyeOn').innerHTML = show
+    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>';
+});
+
+function goStep(id){
+  $$('.step').forEach(s=>s.classList.remove('active'));
+  $('#success').classList.remove('active');
+  if(id==='success') $('#success').classList.add('active');
+  else $('#'+id).classList.add('active');
+}
+let resendTimer=null;
+function startResend(){
+  let t=30; const btn=$('#resendBtn');
+  btn.disabled=true; btn.innerHTML='Resend in <span class="tnum" id="timer">30</span>s';
+  clearInterval(resendTimer);
+  resendTimer=setInterval(()=>{ t--; const tm=$('#timer'); if(tm) tm.textContent=t; if(t<=0){clearInterval(resendTimer); btn.disabled=false; btn.textContent='Resend code';} },1000);
+}
+function btnLoad(btn,on,label){ if(on){btn.disabled=true; btn.innerHTML='<span class="spinner"></span>';} else {btn.disabled=false; btn.innerHTML='<span class="lbl">'+label+'</span>';} }
+
+$('#sendBtn').addEventListener('click',()=>{
+  const num=phone.value.trim()||'912 345 678';
+  $('#sentNum').textContent='+249 '+num;
+  btnLoad($('#sendBtn'),true);
+  setTimeout(()=>{ btnLoad($('#sendBtn'),false,'Send verification code'); goStep('stepOtp'); startResend(); setTimeout(()=>otps[0].focus(),350); },900);
+});
+$('#waBtn').addEventListener('click',()=>$('#sendBtn').click());
+$('#backBtn').addEventListener('click',()=>goStep('stepEnter'));
+$('#changeNum').addEventListener('click',()=>goStep('stepEnter'));
+$('#resendBtn').addEventListener('click',function(){ if(!this.disabled) startResend(); });
+
+const otps=$$('#otpRow .otp');
+function otpValue(){ return otps.map(o=>o.value).join(''); }
+function checkOtp(){ const full=otpValue().length===6; $('#verifyBtn').disabled=!full; if(full) submitOtp(); }
+otps.forEach((o,i)=>{
+  o.addEventListener('input',()=>{ o.value=o.value.replace(/\D/g,'').slice(0,1); o.classList.toggle('filled',!!o.value); $('#otpRow').classList.remove('error'); $('#otpErr').classList.remove('show'); if(o.value&&i<5) otps[i+1].focus(); checkOtp(); });
+  o.addEventListener('keydown',e=>{ if(e.key==='Backspace'&&!o.value&&i>0){otps[i-1].focus();otps[i-1].value='';otps[i-1].classList.remove('filled');} if(e.key==='ArrowLeft'&&i>0)otps[i-1].focus(); if(e.key==='ArrowRight'&&i<5)otps[i+1].focus(); });
+  o.addEventListener('paste',e=>{ e.preventDefault(); const d=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6); d.split('').forEach((c,j)=>{if(otps[j]){otps[j].value=c;otps[j].classList.add('filled');}}); otps[Math.min(d.length,5)].focus(); checkOtp(); });
+});
+function submitOtp(){
+  const code=otpValue(); btnLoad($('#verifyBtn'),true);
+  setTimeout(()=>{
+    if(code==='123456'){ goStep('success'); }
+    else { btnLoad($('#verifyBtn'),false,'Verify & sign in'); $('#otpRow').classList.add('error'); $('#otpErr').classList.add('show'); otps.forEach(o=>{o.value='';o.classList.remove('filled');}); otps[0].focus(); $('#verifyBtn').disabled=true; }
+  },1000);
+}
+$('#verifyBtn').addEventListener('click',()=>{ if(otpValue().length===6) submitOtp(); });
+$('#pwBtn').addEventListener('click',()=>{ btnLoad($('#pwBtn'),true); setTimeout(()=>goStep('success'),1000); });
+
+$$('#lang button').forEach(b=>b.addEventListener('click',()=>{ $$('#lang button').forEach(x=>x.classList.toggle('on',x===b)); document.documentElement.dir=b.dataset.lang==='ar'?'rtl':'ltr'; }));
+</script>
+</body>
+</html>

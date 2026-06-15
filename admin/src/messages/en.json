@@ -635,6 +635,7 @@
     "today": "Today",
     "thisMonth": "This Month",
     "bankakBalance": "Bankak Balance",
+    "taxCollected": "Tax Collected",
     "thisWeek": "This week",
     "revenueTitle": "7-day Revenue",
     "byMethod": "By Method",
@@ -664,6 +665,8 @@
       "unitPrice": "Unit price",
       "qty": "Qty",
       "subtotal": "Subtotal",
+      "tax": "Tax",
+      "netTotal": "Net Total",
       "refundBtn": "Refund Items",
       "confirmRefund": "Confirm Refund",
       "cancel": "Cancel",
@@ -1498,6 +1501,43 @@
         "warning": "Warning",
         "critical": "Critical"
       }
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your business configuration and preferences.",
+    "noBusiness": {
+      "title": "No business found",
+      "description": "We couldn't find a business linked to your account."
+    },
+    "profile": {
+      "title": "Business Profile",
+      "description": "Update your business name, logo, and contact details.",
+      "logoLabel": "Business logo",
+      "nameLabel": "Business Name",
+      "phoneLabel": "Phone",
+      "phoneHint": "Linked to your login — contact support to change.",
+      "emailLabel": "Email",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Street, city, state",
+      "save": "Save Changes",
+      "saving": "Saving…",
+      "saved": "Profile saved"
+    },
+    "tax": {
+      "title": "Tax Settings",
+      "description": "Configure how tax is calculated and applied to sales, receipts, and reports.",
+      "enableLabel": "Enable Tax",
+      "enableHint": "Turn on to apply tax to all new sales.",
+      "nameLabel": "Tax Name",
+      "nameHint": "Shown on receipts and reports, e.g. VAT, GST.",
+      "rateLabel": "Tax Rate (%)",
+      "rateHint": "Percentage applied to each sale.",
+      "inclusiveLabel": "Prices Include Tax",
+      "inclusiveHint": "When on, product prices already include tax — it's extracted for reporting instead of added on top.",
+      "save": "Save Changes",
+      "saving": "Saving…",
+      "saved": "Settings saved"
     }
   }
 }

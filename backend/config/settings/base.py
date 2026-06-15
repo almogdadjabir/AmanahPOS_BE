@@ -348,11 +348,13 @@ OTP_RESEND_COOLDOWN_SECONDS = env("OTP_RESEND_COOLDOWN_SECONDS")
 SMS_PROVIDER = env("SMS_PROVIDER", default="stub")
 SMS_API_KEY = env("SMS_API_KEY", default="")
 SMS_SENDER_ID = env("SMS_SENDER_ID", default="AmanaPOS")
-TWILIO_ACCOUNT_SID    = env("TWILIO_ACCOUNT_SID", default="")
-TWILIO_AUTH_TOKEN     = env("TWILIO_AUTH_TOKEN", default="")
-TWILIO_FROM_NUMBER    = env("TWILIO_FROM_NUMBER", default="")    # legacy
-TWILIO_SMS_FROM       = env("TWILIO_SMS_FROM", default="")
-TWILIO_WHATSAPP_FROM  = env("TWILIO_WHATSAPP_FROM", default="")
+TWILIO_ACCOUNT_SID              = env("TWILIO_ACCOUNT_SID", default="")
+TWILIO_AUTH_TOKEN               = env("TWILIO_AUTH_TOKEN", default="")
+TWILIO_FROM_NUMBER              = env("TWILIO_FROM_NUMBER", default="")    # legacy
+TWILIO_SMS_FROM                 = env("TWILIO_SMS_FROM", default="")
+TWILIO_WHATSAPP_FROM            = env("TWILIO_WHATSAPP_FROM", default="")  # legacy sandbox sender
+TWILIO_MESSAGING_SERVICE_SID    = env("TWILIO_MESSAGING_SERVICE_SID", default="")
+TWILIO_WHATSAPP_OTP_CONTENT_SID = env("TWILIO_WHATSAPP_OTP_CONTENT_SID", default="")
 BUDGETSMS_USERNAME = env("BUDGETSMS_USERNAME", default="")
 BUDGETSMS_USERID = env("BUDGETSMS_USERID", default="")
 BUDGETSMS_HANDLE = env("BUDGETSMS_HANDLE", default="")

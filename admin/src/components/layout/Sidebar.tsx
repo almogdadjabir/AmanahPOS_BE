@@ -10,7 +10,7 @@ import type { UserProfile, BusinessType } from '@/types/api';
 import {
   LayoutGrid, Users, Store, CreditCard, Server,
   Receipt, Package, BarChart2, UserCheck, CreditCard as SubIcon,
-  LogOut, History, Bell, Sparkles, ChevronRight,
+  LogOut, History, Bell, Sparkles, ChevronRight, Settings,
 } from 'lucide-react';
 
 const ADMIN_NAV = [
@@ -32,6 +32,7 @@ const OWNER_NAV = [
   { key: 'customers',    href: '/customers',    Icon: Users },
   { key: 'staff',        href: '/users',        Icon: UserCheck },
   { key: 'subscription', href: '/subscription', Icon: SubIcon },
+  { key: 'settings',     href: '/settings',     Icon: Settings },
 ] as const;
 
 interface Props { profile: UserProfile; businessType?: BusinessType; isOpen: boolean; onClose: () => void }
