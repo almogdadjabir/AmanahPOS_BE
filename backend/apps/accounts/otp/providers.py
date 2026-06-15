@@ -38,8 +38,8 @@ class StubOtpSender(BaseOtpSender):
 
 class TwilioMessagingOtpSender(BaseOtpSender):
     """
-    Delivers OTP via Twilio WhatsApp using a plain-text message.
-    Requires: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM
+    Delivers OTP via Twilio WhatsApp using the Messaging Service (plain-text).
+    Requires: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_MESSAGING_SERVICE_SID
     """
 
     def send_otp(self, phone: str, otp: str, channel: str) -> OtpSendResult:
@@ -49,17 +49,13 @@ class TwilioMessagingOtpSender(BaseOtpSender):
             logger.error("twilio package not installed")
             return OtpSendResult(success=False, error="twilio package missing")
 
-        account_sid = getattr(settings, "TWILIO_ACCOUNT_SID", "")
-        auth_token  = getattr(settings, "TWILIO_AUTH_TOKEN", "")
-        whatsapp_from = getattr(settings, "TWILIO_WHATSAPP_FROM", "")
+        account_sid           = getattr(settings, "TWILIO_ACCOUNT_SID", "")
+        auth_token            = getattr(settings, "TWILIO_AUTH_TOKEN", "")
+        messaging_service_sid = getattr(settings, "TWILIO_MESSAGING_SERVICE_SID", "")
 
-        if not all([account_sid, auth_token]):
-            logger.error("TWILIO_ACCOUNT_SID or TWILIO_AUTH_TOKEN not configured")
+        if not all([account_sid, auth_token, messaging_service_sid]):
+            logger.error("TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, or TWILIO_MESSAGING_SERVICE_SID not configured")
             return OtpSendResult(success=False, error="Twilio credentials not configured")
-
-        if not whatsapp_from:
-            logger.error("TWILIO_WHATSAPP_FROM not configured")
-            return OtpSendResult(success=False, error="TWILIO_WHATSAPP_FROM not configured")
 
         minutes = settings.OTP_EXPIRY_SECONDS // 60
         body = (
@@ -71,7 +67,7 @@ class TwilioMessagingOtpSender(BaseOtpSender):
             client = Client(account_sid, auth_token)
             client.messages.create(
                 body=body,
-                from_=whatsapp_from,
+                messaging_service_sid=messaging_service_sid,
                 to=f"whatsapp:{phone}",
             )
             logger.info("OTP delivered via Twilio/WhatsApp to %s", mask_phone(phone))
