@@ -38,8 +38,8 @@ class StubOtpSender(BaseOtpSender):
 
 class TwilioMessagingOtpSender(BaseOtpSender):
     """
-    Delivers OTP via Twilio WhatsApp using the Messaging Service (plain-text).
-    Requires: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_MESSAGING_SERVICE_SID
+    Delivers OTP via Twilio WhatsApp (plain-text).
+    Requires: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM
     """
 
     def send_otp(self, phone: str, otp: str, channel: str) -> OtpSendResult:
@@ -49,12 +49,12 @@ class TwilioMessagingOtpSender(BaseOtpSender):
             logger.error("twilio package not installed")
             return OtpSendResult(success=False, error="twilio package missing")
 
-        account_sid           = getattr(settings, "TWILIO_ACCOUNT_SID", "")
-        auth_token            = getattr(settings, "TWILIO_AUTH_TOKEN", "")
-        messaging_service_sid = getattr(settings, "TWILIO_MESSAGING_SERVICE_SID", "")
+        account_sid   = getattr(settings, "TWILIO_ACCOUNT_SID", "")
+        auth_token    = getattr(settings, "TWILIO_AUTH_TOKEN", "")
+        whatsapp_from = getattr(settings, "TWILIO_WHATSAPP_FROM", "")
 
-        if not all([account_sid, auth_token, messaging_service_sid]):
-            logger.error("TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, or TWILIO_MESSAGING_SERVICE_SID not configured")
+        if not all([account_sid, auth_token, whatsapp_from]):
+            logger.error("TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, or TWILIO_WHATSAPP_FROM not configured")
             return OtpSendResult(success=False, error="Twilio credentials not configured")
 
         minutes = settings.OTP_EXPIRY_SECONDS // 60
@@ -67,7 +67,7 @@ class TwilioMessagingOtpSender(BaseOtpSender):
             client = Client(account_sid, auth_token)
             client.messages.create(
                 body=body,
-                messaging_service_sid=messaging_service_sid,
+                from_=whatsapp_from,
                 to=f"whatsapp:{phone}",
             )
             logger.info("OTP delivered via Twilio/WhatsApp to %s", mask_phone(phone))
