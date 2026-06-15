@@ -63,13 +63,22 @@ class TwilioMessagingOtpSender(BaseOtpSender):
             f"This code expires in {minutes} minutes."
         )
 
+        messaging_service_sid = getattr(settings, "TWILIO_MESSAGING_SERVICE_SID", "")
+
         try:
             client = Client(account_sid, auth_token)
-            client.messages.create(
-                body=body,
-                from_=whatsapp_from,
-                to=f"whatsapp:{phone}",
-            )
+            if messaging_service_sid:
+                client.messages.create(
+                    body=body,
+                    messaging_service_sid=messaging_service_sid,
+                    to=f"whatsapp:{phone}",
+                )
+            else:
+                client.messages.create(
+                    body=body,
+                    from_=whatsapp_from,
+                    to=f"whatsapp:{phone}",
+                )
             logger.info("OTP delivered via Twilio/WhatsApp to %s", mask_phone(phone))
             return OtpSendResult(success=True)
 
