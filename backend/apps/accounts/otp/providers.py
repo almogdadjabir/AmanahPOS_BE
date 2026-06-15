@@ -118,9 +118,31 @@ class TwilioMessagingOtpSender(BaseOtpSender):
             return OtpSendResult(success=False, error=str(exc))
 
 
+class BudgetSmsOtpSender(BaseOtpSender):
+    """Delivers OTP via BudgetSMS (SMS only)."""
+
+    def send_otp(self, phone: str, otp: str, channel: str) -> OtpSendResult:
+        from apps.notifications.services.sms.budgetsms import BudgetSmsError, BudgetSmsProvider
+
+        minutes = settings.OTP_EXPIRY_SECONDS // 60
+        body = (
+            f"Your AmanaPOS verification code is {otp}. "
+            f"This code expires in {minutes} minutes."
+        )
+        try:
+            BudgetSmsProvider().send(phone, body)
+            logger.info("OTP delivered via BudgetSMS to %s", mask_phone(phone))
+            return OtpSendResult(success=True)
+        except BudgetSmsError as exc:
+            logger.error("BudgetSMS OTP delivery failed: %s", exc)
+            return OtpSendResult(success=False, error=str(exc))
+
+
 def get_otp_sender() -> BaseOtpSender:
     """Return the configured OTP sender instance."""
     provider = getattr(settings, "OTP_PROVIDER", "stub")
     if provider == "twilio_messaging":
         return TwilioMessagingOtpSender()
+    if provider == "budgetsms":
+        return BudgetSmsOtpSender()
     return StubOtpSender()
