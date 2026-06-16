@@ -1,17 +1,9 @@
-import { Reem_Kufi, Tajawal, Geist, JetBrains_Mono } from 'next/font/google';
+import { Alexandria, Geist, JetBrains_Mono } from 'next/font/google';
 
-export const reemKufi = Reem_Kufi({
+export const alexandria = Alexandria({
   subsets: ['arabic'],
-  variable: '--font-reem-kufi',
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  preload: true,
-});
-
-export const tajawal = Tajawal({
-  subsets: ['arabic'],
-  variable: '--font-tajawal',
-  weight: ['300', '400', '500', '700'],
+  variable: '--font-alexandria',
+  weight: ['300', '400', '500', '600', '700', '800'],
   display: 'swap',
   preload: true,
 });

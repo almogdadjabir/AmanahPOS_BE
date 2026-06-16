@@ -3,7 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
-import { reemKufi, tajawal, geist, jetbrainsMono } from '@/lib/fonts';
+import { alexandria, geist, jetbrainsMono } from '@/lib/fonts';
 import '@/styles/globals.css';
 
 type Props = {
@@ -39,8 +39,12 @@ export default async function LocaleLayout({ children, params }: Props) {
     <html
       lang={locale}
       dir={dir}
-      className={`${reemKufi.variable} ${tajawal.variable} ${geist.variable} ${jetbrainsMono.variable}`}
+      className={`${alexandria.variable} ${geist.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        {/* Runs before paint — restores dark mode without flash */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');document.documentElement.setAttribute('data-theme',t==='dark'?'dark':'light');})()` }} />
+      </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           {children}

@@ -1,5 +1,9 @@
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
+import ThemeToggle from '@/components/ThemeToggle';
+import MobileMenu from '@/components/MobileMenu';
+
+const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || '#';
 
 export default function Nav() {
   const t = useTranslations('nav');
@@ -16,9 +20,10 @@ export default function Nav() {
 
         <div className="nav-links">
           <a href="#features">{t('features')}</a>
+          <a href="#demo">{t('demo')}</a>
           <a href="#how">{t('how')}</a>
           <a href="#pricing">{t('pricing')}</a>
-          <a href="#">{t('signin')}</a>
+          <a href={DASHBOARD_URL}>{t('signin')}</a>
         </div>
 
         <div className="lang-toggle" role="group" aria-label="Language">
@@ -26,10 +31,14 @@ export default function Nav() {
           <Link href="/" locale="en" className={locale === 'en' ? 'active' : ''}>EN</Link>
         </div>
 
-        <a href="#" className="btn">
+        <ThemeToggle />
+
+        <a href={DASHBOARD_URL} className="btn nav-cta">
           <span>{t('cta')}</span>
           <span className="arrow" aria-hidden="true">→</span>
         </a>
+
+        <MobileMenu />
       </div>
     </nav>
   );

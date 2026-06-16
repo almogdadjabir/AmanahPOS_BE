@@ -149,19 +149,7 @@ export default function PosDemo() {
   })();
 
   return (
-    <div className="pos-stage" ref={stageRef} aria-label="Live POS demo">
-      <span className="corner tl" />
-      <span className="corner tr" />
-      <span className="corner bl" />
-      <span className="corner br" />
-      <div className="pos-hud">
-        <span>SYS · POS · 01</span>
-        <span className="hud-r">
-          <span>NET 4G</span>
-          <span className="live">LIVE</span>
-        </span>
-      </div>
-
+    <div className="pos-stage" ref={stageRef} aria-label={isAr ? 'عرض حي لتطبيق نقطة البيع' : 'Live POS app demo'}>
       <div className="app-screen">
 
         {/* iOS-style status bar */}
@@ -193,7 +181,7 @@ export default function PosDemo() {
               <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          <span className="app-synced"><span className="dot" /><span>SYNCED</span></span>
+          <span className="app-synced"><span className="dot" /><span>{isAr ? 'متزامن' : 'SYNCED'}</span></span>
           <span className="app-bell" aria-hidden="true">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
@@ -289,14 +277,14 @@ export default function PosDemo() {
               <path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
               <path d="M9 22V12h6v10"/>
             </svg>
-            Home
+            {isAr ? 'الرئيسية' : 'Home'}
           </span>
           <span className="app-tab">
             <svg className="ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M6 7h12l-1 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/>
               <path d="M9 7V5a3 3 0 0 1 6 0v2"/>
             </svg>
-            Products
+            {isAr ? 'المنتجات' : 'Products'}
           </span>
           <span className="app-tab fab">
             <svg className="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -311,13 +299,13 @@ export default function PosDemo() {
               <circle cx="17" cy="9" r="2.6"/>
               <path d="M16 14h.5a4.5 4.5 0 0 1 4.5 4.5V20"/>
             </svg>
-            Cashiers
+            {isAr ? 'الكاشير' : 'Cashiers'}
           </span>
           <span className="app-tab">
             <svg className="ico" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/>
             </svg>
-            More
+            {isAr ? 'المزيد' : 'More'}
           </span>
         </div>
 
