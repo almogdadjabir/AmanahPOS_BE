@@ -4,20 +4,26 @@ import ScrollReveal from '@/components/ui/ScrollReveal';
 
 const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || '#';
 
+function Star() {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2.5l2.6 5.7 6.2.6-4.7 4.1 1.4 6.1L12 15.9l-5.5 3.2 1.4-6.1L3.2 8.8l6.2-.6z" />
+    </svg>
+  );
+}
+
 export default function Pricing() {
   const t = useTranslations('price');
 
   return (
-    <section id="pricing" className="sec sec-divider">
+    <section id="pricing" className="sec sec-divider price-screen">
       <div className="container-page">
         <SecHead eyebrow={t('eyebrow')} title={<>{t('h2')} <em>{t('h2Accent')}</em></>} lede={t('sub')} />
 
-        <ScrollReveal className="sec-head" delay={1}>
-          <span className="price-note">
-            {t('note1')}<span className="sep" aria-hidden="true" />
-            {t('note2')}<span className="sep" aria-hidden="true" />
-            {t('note3')}
-          </span>
+        <ScrollReveal className="price-note" delay={1}>
+          <span className="pn-item"><span className="pn-chk" aria-hidden="true" />{t('note1')}</span>
+          <span className="pn-item"><span className="pn-chk" aria-hidden="true" />{t('note2')}</span>
+          <span className="pn-item"><span className="pn-chk" aria-hidden="true" />{t('note3')}</span>
         </ScrollReveal>
 
         <div className="price-grid">
@@ -42,9 +48,9 @@ export default function Pricing() {
 
           {/* Business — featured */}
           <ScrollReveal className="plan featured" delay={1}>
+            <span className="plan-ribbon"><Star />{t('popular')}</span>
             <div className="plan-head">
               <span className="name">{t('p2N')}</span>
-              <span className="badge">{t('popular')}</span>
             </div>
             <div className="plan-price">
               {t('p2Price')}
@@ -56,7 +62,6 @@ export default function Pricing() {
               <li>{t('p2F2')}</li>
               <li>{t('p2F3')}</li>
               <li>{t('p2F4')}</li>
-              <li>{t('p2F5')}</li>
               <li>{t('p2F6')}</li>
             </ul>
             <a href={DASHBOARD_URL} className="plan-cta">{t('p2Cta')}</a>
